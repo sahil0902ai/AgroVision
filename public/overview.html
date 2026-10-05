@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Farm Overview — AgroVision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=10">
+<style>
+  .overview-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .overview-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 22px;
+    margin-bottom: 22px;
+  }
+  .overview-stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .overview-stat-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .overview-stat-lbl {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+  .overview-stat-val {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0d3b2e;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body class="dash-body">
+
+  <div class="dash-shell">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <div class="brand">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="23" fill="rgba(255,255,255,0.12)"/>
+          <path d="M24 34c-6-2-10-8-9-16 8-1 14 3 16 9 1 3 0 5-1 7-2-4-6-6-10-7" fill="#ffffff"/>
+          <path d="M24 34c6-2 10-8 9-16-8-1-14 3-16 9-1 3 0 5 1 7 2-4 6-6 10-7" fill="#bfe6cc"/>
+        </svg>
+        <div>
+          <div class="brand-name">AgroVision</div>
+          <div class="brand-tag">Smarter Cotton Farming</div>
+        </div>
+      </div>
+
+      <ul class="side-links">
+        <li><a href="overview.html" class="active">🏠 Overview</a></li>
+        <li><a href="dashboard.html">🌿 Leaf Check</a></li>
+        <li><a href="history.html">📜 History</a></li>
+        <li><a href="#" onclick="alert('My Fields: Parcel management is active for registered zones (Zone 1, 2, and 3).'); return false;">🌾 My Fields</a></li>
+        <li><a href="history.html#reportsSection">📄 Reports</a></li>
+        <li><a href="assistant.html">🤖 AI Assistant</a></li>
+        <li><a href="#" onclick="alert('Settings: telemetry preferences and farm settings.'); return false;">⚙️ Settings</a></li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">↩ Log Out</button>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="dash-main">
+      <div class="overview-container">
+
+        <!-- Top Header -->
+        <div class="dash-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
+          <div>
+            <h1 id="welcomeMsg" style="font-size:1.65rem; margin-bottom:4px; font-weight:700; color:#0d3b2e;">Welcome back, Sahil</h1>
+            <p style="margin:0; font-size:13px; color:#5b6b63;">Observation: <span id="todayDate">Today</span> · Farm Overview &amp; Health Monitoring</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:12px; font-weight:700; color:#475569;">Field:</span>
+              <select id="fieldSelect" style="padding:7px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; font-weight:600; background:#ffffff; color:#1e293b; outline:none; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                <option value="My Field A - North Parcel">Field A — North Parcel (Zone 1)</option>
+                <option value="My Field B - South Parcel">Field B — South Parcel (Zone 2)</option>
+                <option value="My Field C - East Plot">Field C — East Plot (Zone 3)</option>
+              </select>
+            </div>
+            <a href="dashboard.html" class="btn btn-primary" style="padding:8px 16px; font-size:12px; border-radius:8px; text-decoration:none;">
+              + New Analysis
+            </a>
+          </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="overview-stat-row">
+          <div class="overview-stat-card">
+            <div class="overview-stat-lbl">Active Parcels</div>
+            <div class="overview-stat-val">3 Zones</div>
+          </div>
+          <div class="overview-stat-card">
+            <div class="overview-stat-lbl">Recorded Scans</div>
+            <div class="overview-stat-val" id="statTotalScans">…</div>
+          </div>
+          <div class="overview-stat-card">
+            <div class="overview-stat-lbl">Latest Field Status</div>
+            <div class="overview-stat-val" id="statLatestStatus" style="font-size:1.25rem; color:#059669;">Active</div>
+          </div>
+        </div>
+
+        <!-- Main Content 2-Column Grid -->
+        <div class="overview-grid">
+          
+          <!-- LEFT: Latest Analysis & Crop Status -->
+          <div class="panel">
+            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">Recent Field Analysis</h3>
+            
+            <div id="latestAnalysisCard" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
+              <div style="font-size:12px; color:#64748b; margin-bottom:4px;" id="latestAnalysisDate">Loading latest record…</div>
+              <div style="font-size:1.2rem; font-weight:800; color:#0d3b2e;" id="latestAnalysisClass">Leaf Analysis</div>
+              <p style="font-size:13px; color:#334155; margin:6px 0 12px; line-height:1.5;" id="latestAnalysisSummary">
+                Checking local database telemetry…
+              </p>
+              <a href="history.html" class="btn btn-outline" style="font-size:12px; padding:6px 14px; border-radius:6px; text-decoration:none;">
+                View All History →
+              </a>
+            </div>
+
+            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:10px;">Recent Expert Checks</h3>
+            <div id="recentAlertsList" style="display:flex; flex-direction:column; gap:8px;">
+              <div style="padding:10px 14px; background:#ffffff; border:1px solid #e2e8f0; border-left:4px solid #059669; border-radius:6px; font-size:12px; color:#334155;">
+                <strong>Baseline Stability:</strong> Environmental parameters are within normal agronomic thresholds.
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Quick Actions & Environmental Summary -->
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div class="panel">
+              <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">Field Telemetry Status</h3>
+              <div class="compact-env-grid">
+                <div class="compact-env-tile"><div class="compact-env-icon">🌡️</div><div class="compact-env-val">31°C</div><div class="compact-env-lbl">Temperature</div></div>
+                <div class="compact-env-tile"><div class="compact-env-icon">💧</div><div class="compact-env-val">72%</div><div class="compact-env-lbl">Humidity</div></div>
+                <div class="compact-env-tile"><div class="compact-env-icon">🌱</div><div class="compact-env-val">68%</div><div class="compact-env-lbl">Soil Moisture</div></div>
+                <div class="compact-env-tile"><div class="compact-env-icon">🫧</div><div class="compact-env-val">84</div><div class="compact-env-lbl">AQI</div></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">Quick Actions</h3>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <a href="dashboard.html" class="btn btn-primary" style="justify-content:center; text-decoration:none; font-size:13px; padding:10px; border-radius:8px;">
+                  🌿 Launch New Leaf Check
+                </a>
+                <a href="assistant.html" class="btn btn-outline" style="justify-content:center; text-decoration:none; font-size:13px; padding:10px; border-radius:8px;">
+                  🤖 Consult AI Assistant
+                </a>
+                <a href="history.html#reportsSection" class="btn btn-outline" style="justify-content:center; text-decoration:none; font-size:13px; padding:10px; border-radius:8px;">
+                  📄 Generate PDF Report
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js?v=10"></script>
+  <script src="js/overview.js?v=10"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+/* =========================================================
+   Animations for AgroVision homepage
+   ========================================================= */
+
+/* Fade‑in on page load */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scale‑up on hover for buttons */
+@keyframes btnHoverScale {
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
+}
+
+/* Glass‑morphism overlay for hero background */
+.hero::before {
+  animation: fadeIn 1.2s ease-out forwards;
+}
+
+.section-head, .feature, .analysis-card, .footer {
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+.btn-primary:hover, .btn-outline:hover {
+  animation: btnHoverScale 0.2s ease-out forwards;
+}
+
+/* Subtle pulse for stress dots */
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.dot {
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+/* Responsive animation adjustments */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+  }
+}

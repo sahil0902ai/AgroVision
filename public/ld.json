@@ -1,0 +1,13 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "AgroVision",
+  "url": "https://agrovision.example.com",
+  "logo": "https://agrovision.example.com/logo.png",
+  "contactPoint": [{
+    "@type": "ContactPoint",
+    "email": "info@agrovision.example.com",
+    "telephone": "+1-800-555-0199",
+    "contactType": "Customer Support"
+  }]
+}

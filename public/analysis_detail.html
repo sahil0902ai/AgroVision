@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Analysis Detail — AgroVision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=3">
+<style>
+  .detail-container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  .action-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #065f46;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .badge-high { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+  .badge-mod { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+  .badge-low { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+  .image-compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .image-box {
+    text-align: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .image-box img {
+    max-width: 100%;
+    max-height: 240px;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+  .meta-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .meta-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .meta-label {
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .meta-val {
+    font-size: 14px;
+    color: #0f172a;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .rule-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #d97706;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body class="dash-body">
+
+  <div class="dash-shell">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <div class="brand">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="23" fill="rgba(255,255,255,0.12)"/>
+          <path d="M24 34c-6-2-10-8-9-16 8-1 14 3 16 9 1 3 0 5-1 7-2-4-6-6-10-7" fill="#ffffff"/>
+          <path d="M24 34c6-2 10-8 9-16-8-1-14 3-16 9-1 3 0 5 1 7 2-4 6-6 10-7" fill="#bfe6cc"/>
+        </svg>
+        <div>
+          <div class="brand-name">AgroVision</div>
+          <div class="brand-tag">Smarter Cotton Farming</div>
+        </div>
+      </div>
+
+      <ul class="side-links">
+        <li><a href="overview.html">🏠 Overview</a></li>
+        <li><a href="dashboard.html">🌿 Leaf Check</a></li>
+        <li><a href="history.html" class="active">📜 History</a></li>
+        <li><a href="#" onclick="alert('My Fields: Parcel management is active for registered zones (Zone 1, 2, and 3).'); return false;">🌾 My Fields</a></li>
+        <li><a href="history.html#reportsSection">📄 Reports</a></li>
+        <li><a href="assistant.html">🤖 AI Assistant</a></li>
+        <li><a href="#" onclick="alert('Settings: telemetry preferences and farm settings.'); return false;">⚙️ Settings</a></li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">↩ Log Out</button>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="dash-main">
+      <div class="detail-container">
+
+        <!-- Action Header -->
+        <div class="action-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
+          <div>
+            <a href="history.html" style="font-size:13px; color:#059669; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px; margin-bottom:6px;">
+              ← Back to Analysis History
+            </a>
+            <h1 style="margin:0; font-size:1.6rem; color:#0d3b2e;" id="pageTitle">Analysis Record Inspection</h1>
+            <p style="margin:2px 0 0; font-size:13px; color:#64748b;" id="pageSub">UUID: Loading…</p>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a id="reportBtn" href="#" target="_blank" class="btn btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+              🖨️ View / Print Report
+            </a>
+            <a href="dashboard.html" class="btn btn-action-outline" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+              + New Scan
+            </a>
+          </div>
+        </div>
+
+        <div id="loadingState" style="text-align:center; padding:60px; color:#6b7280;">
+          <div style="font-size:28px; margin-bottom:12px;">⏳</div>
+          <strong>Retrieving verified historical record…</strong>
+        </div>
+
+        <div id="detailContent" style="display:none;">
+
+          <!-- 1. FINAL ASSESSMENT HERO -->
+          <div class="card" style="border:2px solid #059669; background:linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+              <div>
+                <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#065f46; letter-spacing:0.04em;">Primary Decision Support Finding</div>
+                <h2 style="margin:4px 0 0; font-size:1.4rem; color:#064e3b;" id="heroClass">Water Stress</h2>
+              </div>
+              <span id="heroSeverityBadge" class="badge-tag badge-high">High Risk</span>
+            </div>
+            <p style="margin:0 0 14px; font-size:14px; color:#1f2937; line-height:1.5;" id="heroSummary">
+              The visual analysis identified water stress symptoms, consistent with elevated environmental risk.
+            </p>
+            <div class="meta-list" id="heroMetaList"></div>
+          </div>
+
+          <!-- 2. LEAF IMAGES & CNN VISUAL OBSERVABLE -->
+          <div class="card">
+            <div class="card-title">🌿 1. Visual Leaf Evidence (CNN Model)</div>
+            <div class="image-compare-grid">
+              <div class="image-box">
+                <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:8px;">Original Leaf Image</div>
+                <img id="leafImg" src="" alt="Uploaded leaf" />
+              </div>
+              <div class="image-box" id="heatmapBox">
+                <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:8px;">Grad-CAM Heatmap Overlay</div>
+                <img id="heatmapImg" src="" alt="Grad-CAM heatmap" onerror="document.getElementById('heatmapBox').style.display='none'" />
+              </div>
+            </div>
+
+            <div style="margin-top:16px;">
+              <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:#475569; margin-bottom:8px;">Class Probability Distribution</div>
+              <div id="cnnProbsContainer"></div>
+            </div>
+          </div>
+
+          <!-- 3. SNN ENVIRONMENTAL ASSESSMENT & INPUTS -->
+          <div class="card">
+            <div class="card-title">🛰️ 2. Field Environmental Risk (SNN Spiking Model)</div>
+            <div class="meta-list" id="envInputsGrid"></div>
+            <div style="margin-top:14px; font-size:12px; color:#475569;" id="snnSpikesSummary">
+              Spiking Neural Network simulation across T=10 timesteps.
+            </div>
+          </div>
+
+          <!-- 4. DETERMINISTIC EXPERT VETO RULES & PRECAUTIONS -->
+          <div class="card">
+            <div class="card-title">⚖️ 3. Expert Veto Rules &amp; Farm Precautions</div>
+            <div id="rulesContainer"></div>
+          </div>
+
+          <!-- 5. DISCLAIMER -->
+          <div style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:10px; padding:12px 16px; font-size:11px; color:#64748b; margin-bottom:32px;">
+            <strong>Advisory Notice:</strong> Individual evaluation benchmarks: CNN Test Accuracy = 86.05%, SNN Test Accuracy = 91.81%. Expert-rule thresholds are illustrative decision-support guides and require agronomic validation before operational intervention.
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js?v=3"></script>
+  <script src="js/analysis_detail.js?v=3"></script>
+</body>
+</html>

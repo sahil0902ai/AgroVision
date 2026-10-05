@@ -98,7 +98,10 @@ if os.path.exists("uploads"):
 # Mount Existing HTML Frontend if present
 import pathlib
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent.parent  # backend/app -> project root
-frontend_dir = BASE_DIR / "frontend" / "agrovision"
+frontend_dir = BASE_DIR / "public"
+if not frontend_dir.is_dir():
+    frontend_dir = BASE_DIR / "frontend" / "agrovision"
+
 if frontend_dir.is_dir():
     app.mount("/agrovision", StaticFiles(directory=str(frontend_dir), html=True), name="agrovision")
     logger.info(f"🔧 Front‑end mounted at /agrovision from {frontend_dir}")

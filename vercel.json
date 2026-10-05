@@ -5,63 +5,51 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/frontend/agrovision/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/overview",
-      "destination": "/frontend/agrovision/overview.html"
+      "destination": "/overview.html"
     },
     {
       "source": "/dashboard",
-      "destination": "/frontend/agrovision/dashboard.html"
+      "destination": "/dashboard.html"
     },
     {
       "source": "/history",
-      "destination": "/frontend/agrovision/history.html"
+      "destination": "/history.html"
     },
     {
       "source": "/assistant",
-      "destination": "/frontend/agrovision/assistant.html"
+      "destination": "/assistant.html"
     },
     {
       "source": "/login",
-      "destination": "/frontend/agrovision/login.html"
+      "destination": "/login.html"
     },
     {
       "source": "/services",
-      "destination": "/frontend/agrovision/services.html"
+      "destination": "/services.html"
     },
     {
       "source": "/about",
-      "destination": "/frontend/agrovision/about.html"
+      "destination": "/about.html"
     },
     {
       "source": "/analysis_detail",
-      "destination": "/frontend/agrovision/analysis_detail.html"
+      "destination": "/analysis_detail.html"
     },
     {
       "source": "/agrovision",
-      "destination": "/frontend/agrovision/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/agrovision/",
-      "destination": "/frontend/agrovision/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/agrovision/:path*",
-      "destination": "/frontend/agrovision/:path*"
-    },
-    {
-      "source": "/css/:path*",
-      "destination": "/frontend/agrovision/css/:path*"
-    },
-    {
-      "source": "/js/:path*",
-      "destination": "/frontend/agrovision/js/:path*"
-    },
-    {
-      "source": "/images/:path*",
-      "destination": "/frontend/agrovision/images/:path*"
+      "destination": "/:path*"
     }
   ],
   "headers": [

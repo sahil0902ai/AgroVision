@@ -1,0 +1,63 @@
+/* =========================================================
+   Design System for AgroVision – CSS Tokens & Utilities
+   ========================================================= */
+
+/* Core color palette */
+:root {
+  /* Primary brand colors */
+  --color-primary: #1e824c;           /* Main green */
+  --color-primary-dark: #146c3c;      /* Darker shade for hover/focus */
+  --color-primary-light: #eaf3ec;     /* Light background tint */
+
+  /* Accent / status colors */
+  --color-success: #2fa15c;           /* Positive actions */
+  --color-warning: #f0a53c;           /* Warnings / alerts */
+  --color-danger: #e6483a;            /* Errors / critical */
+  --color-info: #3b8fd6;              /* Informational */
+  --color-purple: #8a5cd1;            /* Additional accent */
+
+  /* Neutral palette */
+  --color-white: #ffffff;
+  --color-black: #16241d;
+  --color-gray: #5b6b63;
+  --color-border-light: #e3ece6;
+
+  /* Sizing & spacing */
+  --radius-lg: 18px;   /* Large rounded corners */
+  --radius-md: 12px;   /* Medium rounded corners */
+  --radius-sm: 8px;    /* Small rounded corners */
+  --spacing-unit: 8px; /* Base spacing unit for margins/paddings */
+
+  /* Typography */
+  --font-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Poppins', 'Inter', sans-serif;
+
+  /* Shadows */
+  --shadow-elevate: 0 20px 45px rgba(13, 59, 46, 0.12);
+}
+
+/* Dark‑mode overrides – respects user OS preference */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #2fa15c;
+    --color-primary-dark: #1e824c;
+    --color-primary-light: #0d3b2e;
+    --color-white: #fafafa;
+    --color-black: #e0e0e0;
+    --color-gray: #c0c0c0;
+    --color-border-light: #32433c;
+    --shadow-elevate: 0 20px 45px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Utility helpers – use sparingly to keep HTML clean */
+.text-primary { color: var(--color-primary); }
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-danger  { color: var(--color-danger); }
+.bg-primary   { background: var(--color-primary); }
+.bg-light     { background: var(--color-primary-light); }
+.rounded-lg   { border-radius: var(--radius-lg); }
+.rounded-md   { border-radius: var(--radius-md); }
+.rounded-sm   { border-radius: var(--radius-sm); }
+.shadow-elev  { box-shadow: var(--shadow-elevate); }
