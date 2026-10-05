@@ -457,6 +457,41 @@ function renderFigure7(data) {
   const envClass = data.environmental_assessment?.severity || (latestSNNResult?.prediction?.class || "High");
   const snnSpikes = latestSNNResult?.spike_counts?.[envClass] !== undefined ? latestSNNResult.spike_counts[envClass] : 8;
 
+  // 1. Summary Strip (Section 11)
+  const stripVis = document.getElementById("stripVisualVal");
+  const stripEnv = document.getElementById("stripEnvVal");
+  const stripRel = document.getElementById("stripRelVal");
+  const stripExp = document.getElementById("stripExpertVal");
+
+  if (stripVis) stripVis.textContent = `${visualClass} (${visualConf}%)`;
+  if (stripEnv) stripEnv.textContent = `${envClass} (${snnSpikes}/10 Spikes)`;
+
+  const concordance = fusion.concordance_type || "ALIGNED";
+  let relLabel = "Aligned";
+  let relColor = "#059669";
+  if (concordance === "ALIGNED") {
+    relLabel = "Aligned";
+    relColor = "#059669";
+  } else if (concordance === "PARTIALLY_ALIGNED") {
+    relLabel = "Partially Aligned";
+    relColor = "#d97706";
+  } else if (concordance === "CONFLICTING") {
+    relLabel = "Conflicting Signals";
+    relColor = "#dc2626";
+  } else {
+    relLabel = "Optimal Baseline";
+    relColor = "#059669";
+  }
+
+  if (stripRel) {
+    stripRel.textContent = relLabel;
+    stripRel.style.color = relColor;
+  }
+  if (stripExp) {
+    stripExp.textContent = rules.length > 0 ? "Precaution Detected" : "Baseline Stability";
+    stripExp.style.color = rules.length > 0 ? "#d97706" : "#059669";
+  }
+
   // Top Left Mini Cards
   const cnnTitle = document.getElementById("fig7CNNTitle");
   const cnnConf = document.getElementById("fig7CNNConf");
@@ -473,48 +508,36 @@ function renderFigure7(data) {
   const evRel = document.getElementById("fig7EvidenceRelationship");
   if (evVisual) evVisual.textContent = `${visualClass} (CNN Confidence: ${visualConf}%)`;
   if (evEnv) evEnv.textContent = `${envClass} Risk (${snnSpikes}/10 Spikes)`;
-
-  const concordance = fusion.concordance_type || "ALIGNED";
-  let relLabel = "Aligned";
   if (evRel) {
-    if (concordance === "ALIGNED") {
-      relLabel = "Aligned";
-      evRel.textContent = "Aligned";
-      evRel.style.background = "#ecfdf5";
-      evRel.style.color = "#059669";
-      evRel.style.borderColor = "#a7f3d0";
-    } else if (concordance === "PARTIALLY_ALIGNED") {
-      relLabel = "Partially Aligned";
-      evRel.textContent = "Partially Aligned";
-      evRel.style.background = "#fef3c7";
-      evRel.style.color = "#d97706";
-      evRel.style.borderColor = "#fde68a";
-    } else if (concordance === "CONFLICTING") {
-      relLabel = "Conflicting Signals";
-      evRel.textContent = "Conflicting Signals";
-      evRel.style.background = "#fee2e2";
-      evRel.style.color = "#dc2626";
-      evRel.style.borderColor = "#fca5a5";
-    } else {
-      relLabel = "Optimal Baseline";
-      evRel.textContent = "Optimal Baseline";
-      evRel.style.background = "#ecfdf5";
-      evRel.style.color = "#059669";
-      evRel.style.borderColor = "#a7f3d0";
-    }
+    evRel.textContent = relLabel;
+    evRel.style.color = relColor;
+    evRel.style.background = relColor === "#059669" ? "#ecfdf5" : (relColor === "#d97706" ? "#fef3c7" : "#fee2e2");
+    evRel.style.borderColor = relColor === "#059669" ? "#a7f3d0" : (relColor === "#d97706" ? "#fde68a" : "#fca5a5");
   }
 
-  // Final Assessment Hero
+  // Final Assessment Hero Card & Color Balance (Section 16)
   const finalTitle = document.getElementById("fig7FinalTitle");
   const visualConfBadge = document.getElementById("fig7VisualConfBadge");
   const finalDesc = document.getElementById("fig7FinalDesc");
-  if (finalTitle) finalTitle.textContent = final.finding || visualClass;
-  if (visualConfBadge) visualConfBadge.textContent = `CNN Confidence: ${visualConf}%`;
-  if (finalDesc) {
-    finalDesc.textContent = `The visual assessment indicates a pattern associated with ${visualClass.toLowerCase()}, while the environmental assessment indicates ${envClass.toLowerCase()} risk. The two signals are ${relLabel.toLowerCase()}.`;
+  const heroCard = document.getElementById("fig7HeroFindingCard");
+
+  if (finalTitle) {
+    finalTitle.textContent = final.finding || visualClass;
+    if (visualClass === "Healthy") {
+      finalTitle.style.color = "#15803d";
+    } else if (visualClass === "Nutrient Deficiency" || envClass === "Moderate") {
+      finalTitle.style.color = "#d97706";
+    } else {
+      finalTitle.style.color = "#b91c1c";
+    }
   }
 
-  // Expert Check Box
+  if (visualConfBadge) visualConfBadge.textContent = `CNN Confidence: ${visualConf}%`;
+  if (finalDesc) {
+    finalDesc.textContent = `The visual assessment indicates foliar patterns associated with ${visualClass.toLowerCase()}, while the microclimate assessment indicates ${envClass.toLowerCase()} environmental risk. Evidence relationship: ${relLabel.toLowerCase()}.`;
+  }
+
+  // Expert Check Box (Section 13)
   const expertBox = document.getElementById("fig7ExpertBox");
   const expertStatus = document.getElementById("fig7ExpertStatus");
   const expertText = document.getElementById("fig7ExpertText");
@@ -562,13 +585,30 @@ function renderFigure7(data) {
     }
   }
 
-  // Precautions List
+  // Precautions List (Section 14)
   const precList = document.getElementById("fig7PrecautionsList");
   if (precList && final.precautions && final.precautions.length > 0) {
     precList.innerHTML = final.precautions.map(p => `<li>${p}</li>`).join("");
   }
 
-  // Quick Action Links
+  // Field Telemetry Snapshot
+  if (latestSNNPayload) {
+    const elTelTemp = document.getElementById("fig7TelTemp");
+    const elTelHum = document.getElementById("fig7TelHum");
+    const elTelRain = document.getElementById("fig7TelRain");
+    const elTelSoil = document.getElementById("fig7TelSoil");
+    const elTelAqi = document.getElementById("fig7TelAqi");
+    const elTelOzone = document.getElementById("fig7TelOzone");
+
+    if (elTelTemp) elTelTemp.textContent = `${latestSNNPayload.temperature.toFixed(1)}°C`;
+    if (elTelHum) elTelHum.textContent = `${latestSNNPayload.humidity.toFixed(0)}%`;
+    if (elTelRain) elTelRain.textContent = `${latestSNNPayload.rainfall.toFixed(1)} mm`;
+    if (elTelSoil) elTelSoil.textContent = `${(latestSNNPayload.soil_moisture * 100).toFixed(0)}%`;
+    if (elTelAqi) elTelAqi.textContent = `${Math.round(latestSNNPayload.aqi)}`;
+    if (elTelOzone) elTelOzone.textContent = `${Math.round(latestSNNPayload.ozone * 1000)} ppb`;
+  }
+
+  // Quick Action Links (Section 20)
   const reportBtn = document.getElementById("fig7ReportBtn");
   if (reportBtn && recUuid) {
     reportBtn.href = getApiUrl(`/api/v1/records/${recUuid}/report`);

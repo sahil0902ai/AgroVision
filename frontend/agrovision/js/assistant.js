@@ -127,6 +127,18 @@ function generateAssistantResponse(query, record) {
     `;
   }
 
+  if (q.includes("environment") || q.includes("snn") || q.includes("weather") || q.includes("macro")) {
+    return `
+      <strong>Environmental Context &amp; SNN Evaluation:</strong>
+      <p style="margin:4px 0;">The Neuromorphic Spiking Neural Network (SNN) evaluates 33 multidimensional microclimate, soil, and spectral telemetry features to determine abiotic stress levels:</p>
+      <ul style="margin:6px 0; padding-left:18px; line-height:1.5;">
+        <li><strong>Field Telemetry:</strong> Air Temp ${temp.toFixed(1)}°C · Humidity ${hum.toFixed(0)}% · Soil Moisture ${(soil <= 1 ? (soil*100).toFixed(0) : soil.toFixed(0))}%</li>
+        <li><strong>Biological Impact:</strong> Environmental risk is assessed as <strong>${severity}</strong>. The spiking neurons integrate ambient temperature and moisture gradients over discrete timesteps to quantify macro stress before irreversible crop damage occurs.</li>
+      </ul>
+      <p style="margin:4px 0 0; font-size:12px; color:#475569;">When visual symptoms exist alongside moderate/high environmental risk, the stress may be aggravated by heat, vapor pressure deficit, or root water deficit.</p>
+    `;
+  }
+
   if (q.includes("why") && (q.includes("result") || q.includes("this"))) {
     return `
       <strong>Finding Rationale:</strong>
@@ -138,15 +150,15 @@ function generateAssistantResponse(query, record) {
   if (q.includes("expert") || q.includes("rule") || q.includes("veto") || q.includes("check")) {
     return `
       <strong>Expert Veto Rule Evaluation:</strong>
-      <p style="margin:4px 0;">Deterministic agronomic rules safeguard against false alarms. Here are the active precautions for this session:</p>
+      <p style="margin:4px 0;">Deterministic agronomic rules safeguard against false alarms. Active precautions for this observation:</p>
       <ul style="margin:6px 0; padding-left:18px; line-height:1.5; color:#065f46;">
         ${rules.map(r => `<li>${r}</li>`).join("")}
       </ul>
-      <p style="margin:4px 0 0; font-size:12px; color:#64748b;">These rules are transparent, rule-based agronomic guidelines to support field decisions.</p>
+      <p style="margin:4px 0 0; font-size:12px; color:#64748b;">These rules are transparent, deterministic agronomic safeguards designed to support field decisions.</p>
     `;
   }
 
-  if (q.includes("monitor") || q.includes("next") || q.includes("action") || q.includes("check")) {
+  if (q.includes("monitor") || q.includes("next") || q.includes("action")) {
     return `
       <strong>Recommended Field Monitoring Steps:</strong>
       <ol style="margin:6px 0; padding-left:18px; line-height:1.5;">
@@ -161,6 +173,6 @@ function generateAssistantResponse(query, record) {
   return `
     <strong>Agronomic Guidance:</strong>
     <p style="margin:4px 0;">For your crop at <strong>${stage.replace("_", " ")}</strong> stage with <strong>${topClass}</strong> symptoms, prioritize maintaining steady soil moisture and inspecting foliage weekly.</p>
-    <p style="margin:4px 0 0; font-size:12px; color:#64748b;">You can ask for a detailed summary, rule explanation, or specific monitoring recommendations anytime.</p>
+    <p style="margin:4px 0 0; font-size:12px; color:#64748b;">You can ask for a detailed summary, environmental explanation, rule breakdown, or specific monitoring recommendations anytime.</p>
   `;
 }

@@ -59,6 +59,9 @@
               <option value="My Field C - East Plot">Field C — East Plot (Zone 3)</option>
             </select>
           </div>
+          <button onclick="resetAnalysisState()" class="btn btn-primary" style="padding:7px 14px; font-size:12px; border-radius:8px; font-weight:600;">
+            + New Analysis
+          </button>
           <div style="width:34px; height:34px; border-radius:50%; background:#0d3b2e; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;" id="userAvatar">
             S
           </div>
@@ -68,7 +71,7 @@
       <!-- Flow Stepper / View Selector Bar -->
       <div class="view-stepper" id="flowStepper">
         <button class="view-step-btn active" id="stepBtnInput" onclick="switchView('input')">
-          <span class="view-step-badge">1</span> Leaf &amp; Environment
+          <span class="view-step-badge">1</span> Leaf &amp; Conditions
         </button>
         <button class="view-step-btn" id="stepBtnCNN" onclick="switchView('cnn')">
           <span class="view-step-badge">2</span> Visual Check
@@ -77,7 +80,7 @@
           <span class="view-step-badge">3</span> Environmental Check
         </button>
         <button class="view-step-btn" id="stepBtnCombined" onclick="switchView('combined')">
-          <span class="view-step-badge">4</span> Combined Assessment
+          <span class="view-step-badge">4</span> Final Assessment
         </button>
       </div>
 
@@ -89,7 +92,8 @@
         <!-- LEFT: 1. Uploaded Leaf Image -->
         <div class="panel">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h3 style="font-size:1.1rem; color:#0d3b2e; font-weight:700;">1. Uploaded Leaf Image</h3>
+            <h3 style="font-size:1.1rem; color:#0d3b2e; font-weight:700;">1. Leaf Image</h3>
+            <span class="source-badge source-badge-green">Farmer Upload</span>
           </div>
 
           <!-- Upload Dropzone / Image Container with Floating Trash Icon -->
@@ -134,7 +138,8 @@
         <!-- RIGHT: 2. Environmental Conditions (Manual) -->
         <div class="panel">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h3 style="font-size:1.1rem; color:#0d3b2e; font-weight:700;">2. Environmental Conditions (Manual)</h3>
+            <h3 style="font-size:1.1rem; color:#0d3b2e; font-weight:700;">2. Field Conditions</h3>
+            <span class="source-badge source-badge-blue">Manual / Field Profile</span>
           </div>
 
           <!-- 6 Aligned Geometric Slider Rows: icon | label | slider | value -->
@@ -272,7 +277,10 @@
 
         <!-- RIGHT COLUMN: 2. Visual Check (CNN) -->
         <div class="panel" id="fig5CNNPanel">
-          <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">2. Visual Check</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">2. Visual Check</h3>
+            <span class="source-badge source-badge-green">AI Model · Visual Stream</span>
+          </div>
 
           <!-- Highlight Banner -->
           <div class="fig-result-banner fig-banner-red" id="fig5Banner">
@@ -376,7 +384,10 @@
 
         <!-- RIGHT COLUMN: 3. Environmental Check (SNN) -->
         <div class="panel" id="fig6SNNPanel">
-          <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">3. Environmental Check</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">3. Environmental Check</h3>
+            <span class="source-badge source-badge-blue">AI Model · Neuromorphic Stream</span>
+          </div>
 
           <!-- Highlight Banner -->
           <div class="fig-result-banner fig-banner-orange" id="fig6Banner">
@@ -442,9 +453,29 @@
       <!-- ============================================================
            VIEW 4: Combined Assessment
            ============================================================ -->
-      <div id="viewCombined" style="display:none; display:flex; flex-direction:column; gap:22px;">
+      <div id="viewCombined" style="display:none; display:flex; flex-direction:column; gap:20px;">
 
-        <!-- TOP ROW: Leaf & Environmental Overview (Left) + Stress Probability Distribution (Right) -->
+        <!-- SUMMARY STRIP (Section 11) -->
+        <div class="summary-strip" id="fig7SummaryStrip">
+          <div class="summary-strip-tile">
+            <span class="summary-strip-lbl">VISUAL (CNN)</span>
+            <strong class="summary-strip-val" id="stripVisualVal">Water Stress (65%)</strong>
+          </div>
+          <div class="summary-strip-tile">
+            <span class="summary-strip-lbl">ENVIRONMENT (SNN)</span>
+            <strong class="summary-strip-val" id="stripEnvVal">High Risk (8/10 Spikes)</strong>
+          </div>
+          <div class="summary-strip-tile">
+            <span class="summary-strip-lbl">EVIDENCE RELATIONSHIP</span>
+            <strong class="summary-strip-val" id="stripRelVal" style="color:#059669;">Aligned</strong>
+          </div>
+          <div class="summary-strip-tile">
+            <span class="summary-strip-lbl">EXPERT CHECK</span>
+            <strong class="summary-strip-val" id="stripExpertVal" style="color:#d97706;">Precaution Detected</strong>
+          </div>
+        </div>
+
+        <!-- TOP ROW: Leaf & Environmental Overview (Left) + Evidence Overview (Right) -->
         <div style="display:grid; grid-template-columns:1.15fr 0.85fr; gap:22px;">
 
           <!-- TOP LEFT: Leaf & Environmental Overview -->
@@ -504,7 +535,7 @@
             <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">FINAL ASSESSMENT</h3>
 
             <!-- Hero Finding -->
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; margin-bottom:14px; display:flex; align-items:center; gap:12px;">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; margin-bottom:14px; display:flex; align-items:center; gap:12px;" id="fig7HeroFindingCard">
               <div style="width:44px; height:44px; border-radius:10px; background:#ecfdf5; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;">🌱</div>
               <div style="flex:1;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -537,37 +568,69 @@
                 <li>Verify irrigation delivery according to crop stage and ambient heat index.</li>
               </ul>
             </div>
+
+            <!-- Collapsible Model Details & Provenance (Section 24) -->
+            <details class="model-details" style="margin-top:14px;">
+              <summary>Technical Details &amp; Provenance</summary>
+              <div class="model-meta-grid">
+                <div><strong>CNN Model:</strong> ResNet Custom (110,853 parameters)</div>
+                <div><strong>SNN Model:</strong> 3-Layer LIF Spiking (33 inputs, $T=10$)</div>
+                <div><strong>Fusion Engine:</strong> Multi-modal Evidentiary Concordance</div>
+                <div><strong>Expert System:</strong> Deterministic Safety Rule Engine</div>
+                <div><strong>Evaluation:</strong> CNN Test Acc = 86.05% · SNN Test Acc = 91.81%</div>
+                <div><strong>Advisory Notice:</strong> Illustrative decision-support thresholds</div>
+              </div>
+            </details>
           </div>
 
-          <!-- BOTTOM RIGHT: Quick Actions (4 Actions) -->
-          <div class="panel">
-            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">QUICK ACTIONS</h3>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-              
-              <a href="#" id="fig7ReportBtn" target="_blank" class="quick-action-tile" style="text-decoration:none;">
-                <div class="quick-action-tile-icon">📄</div>
-                <div class="quick-action-tile-title">View Report</div>
-              </a>
+          <!-- BOTTOM RIGHT: Quick Actions + Field Telemetry Snapshot -->
+          <div>
+            <div class="panel">
+              <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">QUICK ACTIONS</h3>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                
+                <a href="#" id="fig7ReportBtn" target="_blank" class="quick-action-tile" style="text-decoration:none;">
+                  <div class="quick-action-tile-icon">📄</div>
+                  <div class="quick-action-tile-title">View Report</div>
+                </a>
 
-              <button onclick="saveCurrentAnalysis()" class="quick-action-tile" style="width:100%; border:1px solid #e2e8f0; background:#ffffff; cursor:pointer;">
-                <div class="quick-action-tile-icon">💾</div>
-                <div class="quick-action-tile-title">Save Analysis</div>
-              </button>
+                <button onclick="saveCurrentAnalysis()" class="quick-action-tile" style="width:100%; border:1px solid #e2e8f0; background:#ffffff; cursor:pointer;">
+                  <div class="quick-action-tile-icon">💾</div>
+                  <div class="quick-action-tile-title">Save Analysis</div>
+                </button>
 
-              <a href="assistant.html" id="fig7AskAIBtn" class="quick-action-tile" style="text-decoration:none;">
-                <div class="quick-action-tile-icon">🤖</div>
-                <div class="quick-action-tile-title">Ask AI</div>
-              </a>
+                <a href="assistant.html" id="fig7AskAIBtn" class="quick-action-tile" style="text-decoration:none;">
+                  <div class="quick-action-tile-icon">🤖</div>
+                  <div class="quick-action-tile-title">Ask AI</div>
+                </a>
 
-              <button onclick="resetAnalysisState()" class="quick-action-tile" style="width:100%; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer;">
-                <div class="quick-action-tile-icon">🌿</div>
-                <div class="quick-action-tile-title">New Analysis</div>
-              </button>
+                <button onclick="resetAnalysisState()" class="quick-action-tile" style="width:100%; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer;">
+                  <div class="quick-action-tile-icon">🌿</div>
+                  <div class="quick-action-tile-title">New Analysis</div>
+                </button>
 
+              </div>
+            </div>
+
+            <!-- Field Telemetry Snapshot -->
+            <div class="panel" style="margin-top:16px; padding:16px;">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b; margin-bottom:10px; letter-spacing:0.04em;">
+                Field Telemetry Snapshot
+              </div>
+              <div class="compact-env-grid" id="fig7TelemetryGrid">
+                <div class="compact-env-tile"><div class="compact-env-icon">🌡️</div><div class="compact-env-val" id="fig7TelTemp">31°C</div><div class="compact-env-lbl">Temperature</div></div>
+                <div class="compact-env-tile"><div class="compact-env-icon">💧</div><div class="compact-env-val" id="fig7TelHum">72%</div><div class="compact-env-lbl">Humidity</div></div>
+                <div class="compact-env-tile"><div class="compact-env-icon">🌧️</div><div class="compact-env-val" id="fig7TelRain">18 mm</div><div class="compact-env-lbl">Rainfall</div></div>
+                <div class="compact-env-tile"><div class="compact-env-icon">🌱</div><div class="compact-env-val" id="fig7TelSoil">68%</div><div class="compact-env-lbl">Soil Moisture</div></div>
+                <div class="compact-env-tile"><div class="compact-env-icon">🫧</div><div class="compact-env-val" id="fig7TelAqi">84</div><div class="compact-env-lbl">AQI</div></div>
+                <div class="compact-env-tile"><div class="compact-env-icon">☀️</div><div class="compact-env-val" id="fig7TelOzone">41 ppb</div><div class="compact-env-lbl">Ozone</div></div>
+              </div>
             </div>
           </div>
 
         </div>
+
+      </div>
 
       </div>
 

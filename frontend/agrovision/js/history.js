@@ -156,6 +156,9 @@ async function loadRecords() {
 
       const imgSrc = r.image_url || "images/leaf_placeholder.jpg";
 
+      const expertStatus = r.expert_veto_rule_triggered ? "⚠️ Precaution" : "✓ Normal";
+      const expertColor = r.expert_veto_rule_triggered ? "#d97706" : "#059669";
+
       return `
         <tr>
           <td style="color:#0f172a; font-weight:600; white-space:nowrap;">${dateStr}</td>
@@ -173,6 +176,9 @@ async function loadRecords() {
           </td>
           <td>
             <span style="font-weight:600; font-size:12px;">${sevDisplay}</span>
+          </td>
+          <td>
+            <span style="font-weight:700; font-size:11px; color:${expertColor};">${expertStatus}</span>
           </td>
           <td style="text-align:right; white-space:nowrap;">
             <a href="analysis_detail.html?uuid=${r.record_uuid}" class="action-link-btn" title="View complete structured analysis">
