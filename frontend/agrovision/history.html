@@ -257,48 +257,52 @@
         </div>
       </div>
 
-      <!-- Reports Section (Figure 8) -->
+      <!-- Reports & Export Section (Requirement 34) -->
       <div id="reportsSection" class="panel">
-        <div style="margin-bottom:12px;">
-          <h3 style="font-size:1.15rem; color:#0d3b2e; font-weight:700;">GENERATE PROFESSIONAL REPORT</h3>
-          <p class="panel-sub" style="margin:2px 0 0;">Download verified documentation and historical research datasets based on stored analyses.</p>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:16px;">
+          <div>
+            <h3 style="font-size:1.15rem; color:#0d3b2e; font-weight:700;">PROFESSIONAL AGRONOMIC REPORTS</h3>
+            <p class="panel-sub" style="margin:2px 0 0;">Generate verified documentation and export research datasets for extension officers and agronomists.</p>
+          </div>
         </div>
 
-        <div class="report-cards-grid">
-          <!-- Card 1: PDF Report -->
-          <div class="report-card">
+        <div style="display:grid; grid-template-columns:1.2fr 0.8fr; gap:18px; align-items:stretch;">
+          <!-- Latest Analysis Report Tile -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px 20px; display:flex; flex-direction:column; justify-content:space-between;">
             <div>
-              <div style="width:40px; height:40px; border-radius:10px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:12px;">📄</div>
-              <div class="report-card-title" style="font-size:16px;">PDF Report</div>
-              <div class="report-card-desc" style="color:#64748b; font-size:12px;">Detailed analysis with graphs</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#059669; letter-spacing:0.04em;">Latest Field Analysis</span>
+                <span style="font-size:11px; color:#64748b;" id="reportRecordDate">Verified Database Session</span>
+              </div>
+              <div style="font-size:1.15rem; font-weight:800; color:#0d3b2e; margin-bottom:4px;" id="reportRecordTitle">Cotton Crop Stress Assessment</div>
+              <p style="font-size:12px; color:#475569; margin:0 0 14px; line-height:1.5;">
+                Comprehensive PDF including CNN foliar saliency heatmaps, SNN neuromorphic temporal spike metrics, and triggered expert veto rules.
+              </p>
             </div>
-            <button onclick="openLatestReport()" class="btn btn-primary" style="padding:10px 14px; font-size:12px; justify-content:center; border-radius:8px;">
-              View Latest Report →
-            </button>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button onclick="openLatestReport()" class="btn btn-primary" style="padding:9px 18px; font-size:12px; border-radius:8px;">
+                📄 View / Print PDF Report →
+              </button>
+            </div>
           </div>
 
-          <!-- Card 2: CSV Export -->
-          <div class="report-card">
+          <!-- Data Export Tile -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px 20px; display:flex; flex-direction:column; justify-content:space-between;">
             <div>
-              <div style="width:40px; height:40px; border-radius:10px; background:#ecfdf5; color:#059669; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:12px;">📊</div>
-              <div class="report-card-title" style="font-size:16px;">CSV Export</div>
-              <div class="report-card-desc" style="color:#64748b; font-size:12px;">Data for research</div>
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#0284c7; letter-spacing:0.04em; margin-bottom:8px;">Telemetry &amp; Dataset Export</div>
+              <div style="font-size:1.15rem; font-weight:800; color:#0d3b2e; margin-bottom:4px;">Research Data Export</div>
+              <p style="font-size:12px; color:#475569; margin:0 0 14px; line-height:1.5;">
+                Export verified 33-feature environmental telemetry, visual probabilities, and session timestamps as standard CSV.
+              </p>
             </div>
-            <button onclick="exportCSV()" class="btn btn-action-outline" style="padding:10px 14px; font-size:12px; justify-content:center; border-radius:8px;">
-              Download CSV Dataset 📥
-            </button>
-          </div>
-
-          <!-- Card 3: Share Result -->
-          <div class="report-card">
-            <div>
-              <div style="width:40px; height:40px; border-radius:10px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:12px;">🤝</div>
-              <div class="report-card-title" style="font-size:16px;">Share Result</div>
-              <div class="report-card-desc" style="color:#64748b; font-size:12px;">Share with experts</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button onclick="exportCSV()" class="btn btn-action-outline" style="padding:9px 16px; font-size:12px; border-radius:8px;">
+                📥 Download CSV Dataset
+              </button>
+              <button onclick="window.print()" class="btn btn-action-outline" style="padding:9px 16px; font-size:12px; border-radius:8px;">
+                🖨️ Print Archive View
+              </button>
             </div>
-            <button onclick="window.print()" class="btn btn-action-outline" style="padding:10px 14px; font-size:12px; justify-content:center; border-radius:8px;">
-              Print History View 🖨️
-            </button>
           </div>
         </div>
       </div>

@@ -1735,21 +1735,25 @@ details.model-details summary:hover {
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
   display: flex;
+  align-items: stretch;
   gap: 10px;
 }
 
 .chat-input-field {
   flex: 1;
-  padding: 10px 14px;
+  padding: 11px 16px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 13px;
   font-family: inherit;
   outline: none;
+  background: #f8fafc;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .chat-input-field:focus {
   border-color: #059669;
+  background: #ffffff;
 }
 
 /* ============ Figure-Exact UI Components ============ */

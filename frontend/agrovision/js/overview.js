@@ -31,7 +31,7 @@ async function loadOverviewData() {
     if (!response.ok) return;
 
     const data = await response.json();
-    const records = data.records || [];
+    const records = Array.isArray(data) ? data : (data.records || []);
 
     const totalScansEl = document.getElementById("statTotalScans");
     if (totalScansEl) totalScansEl.textContent = records.length;
@@ -43,15 +43,37 @@ async function loadOverviewData() {
       const sumEl = document.getElementById("latestAnalysisSummary");
       const statusEl = document.getElementById("statLatestStatus");
 
-      if (dateEl) dateEl.textContent = `Recorded: ${new Date(latest.timestamp || latest.created_at).toLocaleString()}`;
-      if (classEl) classEl.textContent = `${latest.cnn_class || latest.visual_class || 'Visual Analysis'} (${((latest.cnn_confidence || latest.confidence || 0.85)*100).toFixed(0)}% Confidence)`;
-      if (sumEl) sumEl.textContent = latest.summary || `Multimodal finding: ${latest.final_finding || latest.cnn_class}. Environmental severity: ${latest.snn_severity || 'Moderate'}.`;
+      let topClass = "Healthy";
+      let topPct = 90;
+      try {
+        if (latest.cnn_predictions_json) {
+          const cnnObj = JSON.parse(latest.cnn_predictions_json);
+          const topKey = Object.keys(cnnObj).reduce((a, b) => cnnObj[a] > cnnObj[b] ? a : b);
+          topClass = topKey.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase());
+          topPct = cnnObj[topKey];
+        }
+      } catch (_) {}
+
+      const sev = latest.stress_severity || "Moderate";
+
+      if (dateEl) dateEl.textContent = `Recorded: ${new Date(latest.created_at || Date.now()).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+      if (classEl) classEl.textContent = `${topClass} (${topPct.toFixed(0)}% Visual Probability)`;
+      if (sumEl) sumEl.textContent = `Multimodal finding: ${topClass}. Macro Environmental Stress: ${sev} Risk. Stage: ${(latest.growth_stage || 'Flowering').replace('_', ' ')}.`;
       if (statusEl) {
-        statusEl.textContent = latest.final_finding || latest.cnn_class || "Active";
-        if (statusEl.textContent.toLowerCase().includes("stress")) {
+        statusEl.textContent = `${topClass}`;
+        if (topClass.toLowerCase().includes("stress") || topClass.toLowerCase().includes("deficiency") || topClass.toLowerCase().includes("pollution")) {
           statusEl.style.color = "#d97706";
+        } else {
+          statusEl.style.color = "#059669";
         }
       }
+    } else {
+      const dateEl = document.getElementById("latestAnalysisDate");
+      const classEl = document.getElementById("latestAnalysisClass");
+      const sumEl = document.getElementById("latestAnalysisSummary");
+      if (dateEl) dateEl.textContent = "No analyses yet";
+      if (classEl) classEl.textContent = "Ready for First Scan";
+      if (sumEl) sumEl.textContent = "Upload a cotton leaf image and provide field conditions to begin automated stress assessment.";
     }
   } catch (err) {
     console.error("Error loading overview telemetry:", err);

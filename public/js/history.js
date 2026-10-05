@@ -118,6 +118,20 @@ async function loadRecords() {
 
     if (records.length > 0 && currentSkip === 0) {
       latestRecordUuid = records[0].record_uuid;
+      const repDate = document.getElementById("reportRecordDate");
+      const repTitle = document.getElementById("reportRecordTitle");
+      if (repDate) repDate.textContent = `Recorded: ${new Date(records[0].created_at || Date.now()).toLocaleDateString()}`;
+      if (repTitle) {
+        let firstClass = "Cotton Stress";
+        try {
+          if (records[0].cnn_predictions_json) {
+            const obj = JSON.parse(records[0].cnn_predictions_json);
+            const topKey = Object.keys(obj).reduce((a, b) => obj[a] > obj[b] ? a : b);
+            firstClass = topKey.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase());
+          }
+        } catch (_) {}
+        repTitle.textContent = `${firstClass} (${records[0].stress_severity || 'Moderate'} Risk)`;
+      }
     }
 
     const rowsHtml = records.map(r => {
@@ -143,6 +157,7 @@ async function loadRecords() {
       };
       const classColor = classColorMap[topClass] || "#0d3b2e";
 
+      const sev = r.stress_severity || "Moderate";
       const sevIcons = {
         "High": "🔴 High",
         "Moderate": "🟡 Moderate",
