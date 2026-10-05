@@ -1,8 +1,8 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 class ContactRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    email: EmailStr
+    email: str = Field(..., min_length=3, max_length=255)
     message: str = Field(..., min_length=1, max_length=2000)
 
 class ContactResponse(BaseModel):
