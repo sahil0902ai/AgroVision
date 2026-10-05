@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="AgroVision – AI-assisted cotton plant stress detection and environmental risk assessment combining visual leaf analysis with environmental context.">
+<title>AgroVision — Smart Cotton Farming</title>
+<meta property="og:title" content="AgroVision – Smart Cotton Farming">
+<meta property="og:description" content="AI-assisted cotton plant stress detection combining leaf image analysis with environmental data.">
+<meta property="og:url" content="http://localhost:8000/agrovision/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <!-- ============ NAVBAR ============ -->
+  <header class="navbar" role="banner">
+    <div class="container">
+      <a href="index.html" class="brand" aria-label="AgroVision home">
+        <svg width="38" height="38" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="23" fill="#eaf3ec" stroke="#1e824c" stroke-width="1.5"/>
+          <path d="M24 34c-6-2-10-8-9-16 8-1 14 3 16 9 1 3 0 5-1 7-2-4-6-6-10-7" fill="#1e824c"/>
+          <path d="M24 34c6-2 10-8 9-16-8-1-14 3-16 9-1 3 0 5 1 7 2-4 6-6 10-7" fill="#2fa15c"/>
+        </svg>
+        <div>
+          <div class="brand-name">AgroVision</div>
+          <div class="brand-tag">Smart Cotton Farming</div>
+        </div>
+      </a>
+
+      <nav aria-label="Primary navigation">
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html" class="active" aria-current="page">Home</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#why-agrovision">Why AgroVision</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-outline">Login</a>
+        <a href="login.html?mode=signup" class="btn btn-primary">Get Started →</a>
+        <button class="nav-toggle" id="navToggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="navLinks">
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" aria-labelledby="hero-heading">
+    <div class="container">
+      <div class="hero-copy">
+        <span class="eyebrow">AI-POWERED COTTON STRESS MONITORING</span>
+        <h1 id="hero-heading">Smarter Decisions<br>for <span class="accent">Healthier Cotton</span></h1>
+        <p class="lead">
+          Upload a cotton leaf image, set environmental conditions, and receive AI-assisted insights to understand potential plant stress and make better-informed farming decisions.
+        </p>
+        <div class="hero-ctas">
+          <a href="login.html?mode=signup" class="btn btn-primary btn-lg">🌱 Get Started</a>
+          <a href="#how-it-works" class="btn btn-outline btn-lg">See How It Works</a>
+        </div>
+        <div class="hero-trust-strip">
+          <span>✓ 5 Visual Stress Classes</span>
+          <span class="divider">·</span>
+          <span>✓ SNN Environmental Risk</span>
+          <span class="divider">·</span>
+          <span>✓ Multimodal Decision Support</span>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-label="Sample AgroVision analysis preview">
+        <!-- Cotton leaf card -->
+        <div class="leaf-frame">
+          <div class="sample-tag">Sample Leaf Input</div>
+          <div class="leaf-photo">
+            <svg viewBox="0 0 300 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M150 20 C60 60 40 160 90 260 C110 300 140 300 150 300 C160 300 190 300 210 260 C260 160 240 60 150 20Z"
+                    fill="#3f7f37" stroke="#274d22" stroke-width="2"/>
+              <path d="M150 30 L150 295" stroke="#274d22" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+              <path d="M150 70 L110 100 M150 110 L100 140 M150 150 L105 180 M150 190 L115 215 M150 60 L190 90 M150 100 L195 130 M150 140 L190 168 M150 180 L182 205"
+                    stroke="#274d22" stroke-width="2" opacity="0.45"/>
+              <ellipse cx="185" cy="150" rx="26" ry="16" fill="#8a5a2b" opacity="0.55"/>
+              <ellipse cx="170" cy="190" rx="16" ry="10" fill="#8a5a2b" opacity="0.4"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Result card -->
+        <div class="analysis-card" role="complementary" aria-label="Sample analysis result">
+          <div class="sample-badge">Example Result · Illustrative Demo</div>
+
+          <h4 class="card-title">AgroVision Analysis Preview</h4>
+
+          <div class="preview-subheading">CNN Visual Analysis</div>
+          <div class="stress-bar-group">
+            <div class="stress-bar-row">
+              <span class="stress-label"><span class="dot red" aria-hidden="true"></span>Water Stress</span>
+              <div class="stress-bar-track" aria-hidden="true"><div class="stress-bar-fill" style="width:65%;background:var(--red)"></div></div>
+              <span class="stress-val red">65%</span>
+            </div>
+            <div class="stress-bar-row">
+              <span class="stress-label"><span class="dot orange" aria-hidden="true"></span>Heat Stress</span>
+              <div class="stress-bar-track" aria-hidden="true"><div class="stress-bar-fill" style="width:15%;background:var(--orange)"></div></div>
+              <span class="stress-val orange">15%</span>
+            </div>
+            <div class="stress-bar-row">
+              <span class="stress-label"><span class="dot blue" aria-hidden="true"></span>Nutrient Def.</span>
+              <div class="stress-bar-track" aria-hidden="true"><div class="stress-bar-fill" style="width:10%;background:var(--blue)"></div></div>
+              <span class="stress-val blue">10%</span>
+            </div>
+            <div class="stress-bar-row">
+              <span class="stress-label"><span class="dot green" aria-hidden="true"></span>Healthy</span>
+              <div class="stress-bar-track" aria-hidden="true"><div class="stress-bar-fill" style="width:8%;background:var(--primary-green)"></div></div>
+              <span class="stress-val green">8%</span>
+            </div>
+            <div class="stress-bar-row">
+              <span class="stress-label"><span class="dot purple" aria-hidden="true"></span>Pollution</span>
+              <div class="stress-bar-track" aria-hidden="true"><div class="stress-bar-fill" style="width:2%;background:var(--purple)"></div></div>
+              <span class="stress-val purple">2%</span>
+            </div>
+          </div>
+
+          <div class="card-divider"></div>
+
+          <div class="preview-subheading">SNN Environmental Stress</div>
+          <div class="env-preview-row">
+            <div class="env-stress-badge env-high">⚠ High Risk (8 Spikes)</div>
+            <div class="env-chips">
+              <span class="env-chip">31.0°C</span>
+              <span class="env-chip">72% RH</span>
+              <span class="env-chip">0.42 m³/m³</span>
+              <span class="env-chip">84 AQI</span>
+            </div>
+          </div>
+
+          <div class="card-divider"></div>
+
+          <div class="alert-box" role="alert">
+            <span aria-hidden="true">⚠️</span>
+            <div>
+              <strong>Elevated Water Stress Indication</strong>
+              <span>Visual and environmental evidence suggest potential water stress. Recommended: Review soil moisture trends before irrigating.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section class="solution" id="features" aria-labelledby="features-heading">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">OUR SMART SOLUTION</span>
+        <h2 id="features-heading">From Leaf to Insight</h2>
+        <p>Combining deep learning visual analysis with environmental context to give cotton farmers accurate stress screening and practical guidance.</p>
+      </div>
+
+      <div class="feature-grid">
+        <div class="feature reveal">
+          <div class="feature-icon icon-bg-1" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C7 6 4 10 4 14a8 8 0 0 0 16 0c0-4-3-8-8-12Z"/></svg>
+          </div>
+          <h3>CNN Leaf Analysis</h3>
+          <p>Visual cotton leaf stress classification across five discrete stress categories.</p>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon icon-bg-2" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 0-7 7c0 4 3 6 4 9h6c1-3 4-5 4-9a7 7 0 0 0-7-7Z"/><path d="M9 18h6M10 22h4"/></svg>
+          </div>
+          <h3>Environmental Analysis</h3>
+          <p>Real-time field context: temperature, humidity, rainfall, soil moisture, AQI, and ozone.</p>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon icon-bg-3" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3a3 3 0 0 0-3 3v1a3 3 0 0 0 0 6v1a3 3 0 0 0 3 3M15 3a3 3 0 0 1 3 3v1a3 3 0 0 1 0 6v1a3 3 0 0 1-3 3"/></svg>
+          </div>
+          <h3>SNN Environmental Model</h3>
+          <p>Spiking neural network estimating environmental stress risk levels (Low, Moderate, or High).</p>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon icon-bg-4" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 15 15 9M8 12a4 4 0 0 1 0-6l1-1a4 4 0 0 1 6 6M16 12a4 4 0 0 1 0 6l-1 1a4 4 0 0 1-6-6"/></svg>
+          </div>
+          <h3>Multimodal Fusion</h3>
+          <p>Synthesizes visual and environmental evidence into a unified, contextual stress assessment.</p>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon icon-bg-5" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M9 4h6"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/></svg>
+          </div>
+          <h3>AI Guidance</h3>
+          <p>Plain-language explanations and practical agronomic next steps for informed farm decisions.</p>
+        </div>
+        <div class="feature reveal">
+          <div class="feature-icon icon-bg-6" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16M6 15l4-5 3 3 5-7"/></svg>
+          </div>
+          <h3>Farmer Decision Support</h3>
+          <p>Early stress screening designed to help cotton growers act before stress leads to yield loss.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="how-section" id="how-it-works" aria-labelledby="how-heading">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">THE PROCESS</span>
+        <h2 id="how-heading">How AgroVision Works</h2>
+        <p>From a cotton leaf image and environmental conditions to an AI-assisted stress assessment.</p>
+      </div>
+
+      <ol class="steps-grid" aria-label="AgroVision six-step workflow">
+        <li class="step reveal">
+          <div class="step-num" aria-hidden="true">01</div>
+          <div class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h3>Upload Leaf</h3>
+          <p>Capture or upload a clear photo of a single cotton leaf.</p>
+        </li>
+        <li class="step reveal">
+          <div class="step-num" aria-hidden="true">02</div>
+          <div class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C7 6 4 10 4 14a8 8 0 0 0 16 0c0-4-3-8-8-12Z"/></svg>
+          </div>
+          <h3>CNN Analysis</h3>
+          <p>Deterministic CNN model classifies visual stress indicators.</p>
+        </li>
+        <li class="step reveal">
+          <div class="step-num" aria-hidden="true">03</div>
+          <div class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          </div>
+          <h3>Set Field Conditions</h3>
+          <p>Provide temperature, humidity, rainfall, and soil moisture.</p>
+        </li>
+        <li class="step reveal">
+          <div class="step-num" aria-hidden="true">04</div>
+          <div class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3a3 3 0 0 0-3 3v1a3 3 0 0 0 0 6v1a3 3 0 0 0 3 3M15 3a3 3 0 0 1 3 3v1a3 3 0 0 1 0 6v1a3 3 0 0 1-3 3"/></svg>
+          </div>
+          <h3>SNN Spiking Analysis</h3>
+          <p>Spiking neural network evaluates temporal environmental stress patterns.</p>
+        </li>
+        <li class="step reveal">
+          <div class="step-num" aria-hidden="true">05</div>
+          <div class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 15 15 9M8 12a4 4 0 0 1 0-6l1-1a4 4 0 0 1 6 6M16 12a4 4 0 0 1 0 6l-1 1a4 4 0 0 1-6-6"/></svg>
+          </div>
+          <h3>Multimodal Fusion</h3>
+          <p>Visual and environmental evidence are synthesized into a coherent profile.</p>
+        </li>
+        <li class="step reveal">
+          <div class="step-num" aria-hidden="true">06</div>
+          <div class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M9 4h6"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/></svg>
+          </div>
+          <h3>AI Guidance</h3>
+          <p>Receive plain-language advice and proactive recommendations.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ WHY AGROVISION ============ -->
+  <section class="why-section" id="why-agrovision" aria-labelledby="why-heading">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">WHY AGROVISION</span>
+        <h2 id="why-heading">Contextual Intelligence for Cotton Growers</h2>
+        <p>A comprehensive approach to cotton plant monitoring built on dual-stream neural intelligence.</p>
+      </div>
+
+      <div class="value-grid">
+        <div class="value-card reveal">
+          <div class="value-icon">🔍</div>
+          <h3>Visual + Environmental Evidence</h3>
+          <p>Does not rely solely on visual leaf symptoms. Integrates environmental context to avoid misdiagnosing external stress factors.</p>
+        </div>
+        <div class="value-card reveal">
+          <div class="value-icon">🌿</div>
+          <h3>5 Distinct Visual Stress Classes</h3>
+          <p>Classifies Healthy, Water Stress, Heat Stress, Nutrient Deficiency, and Pollution with individual probability distributions.</p>
+        </div>
+        <div class="value-card reveal">
+          <div class="value-icon">⚡</div>
+          <h3>SNN Spiking Risk Assessment</h3>
+          <p>Spiking Neural Network evaluates temporal field conditions into Low, Moderate, or High environmental stress risk levels.</p>
+        </div>
+        <div class="value-card reveal">
+          <div class="value-icon">💡</div>
+          <h3>Farmer-Friendly Guidance</h3>
+          <p>Translates complex model probabilities and spike outputs into understandable, practical agricultural insights.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FINAL CTA ============ -->
+  <section class="cta-section" aria-labelledby="cta-heading">
+    <div class="container">
+      <div class="cta-inner reveal">
+        <span class="eyebrow cta-eyebrow">GET STARTED TODAY</span>
+        <h2 id="cta-heading">Make Every Cotton Decision Smarter</h2>
+        <p>Analyze a cotton leaf, review environmental conditions, and explore an AI-assisted stress assessment.</p>
+        <a href="login.html?mode=signup" class="btn btn-cta-white btn-lg">Start Using AgroVision →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer" id="contact" role="contentinfo">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <div class="footer-brand-name">AgroVision</div>
+        <div class="footer-brand-tag">Smart Cotton Farming</div>
+        <p class="footer-desc">AI-assisted cotton plant stress detection and environmental risk assessment platform.</p>
+        <p class="footer-disclaimer">AgroVision is an AI-assisted research and decision-support prototype. Field decisions should incorporate local agronomic conditions.</p>
+      </div>
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <span class="footer-nav-title">Navigation</span>
+        <a href="index.html">Home</a>
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#why-agrovision">Why AgroVision</a>
+        <a href="services.html">Services</a>
+        <a href="about.html">About</a>
+      </nav>
+      <div class="footer-contact">
+        <span class="footer-nav-title">Connect</span>
+        <a href="mailto:contact@agrovision.org">contact@agrovision.org</a>
+        <a href="login.html?mode=signup" class="footer-btn">Launch Dashboard →</a>
+        <p class="footer-copy">© 2026 AgroVision. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Navbar toggle ──────────────────────────────────────
+    const navToggle = document.getElementById("navToggle");
+    const navLinks  = document.getElementById("navLinks");
+    if (navToggle && navLinks) {
+      navToggle.addEventListener("click", () => {
+        const isOpen = navLinks.classList.toggle("open");
+        navToggle.setAttribute("aria-expanded", String(isOpen));
+      });
+      document.addEventListener("click", (e) => {
+        if (!navToggle.contains(e.target) && !navLinks.contains(e.target)) {
+          navLinks.classList.remove("open");
+          navToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // ── Scroll-triggered reveal ────────────────────────────
+    const revealEls = document.querySelectorAll(".reveal");
+    if ("IntersectionObserver" in window && revealEls.length) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add("is-visible");
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      revealEls.forEach(el => io.observe(el));
+    } else {
+      revealEls.forEach(el => el.classList.add("is-visible"));
+    }
+
+    // ── Smooth scroll for anchor links ────────────────────
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener("click", e => {
+        const target = document.querySelector(a.getAttribute("href"));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

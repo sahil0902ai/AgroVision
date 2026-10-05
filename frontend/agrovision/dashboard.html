@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Farmer Dashboard — AgroVision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=9">
+</head>
+<body class="dash-body">
+
+  <div class="dash-shell">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <div class="brand">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="23" fill="rgba(255,255,255,0.12)"/>
+          <path d="M24 34c-6-2-10-8-9-16 8-1 14 3 16 9 1 3 0 5-1 7-2-4-6-6-10-7" fill="#ffffff"/>
+          <path d="M24 34c6-2 10-8 9-16-8-1-14 3-16 9-1 3 0 5 1 7 2-4 6-6 10-7" fill="#bfe6cc"/>
+        </svg>
+        <div>
+          <div class="brand-name">AgroVision</div>
+          <div class="brand-tag">Farmer Dashboard</div>
+        </div>
+      </div>
+
+      <ul class="side-links">
+        <li><a href="overview.html">🏠 Overview</a></li>
+        <li><a href="dashboard.html" class="active" id="navLeafCheck">🌿 Leaf Check</a></li>
+        <li><a href="history.html" id="navHistory">📜 History</a></li>
+        <li><a href="#" onclick="alert('My Fields: Parcel management is active for registered zones (Zone 1, 2, and 3).'); return false;">🌾 My Fields</a></li>
+        <li><a href="history.html#reportsSection" id="navReports">📄 Reports</a></li>
+        <li><a href="assistant.html" id="navAssistant">🤖 AI Assistant</a></li>
+        <li><a href="#" onclick="alert('Settings: telemetry preferences and farm settings.'); return false;">⚙️ Settings</a></li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">↩ Log Out</button>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="dash-main">
+
+      <!-- Top Header: Greeting, Subtitle, Field Select & Date -->
+      <div class="dash-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:16px;">
+        <div>
+          <h1 id="welcomeMsg" style="font-size:1.65rem; margin-bottom:4px; font-weight:700; color:#0d3b2e;">Welcome back, Sahil</h1>
+          <p id="headerSub" style="margin:0; font-size:13px; color:#5b6b63;">Observation: <span id="todayDate">Today</span> · AI-Assisted Cotton Stress &amp; Risk Assessment</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:12px; font-weight:700; color:#475569;">Field:</span>
+            <select id="fieldSelect" style="padding:7px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; font-weight:600; background:#ffffff; color:#1e293b; outline:none; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+              <option value="My Field A - North Parcel">Field A — North Parcel (Zone 1)</option>
+              <option value="My Field B - South Parcel">Field B — South Parcel (Zone 2)</option>
+              <option value="My Field C - East Plot">Field C — East Plot (Zone 3)</option>
+            </select>
+          </div>
+          <div style="width:34px; height:34px; border-radius:50%; background:#0d3b2e; color:#ffffff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;" id="userAvatar">
+            S
+          </div>
+        </div>
+      </div>
+
+      <!-- Flow Stepper / View Selector Bar -->
+      <div class="view-stepper" id="flowStepper">
+        <button class="view-step-btn active" id="stepBtnInput" onclick="switchView('input')">
+          <span class="view-step-badge">1</span> Leaf &amp; Environment
+        </button>
+        <button class="view-step-btn" id="stepBtnCNN" onclick="switchView('cnn')">
+          <span class="view-step-badge">2</span> Visual Check
+        </button>
+        <button class="view-step-btn" id="stepBtnSNN" onclick="switchView('snn')">
+          <span class="view-step-badge">3</span> Environmental Check
+        </button>
+        <button class="view-step-btn" id="stepBtnCombined" onclick="switchView('combined')">
+          <span class="view-step-badge">4</span> Combined Assessment
+        </button>
+      </div>
+
+      <!-- ============================================================
+           VIEW 1 (FIGURE 4): Cotton Leaf Image Upload and Environmental Input
+           ============================================================ -->
+      <div id="viewInput" class="dash-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start;">
+
+        <!-- LEFT: 1. Uploaded Leaf Image -->
+        <div class="panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="font-size:1.1rem; color:#0d3b2e; font-weight:700;">1. Uploaded Leaf Image</h3>
+          </div>
+
+          <!-- Upload Dropzone / Image Container with Floating Trash Icon -->
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" style="position:relative; min-height:220px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px;">
+            <div id="uploadPrompt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:36px; height:36px; margin:0 auto 8px; color:#059669;"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+              <p style="margin:0; font-size:13px; font-weight:600; color:#1e293b;">Click to upload cotton leaf image</p>
+              <p style="margin:4px 0 0; font-size:11px; color:#64748b;">Supports JPG, PNG, WEBP (Max 10MB)</p>
+            </div>
+
+            <div id="uploadPreview" style="display:none; width:100%; text-align:center;">
+              <div style="position:relative; display:inline-block; max-width:100%;">
+                <img id="previewImg" src="" alt="Selected leaf preview" style="max-height:190px; width:auto; border-radius:10px; border:1px solid #e2e8f0; object-fit:cover;" />
+                <button type="button" onclick="clearSelectedImage(event)" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.65); color:#ffffff; border:none; border-radius:6px; width:28px; height:28px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;" title="Remove image">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleFileSelect(event)" />
+
+          <p class="file-name" id="fileNameLabel" style="font-size:12px; color:#64748b; margin:8px 0 14px; font-weight:500;">
+            No file chosen (e.g. cotton_leaf.jpg)
+          </p>
+
+          <button class="btn btn-primary analyze-btn" id="analyzeBtn" onclick="runAnalysis()" style="width:100%; justify-content:center; padding:12px; font-size:14px; border-radius:10px;">
+            Analyze Leaf →
+          </button>
+
+          <!-- Collapsible Model Details -->
+          <details class="model-details" style="margin-top:14px;">
+            <summary>Model Details (CNN)</summary>
+            <div class="model-meta-grid">
+              <div><strong>Architecture:</strong> ResNet Custom (110,853 params)</div>
+              <div><strong>Resolution:</strong> 224 × 224 RGB</div>
+              <div><strong>Normalization:</strong> ImageNet Mean/Std</div>
+              <div><strong>Benchmark:</strong> 86.05% Test Accuracy</div>
+            </div>
+          </details>
+        </div>
+
+        <!-- RIGHT: 2. Environmental Conditions (Manual) -->
+        <div class="panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="font-size:1.1rem; color:#0d3b2e; font-weight:700;">2. Environmental Conditions (Manual)</h3>
+          </div>
+
+          <!-- 6 Aligned Geometric Slider Rows: icon | label | slider | value -->
+          <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
+            <div class="env-slider-row">
+              <span class="env-slider-icon">🌡️</span>
+              <span class="env-slider-label">Temperature (°C)</span>
+              <input type="range" class="env-slider-input" id="sliderTemp" min="0" max="55" step="0.1" value="31" oninput="updateEnvDisplay()" style="accent-color:#ef4444;" />
+              <span class="env-slider-val" id="envTemp">31</span>
+            </div>
+            <div class="env-slider-row">
+              <span class="env-slider-icon">💧</span>
+              <span class="env-slider-label">Humidity (%)</span>
+              <input type="range" class="env-slider-input" id="sliderHumidity" min="0" max="100" step="0.5" value="72" oninput="updateEnvDisplay()" style="accent-color:#3b82f6;" />
+              <span class="env-slider-val" id="envHumidity">72</span>
+            </div>
+            <div class="env-slider-row">
+              <span class="env-slider-icon">🌧️</span>
+              <span class="env-slider-label">Rainfall (mm)</span>
+              <input type="range" class="env-slider-input" id="sliderRainfall" min="0" max="250" step="0.5" value="18" oninput="updateEnvDisplay()" style="accent-color:#0284c7;" />
+              <span class="env-slider-val" id="envRainfall">18</span>
+            </div>
+            <div class="env-slider-row">
+              <span class="env-slider-icon">🌱</span>
+              <span class="env-slider-label">Soil Moisture (%)</span>
+              <input type="range" class="env-slider-input" id="sliderSoil" min="0" max="100" step="1" value="68" oninput="updateEnvDisplay()" style="accent-color:#10b981;" />
+              <span class="env-slider-val" id="envSoil">68</span>
+            </div>
+            <div class="env-slider-row">
+              <span class="env-slider-icon">🫧</span>
+              <span class="env-slider-label">AQI</span>
+              <input type="range" class="env-slider-input" id="sliderAqi" min="0" max="500" step="1" value="84" oninput="updateEnvDisplay()" style="accent-color:#f97316;" />
+              <span class="env-slider-val" id="envAqi">84</span>
+            </div>
+            <div class="env-slider-row">
+              <span class="env-slider-icon">☀️</span>
+              <span class="env-slider-label">Ozone (ppb)</span>
+              <input type="range" class="env-slider-input" id="sliderOzone" min="0" max="200" step="1" value="41" oninput="updateEnvDisplay()" style="accent-color:#eab308;" />
+              <span class="env-slider-val" id="envOzone">41</span>
+            </div>
+          </div>
+
+          <!-- Crop Context Box -->
+          <div class="crop-context-box" style="margin-top:8px; margin-bottom:14px;">
+            <div class="crop-context-title">Crop &amp; Growth Context</div>
+            <div class="crop-context-grid">
+              <div>
+                <label style="font-size:11px; color:#64748b; font-weight:600; display:block; margin-bottom:4px;">Crop Stage</label>
+                <select id="cropGrowthStage" class="crop-input">
+                  <option value="Flowering" selected>Flowering</option>
+                  <option value="Boll_Development">Boll Development</option>
+                  <option value="Vegetative">Vegetative</option>
+                  <option value="Maturity">Maturity</option>
+                  <option value="Sowing">Sowing</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px; color:#64748b; font-weight:600; display:block; margin-bottom:4px;">Days Since Sowing</label>
+                <input type="number" id="cropDays" class="crop-input" value="60" min="0" max="250" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Action Buttons: Reset + Save Conditions / Analyze Environment -->
+          <div style="display:flex; gap:12px; margin-top:14px;">
+            <button class="btn btn-outline" type="button" onclick="resetEnvSliders()" style="flex:1; justify-content:center; padding:12px; font-size:13px; border-radius:10px; border-color:#cbd5e1;">
+              Reset
+            </button>
+            <button class="btn btn-primary" id="snnAnalyzeBtn" onclick="runEnvironmentAnalysis()" style="flex:2; justify-content:center; padding:12px; font-size:13px; border-radius:10px;">
+              Save Conditions &amp; Analyze →
+            </button>
+          </div>
+
+          <!-- Collapsible Model Details -->
+          <details class="model-details" style="margin-top:14px;">
+            <summary>Model Details (SNN)</summary>
+            <div class="model-meta-grid">
+              <div><strong>Architecture:</strong> 3-Layer LIF (33 $\to$ 64 $\to$ 64 $\to$ 3)</div>
+              <div><strong>Timesteps ($T$):</strong> 10 Steps</div>
+              <div><strong>Membrane Decay:</strong> $\beta = 0.95$</div>
+              <div><strong>Benchmark:</strong> 91.81% Test Accuracy</div>
+            </div>
+          </details>
+        </div>
+
+        <!-- ROW 2: FULL WIDTH: 3. AI Analysis Result (Empty state prior to analysis) -->
+        <div class="panel" style="grid-column: 1 / -1;" id="view1EmptyState">
+          <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:10px;">3. AI Analysis Result</h3>
+          <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; padding:22px 20px; text-align:center;">
+            <div style="font-size:24px; margin-bottom:6px;">🌱</div>
+            <div style="font-size:13px; font-weight:700; color:#1e293b; margin-bottom:4px;">Ready for Multimodal Assessment</div>
+            <p style="margin:0 auto 12px; font-size:12px; color:#64748b; max-width:480px; line-height:1.5;">
+              Upload a cotton leaf image and adjust environmental conditions above to initiate combined CNN visual stress classification and SNN environmental risk analysis.
+            </p>
+            <button class="btn btn-primary" onclick="runAnalysis()" style="font-size:13px; padding:10px 22px; border-radius:8px;">
+              Analyze Cotton Leaf →
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================
+           VIEW 2: Visual Check
+           ============================================================ -->
+      <div id="viewCNN" class="dash-grid" style="display:none; grid-template-columns:1fr 1fr; gap:22px; align-items:start;">
+
+        <!-- LEFT COLUMN: 1. Leaf Image & 3. Environmental Conditions (Manual) -->
+        <div>
+          <!-- 1. Leaf Image -->
+          <div class="panel" style="margin-bottom:20px;">
+            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:10px;">1. Leaf Image</h3>
+            <div style="text-align:center;">
+              <img id="fig5LeafImg" src="images/leaf_placeholder.jpg" alt="Leaf photo" style="max-height:180px; width:100%; border-radius:10px; object-fit:cover; border:1px solid #e2e8f0;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'180\' height=\'140\' viewBox=\'0 0 180 140\'><rect width=\'100%\' height=\'100%\' fill=\'%23f0fdf4\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23059669\'>🌿 Cotton Leaf</text></svg>'" />
+              <div id="fig5FileName" style="font-size:12px; color:#64748b; margin-top:6px; font-weight:500;">cotton_leaf.jpg</div>
+            </div>
+          </div>
+
+          <!-- 3. Environmental Conditions (Manual) Compact 2x3 Grid -->
+          <div class="panel">
+            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:10px;">3. Environmental Conditions (Manual)</h3>
+            <div class="compact-env-grid" id="fig5EnvGrid">
+              <div class="compact-env-tile"><div class="compact-env-icon">🌡️</div><div class="compact-env-val">31°C</div><div class="compact-env-lbl">Temperature</div></div>
+              <div class="compact-env-tile"><div class="compact-env-icon">💧</div><div class="compact-env-val">72%</div><div class="compact-env-lbl">Humidity</div></div>
+              <div class="compact-env-tile"><div class="compact-env-icon">🌧️</div><div class="compact-env-val">18 mm</div><div class="compact-env-lbl">Rainfall (1 day)</div></div>
+              <div class="compact-env-tile"><div class="compact-env-icon">🌱</div><div class="compact-env-val">68%</div><div class="compact-env-lbl">Soil Moisture</div></div>
+              <div class="compact-env-tile"><div class="compact-env-icon">🫧</div><div class="compact-env-val">84</div><div class="compact-env-lbl">AQI</div></div>
+              <div class="compact-env-tile"><div class="compact-env-icon">☀️</div><div class="compact-env-val">41 ppb</div><div class="compact-env-lbl">Ozone</div></div>
+            </div>
+            <button class="btn btn-outline" style="width:100%; justify-content:center; padding:10px; font-size:12px; border-radius:8px;" onclick="switchView('input')">
+              Edit Conditions
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: 2. Visual Check (CNN) -->
+        <div class="panel" id="fig5CNNPanel">
+          <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">2. Visual Check</h3>
+
+          <!-- Highlight Banner -->
+          <div class="fig-result-banner fig-banner-red" id="fig5Banner">
+            <div class="fig-banner-icon">🌿</div>
+            <div class="fig-banner-content">
+              <div class="fig-banner-sub" style="color:#e11d48;">Predicted Visual Stress</div>
+              <div class="fig-banner-title" style="color:#be123c;" id="fig5ClassTitle">Water Stress</div>
+              <span class="fig-banner-pill" style="background:#ffe4e6; color:#be123c;" id="fig5ConfPill">CNN Confidence: 65%</span>
+            </div>
+          </div>
+
+          <!-- Probability Bars -->
+          <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b; margin:14px 0 8px; letter-spacing:0.04em;">
+            Model Class Probabilities
+          </div>
+          <div id="fig5ProbRows">
+            <div class="fig-prob-row">
+              <span class="fig-prob-icon">🔴</span>
+              <span class="fig-prob-label">Water Stress</span>
+              <div class="fig-prob-track"><div class="fig-prob-fill" style="width:65%; background:#ef4444;"></div></div>
+              <span class="fig-prob-val">65%</span>
+            </div>
+            <div class="fig-prob-row">
+              <span class="fig-prob-icon">🟡</span>
+              <span class="fig-prob-label">Heat Stress</span>
+              <div class="fig-prob-track"><div class="fig-prob-fill" style="width:15%; background:#f59e0b;"></div></div>
+              <span class="fig-prob-val">15%</span>
+            </div>
+            <div class="fig-prob-row">
+              <span class="fig-prob-icon">🟢</span>
+              <span class="fig-prob-label">Nutrient Deficiency</span>
+              <div class="fig-prob-track"><div class="fig-prob-fill" style="width:10%; background:#10b981;"></div></div>
+              <span class="fig-prob-val">10%</span>
+            </div>
+            <div class="fig-prob-row">
+              <span class="fig-prob-icon">🟣</span>
+              <span class="fig-prob-label">Pollution</span>
+              <div class="fig-prob-track"><div class="fig-prob-fill" style="width:5%; background:#8b5cf6;"></div></div>
+              <span class="fig-prob-val">5%</span>
+            </div>
+            <div class="fig-prob-row">
+              <span class="fig-prob-icon">🟢</span>
+              <span class="fig-prob-label">Healthy</span>
+              <div class="fig-prob-track"><div class="fig-prob-fill" style="width:5%; background:#22c55e;"></div></div>
+              <span class="fig-prob-val">5%</span>
+            </div>
+          </div>
+
+          <!-- Callout Box -->
+          <div class="fig-callout-box fig-callout-green" id="fig5Callout">
+            <span style="font-size:20px;">🌿</span>
+            <div id="fig5CalloutText">The leaf displays visual symptoms associated with water stress, such as leaf drooping and subtle foliar wilting.</div>
+          </div>
+
+          <!-- Collapsible Model Details -->
+          <details class="model-details" style="margin-top:14px;">
+            <summary>Model Details (CNN)</summary>
+            <div class="model-meta-grid">
+              <div><strong>Architecture:</strong> Custom ResNet (110,853 trainable params)</div>
+              <div><strong>Resolution:</strong> 224 × 224 RGB</div>
+              <div><strong>Classes:</strong> Healthy, Water Stress, Heat Stress, Nutrient Deficiency, Pollution</div>
+              <div><strong>Evaluation:</strong> 86.05% Test Accuracy (Benchmark)</div>
+            </div>
+          </details>
+        </div>
+
+      </div>
+
+      <!-- ============================================================
+           VIEW 3: Environmental Check
+           ============================================================ -->
+      <div id="viewSNN" class="dash-grid" style="display:none; grid-template-columns:1fr 1fr; gap:22px; align-items:start;">
+
+        <!-- LEFT COLUMN: 1. Leaf Image & 2. Environmental Conditions (Manual) -->
+        <div>
+          <!-- 1. Leaf Image -->
+          <div class="panel" style="margin-bottom:20px;">
+            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:10px;">1. Leaf Image</h3>
+            <div style="text-align:center;">
+              <img id="fig6LeafImg" src="images/leaf_placeholder.jpg" alt="Leaf photo" style="max-height:180px; width:100%; border-radius:10px; object-fit:cover; border:1px solid #e2e8f0;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'180\' height=\'140\' viewBox=\'0 0 180 140\'><rect width=\'100%\' height=\'100%\' fill=\'%23f0fdf4\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23059669\'>🌿 Cotton Leaf</text></svg>'" />
+              <div id="fig6FileName" style="font-size:12px; color:#64748b; margin-top:6px; font-weight:500;">cotton_leaf.jpg</div>
+            </div>
+          </div>
+
+          <!-- 2. Environmental Conditions (Manual) Compact 2x3 Grid -->
+          <div class="panel">
+            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:10px;">2. Environmental Conditions (Manual)</h3>
+            <div class="compact-env-grid" id="fig6EnvGrid">
+              <div class="compact-env-tile"><div class="compact-env-icon">🌡️</div><div class="compact-env-val">31°C</div><div class="compact-env-lbl">Temperature</div></div>
+              <div class="compact-env-tile"><div class="compact-env-icon">💧</div><div class="compact-env-val">72%</div><div class="compact-env-lbl">Humidity</div></div>
+              <div class="compact-env-tile"><div class="compact-env-icon">🌧️</div><div class="compact-env-val">18 mm</div><div class="compact-env-lbl">Rainfall (1 day)</div></div>
+              <div class="compact-env-tile"><div class="compact-env-icon">🌱</div><div class="compact-env-val">68%</div><div class="compact-env-lbl">Soil Moisture</div></div>
+              <div class="compact-env-tile"><div class="compact-env-icon">🫧</div><div class="compact-env-val">84</div><div class="compact-env-lbl">AQI</div></div>
+              <div class="compact-env-tile"><div class="compact-env-icon">☀️</div><div class="compact-env-val">41 ppb</div><div class="compact-env-lbl">Ozone</div></div>
+            </div>
+            <button class="btn btn-outline" style="width:100%; justify-content:center; padding:10px; font-size:12px; border-radius:8px;" onclick="switchView('input')">
+              Edit Conditions
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: 3. Environmental Check (SNN) -->
+        <div class="panel" id="fig6SNNPanel">
+          <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">3. Environmental Check</h3>
+
+          <!-- Highlight Banner -->
+          <div class="fig-result-banner fig-banner-orange" id="fig6Banner">
+            <div class="fig-banner-icon">🌤️</div>
+            <div class="fig-banner-content">
+              <div class="fig-banner-sub" style="color:#ea580c;">Predicted Environmental Stress</div>
+              <div class="fig-banner-title" style="color:#c2410c;" id="fig6ClassTitle">High Risk</div>
+              <span class="fig-banner-pill" style="background:#ffedd5; color:#c2410c;" id="fig6ConfPill">Output Evidence: 8/10 Spikes</span>
+            </div>
+          </div>
+
+          <!-- Key Environmental Physical Observations -->
+          <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b; margin:14px 0 10px; letter-spacing:0.04em;">
+            Environmental Observations &amp; Physical Readings
+          </div>
+          <div id="fig6FactorsList" style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+              <span style="font-size:12px; font-weight:600; color:#334155;">🌡️ Temperature</span>
+              <span style="font-size:12px; font-weight:700; color:#0d3b2e;" id="fig6FactorTemp">31°C</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+              <span style="font-size:12px; font-weight:600; color:#334155;">💧 Humidity</span>
+              <span style="font-size:12px; font-weight:700; color:#0d3b2e;" id="fig6FactorHumidity">72%</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+              <span style="font-size:12px; font-weight:600; color:#334155;">🌧️ Rainfall (24h)</span>
+              <span style="font-size:12px; font-weight:700; color:#0d3b2e;" id="fig6FactorRainfall">18 mm</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+              <span style="font-size:12px; font-weight:600; color:#334155;">🌱 Soil Moisture</span>
+              <span style="font-size:12px; font-weight:700; color:#0d3b2e;" id="fig6FactorSoil">68%</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+              <span style="font-size:12px; font-weight:600; color:#334155;">🫧 Air Quality Index (AQI)</span>
+              <span style="font-size:12px; font-weight:700; color:#0d3b2e;" id="fig6FactorAqi">84</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+              <span style="font-size:12px; font-weight:600; color:#334155;">☀️ Tropospheric Ozone</span>
+              <span style="font-size:12px; font-weight:700; color:#0d3b2e;" id="fig6FactorOzone">41 ppb</span>
+            </div>
+          </div>
+
+          <!-- Alert Callout -->
+          <div class="fig-callout-box fig-callout-red" id="fig6Callout" style="margin-top:14px;">
+            <span style="font-size:20px;">🚨</span>
+            <div id="fig6CalloutText">Observed atmospheric temperature and soil moisture conditions indicate elevated environmental stress risk.</div>
+          </div>
+
+          <!-- Collapsible Model Details -->
+          <details class="model-details" style="margin-top:14px;">
+            <summary>Model Details (SNN)</summary>
+            <div class="model-meta-grid">
+              <div><strong>Architecture:</strong> 3-Layer LIF Spiking Network (33 $\to$ 64 $\to$ 64 $\to$ 3)</div>
+              <div><strong>Timesteps ($T$):</strong> 10 Simulation Steps</div>
+              <div><strong>Membrane Decay:</strong> $\beta = 0.95$</div>
+              <div><strong>Evaluation:</strong> 91.81% Test Accuracy (Benchmark)</div>
+            </div>
+          </details>
+        </div>
+
+      </div>
+
+      <!-- ============================================================
+           VIEW 4: Combined Assessment
+           ============================================================ -->
+      <div id="viewCombined" style="display:none; display:flex; flex-direction:column; gap:22px;">
+
+        <!-- TOP ROW: Leaf & Environmental Overview (Left) + Stress Probability Distribution (Right) -->
+        <div style="display:grid; grid-template-columns:1.15fr 0.85fr; gap:22px;">
+
+          <!-- TOP LEFT: Leaf & Environmental Overview -->
+          <div class="panel" style="padding:18px 20px;">
+            <h3 style="font-size:1.02rem; color:#0d3b2e; font-weight:700; margin-bottom:10px;">Leaf &amp; Environmental Overview</h3>
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+              <div style="text-align:center;">
+                <img id="fig7LeafImg" src="images/leaf_placeholder.jpg" alt="Leaf photo" style="width:76px; height:76px; border-radius:10px; object-fit:cover; border:1px solid #cbd5e1;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'76\' height=\'76\' viewBox=\'0 0 76 76\'><rect width=\'100%\' height=\'100%\' fill=\'%23ecfdf5\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-size=\'22\'>🌿</text></svg>'" />
+                <div style="font-size:10px; color:#64748b; margin-top:3px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" id="fig7FileName">cotton_leaf.jpg</div>
+              </div>
+
+              <!-- CNN Mini Card -->
+              <div style="flex:1; background:#fff1f2; border:1px solid #fecdd3; border-radius:10px; padding:8px 12px; min-width:130px;">
+                <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:#e11d48;">Visual Check (CNN)</div>
+                <div style="font-size:13px; font-weight:800; color:#be123c; margin:1px 0;" id="fig7CNNTitle">Water Stress</div>
+                <span style="background:#ffe4e6; color:#be123c; font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px;" id="fig7CNNConf">CNN Confidence: 65%</span>
+              </div>
+
+              <!-- Plus Sign -->
+              <div style="font-size:18px; font-weight:800; color:#64748b;">+</div>
+
+              <!-- SNN Mini Card -->
+              <div style="flex:1; background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:8px 12px; min-width:130px;">
+                <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:#ea580c;">Environmental Check (SNN)</div>
+                <div style="font-size:13px; font-weight:800; color:#c2410c; margin:1px 0;" id="fig7SNNTitle">High Risk</div>
+                <span style="background:#ffedd5; color:#c2410c; font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px;" id="fig7SNNConf">Evidence: 8/10 Spikes</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TOP RIGHT: Evidence Overview & Concordance -->
+          <div class="panel" style="padding:18px 20px;">
+            <h3 style="font-size:1.02rem; color:#0d3b2e; font-weight:700; margin-bottom:10px;">Evidence Overview</h3>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11px; font-weight:600; color:#475569;">Visual Evidence:</span>
+                <span style="font-size:11px; font-weight:700; color:#0d3b2e;" id="fig7EvidenceVisual">Water Stress (CNN Confidence: 65%)</span>
+              </div>
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11px; font-weight:600; color:#475569;">Environmental Evidence:</span>
+                <span style="font-size:11px; font-weight:700; color:#0d3b2e;" id="fig7EvidenceEnv">High Risk (8/10 Spikes)</span>
+              </div>
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11px; font-weight:600; color:#475569;">Evidence Relationship:</span>
+                <span id="fig7EvidenceRelationship" style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;">Aligned</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- BOTTOM ROW: Final Assessment (Left) + Quick Actions (Right) -->
+        <div style="display:grid; grid-template-columns:1.15fr 0.85fr; gap:22px; align-items:start;">
+
+          <!-- BOTTOM LEFT: Final Assessment -->
+          <div class="panel">
+            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">FINAL ASSESSMENT</h3>
+
+            <!-- Hero Finding -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; margin-bottom:14px; display:flex; align-items:center; gap:12px;">
+              <div style="width:44px; height:44px; border-radius:10px; background:#ecfdf5; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;">🌱</div>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <h4 style="font-size:1.2rem; color:#be123c; font-weight:800; margin:0;" id="fig7FinalTitle">Water Stress</h4>
+                  <span style="background:#fee2e2; color:#be123c; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px;" id="fig7VisualConfBadge">CNN Confidence: 65%</span>
+                </div>
+                <div style="margin-top:6px; font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b;">Why this result?</div>
+                <p style="margin:2px 0 0; font-size:12px; color:#334155; line-height:1.5;" id="fig7FinalDesc">
+                  The visual assessment indicates a pattern associated with water stress, while the environmental assessment indicates high risk. The two signals are aligned.
+                </p>
+              </div>
+            </div>
+
+            <!-- Deterministic Expert Check -->
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-left:4px solid #d97706; border-radius:8px; padding:12px 14px; margin-bottom:12px;" id="fig7ExpertBox">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#d97706;" id="fig7ExpertStatus">EXPERT CHECK — PRECAUTION DETECTED</div>
+              <div style="font-size:12px; color:#1e293b; margin-top:4px;" id="fig7ExpertText">
+                <strong>Rule:</strong> EVR-001<br>
+                <strong>Why:</strong> Soil moisture is below optimal threshold for current crop stage.<br>
+                <strong>Meaning:</strong> Active root-zone moisture deficit.<br>
+                <strong>What to check:</strong> Confirm moisture depth across root zones before adjusting irrigation.
+              </div>
+            </div>
+
+            <!-- What to Check Next -->
+            <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:10px 14px;">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#374151; margin-bottom:4px;">🚜 What to check next</div>
+              <ul style="margin:0; padding-left:16px; font-size:11px; color:#475569; line-height:1.4;" id="fig7PrecautionsList">
+                <li>Inspect root zone soil moisture depth across multiple field zones.</li>
+                <li>Verify irrigation delivery according to crop stage and ambient heat index.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- BOTTOM RIGHT: Quick Actions (4 Actions) -->
+          <div class="panel">
+            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">QUICK ACTIONS</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              
+              <a href="#" id="fig7ReportBtn" target="_blank" class="quick-action-tile" style="text-decoration:none;">
+                <div class="quick-action-tile-icon">📄</div>
+                <div class="quick-action-tile-title">View Report</div>
+              </a>
+
+              <button onclick="saveCurrentAnalysis()" class="quick-action-tile" style="width:100%; border:1px solid #e2e8f0; background:#ffffff; cursor:pointer;">
+                <div class="quick-action-tile-icon">💾</div>
+                <div class="quick-action-tile-title">Save Analysis</div>
+              </button>
+
+              <a href="assistant.html" id="fig7AskAIBtn" class="quick-action-tile" style="text-decoration:none;">
+                <div class="quick-action-tile-icon">🤖</div>
+                <div class="quick-action-tile-title">Ask AI</div>
+              </a>
+
+              <button onclick="resetAnalysisState()" class="quick-action-tile" style="width:100%; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer;">
+                <div class="quick-action-tile-icon">🌿</div>
+                <div class="quick-action-tile-title">New Analysis</div>
+              </button>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/auth.js?v=9"></script>
+  <script src="js/dashboard.js?v=9"></script>
+</body>
+</html>

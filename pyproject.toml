@@ -1,0 +1,13 @@
+[tool.mypy]
+# Include the backend folder as part of the mypy path so internal imports resolve
+mypy_path = ["backend"]
+# Temporarily ignore missing stubs for third‑party libraries we will install later
+ignore_missing_imports = true
+# Enable strict optional checking for better safety
+strict_optional = true
+# Disallow calling functions without type hints
+disallow_untyped_calls = true
+# Require type hints on functions defined in this project
+disallow_untyped_defs = true
+# Warn about unused ignores
+warn_unused_ignores = true

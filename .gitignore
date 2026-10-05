@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Caches and tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environments
+.env
+.venv/
+venv/
+ENV/
+env/
+backend/venv/
+
+# Large Archives & Datasets (>100MB)
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+
+# SQLite database & local storage
+*.db
+*.db-journal
+*.sqlite3
+cotton_stress.db
+
+# Uploads directory contents (preserve folder structure)
+uploads/*
+!uploads/.gitkeep
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Root duplicate model weights (canonical copies live in backend/models/)
+/AgroVision_CNN_baseline.pth
+/best_agrovision_cnn.pth
