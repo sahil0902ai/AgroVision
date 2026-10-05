@@ -8,6 +8,13 @@ const PAGE_LIMIT = 15;
 let debounceTimeout = null;
 let latestRecordUuid = null;
 
+function getApiUrl(endpoint) {
+  if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
+    return window.AGROVISION_CONFIG.getApiUrl(endpoint);
+  }
+  return endpoint;
+}
+
 // Auth check
 const currentUser = typeof requireLogin === "function" ? requireLogin() : null;
 if (currentUser && document.getElementById("welcomeMsg")) {
@@ -48,7 +55,7 @@ function resetFilters() {
 function exportCSV() {
   const sev = document.getElementById("severityFilter").value;
   const stage = document.getElementById("stageFilter").value;
-  let url = "/api/v1/records/export/csv?";
+  let url = getApiUrl("/api/v1/records/export/csv?");
   const params = [];
   if (sev) params.push(`stress_severity=${encodeURIComponent(sev)}`);
   if (stage) params.push(`growth_stage=${encodeURIComponent(stage)}`);
@@ -58,7 +65,7 @@ function exportCSV() {
 
 function openLatestReport() {
   if (latestRecordUuid) {
-    window.open(`/api/v1/records/${latestRecordUuid}/report`, "_blank");
+    window.open(getApiUrl(`/api/v1/records/${latestRecordUuid}/report`), "_blank");
   } else {
     alert("No stored analysis records found to generate a report.");
   }
@@ -88,7 +95,7 @@ async function loadRecords() {
   if (stage) params.append("growth_stage", stage);
 
   try {
-    const res = await fetch(`/api/v1/records?${params.toString()}`);
+    const res = await fetch(getApiUrl(`/api/v1/records?${params.toString()}`));
     if (!res.ok) throw new Error("Could not load records.");
 
     const records = await res.json();

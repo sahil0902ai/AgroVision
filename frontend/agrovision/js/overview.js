@@ -18,9 +18,16 @@ const formattedDate = today.toLocaleDateString("en-US", { month: "short", day: "
 const todayDateEl = document.getElementById("todayDate");
 if (todayDateEl) todayDateEl.textContent = formattedDate;
 
+function getApiUrl(endpoint) {
+  if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
+    return window.AGROVISION_CONFIG.getApiUrl(endpoint);
+  }
+  return endpoint;
+}
+
 async function loadOverviewData() {
   try {
-    const response = await fetch("/api/v1/records");
+    const response = await fetch(getApiUrl("/api/v1/records"));
     if (!response.ok) return;
 
     const data = await response.json();

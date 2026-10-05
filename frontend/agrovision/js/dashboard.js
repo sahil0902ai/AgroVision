@@ -9,6 +9,13 @@ let latestSNNResult = null;
 let latestSNNPayload = null;
 let latestCombinedData = null;
 
+function getApiUrl(endpoint) {
+  if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
+    return window.AGROVISION_CONFIG.getApiUrl(endpoint);
+  }
+  return endpoint;
+}
+
 // Populate current date in header
 const today = new Date();
 const formattedDate = today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -198,7 +205,7 @@ async function runAnalysis() {
     const formData = new FormData();
     formData.append("file", selectedFile);
 
-    const response = await fetch("/api/cnn/predict", {
+    const response = await fetch(getApiUrl("/api/cnn/predict"), {
       method: "POST",
       body: formData
     });
@@ -324,7 +331,7 @@ async function runEnvironmentAnalysis(switchToSNN = true) {
       observation_date: now.toISOString().split("T")[0]
     };
 
-    const response = await fetch("/api/snn/predict", {
+    const response = await fetch(getApiUrl("/api/snn/predict"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -421,7 +428,7 @@ async function runCombinedSynthesis() {
       environmental_inputs: latestSNNPayload
     };
 
-    const response = await fetch("/api/analysis/combine", {
+    const response = await fetch(getApiUrl("/api/analysis/combine"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(combinePayload)
@@ -564,7 +571,7 @@ function renderFigure7(data) {
   // Quick Action Links
   const reportBtn = document.getElementById("fig7ReportBtn");
   if (reportBtn && recUuid) {
-    reportBtn.href = `/api/v1/records/${recUuid}/report`;
+    reportBtn.href = getApiUrl(`/api/v1/records/${recUuid}/report`);
   }
 
   const askAIBtn = document.getElementById("fig7AskAIBtn");

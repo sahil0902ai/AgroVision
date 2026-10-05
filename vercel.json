@@ -1,0 +1,86 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/frontend/agrovision/index.html"
+    },
+    {
+      "source": "/overview",
+      "destination": "/frontend/agrovision/overview.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/frontend/agrovision/dashboard.html"
+    },
+    {
+      "source": "/history",
+      "destination": "/frontend/agrovision/history.html"
+    },
+    {
+      "source": "/assistant",
+      "destination": "/frontend/agrovision/assistant.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/frontend/agrovision/login.html"
+    },
+    {
+      "source": "/services",
+      "destination": "/frontend/agrovision/services.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/frontend/agrovision/about.html"
+    },
+    {
+      "source": "/analysis_detail",
+      "destination": "/frontend/agrovision/analysis_detail.html"
+    },
+    {
+      "source": "/agrovision",
+      "destination": "/frontend/agrovision/index.html"
+    },
+    {
+      "source": "/agrovision/",
+      "destination": "/frontend/agrovision/index.html"
+    },
+    {
+      "source": "/agrovision/:path*",
+      "destination": "/frontend/agrovision/:path*"
+    },
+    {
+      "source": "/css/:path*",
+      "destination": "/frontend/agrovision/css/:path*"
+    },
+    {
+      "source": "/js/:path*",
+      "destination": "/frontend/agrovision/js/:path*"
+    },
+    {
+      "source": "/images/:path*",
+      "destination": "/frontend/agrovision/images/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+}

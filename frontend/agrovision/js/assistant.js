@@ -5,6 +5,13 @@
 
 let latestContextRecord = null;
 
+function getApiUrl(endpoint) {
+  if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
+    return window.AGROVISION_CONFIG.getApiUrl(endpoint);
+  }
+  return endpoint;
+}
+
 // Auth check
 const currentUser = typeof requireLogin === "function" ? requireLogin() : null;
 if (currentUser && document.getElementById("welcomeMsg")) {
@@ -23,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function fetchLatestContext() {
   try {
-    const res = await fetch("/api/v1/records?limit=1");
+    const res = await fetch(getApiUrl("/api/v1/records?limit=1"));
     if (res.ok) {
       const records = await res.json();
       if (records && records.length > 0) {

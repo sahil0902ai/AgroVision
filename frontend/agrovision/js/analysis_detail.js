@@ -8,6 +8,13 @@ if (typeof requireLogin === "function") {
   requireLogin();
 }
 
+function getApiUrl(endpoint) {
+  if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
+    return window.AGROVISION_CONFIG.getApiUrl(endpoint);
+  }
+  return endpoint;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const recordIdentifier = urlParams.get("uuid") || urlParams.get("id");
@@ -34,7 +41,7 @@ function showDetailError(msg) {
 
 async function fetchRecordDetail(identifier) {
   try {
-    const res = await fetch(`/api/v1/records/${encodeURIComponent(identifier)}`);
+    const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(identifier)}`));
     if (!res.ok) {
       throw new Error(`Record ${identifier} could not be retrieved.`);
     }
@@ -53,7 +60,7 @@ function renderRecordDetail(r) {
   document.getElementById("detailContent").style.display = "block";
 
   document.getElementById("pageSub").textContent = `Record UUID: ${r.record_uuid} · ${new Date(r.created_at).toLocaleString()}`;
-  document.getElementById("reportBtn").href = `/api/v1/records/${r.record_uuid}/report`;
+  document.getElementById("reportBtn").href = getApiUrl(`/api/v1/records/${r.record_uuid}/report`);
 
   // Parse JSON payloads safely
   let cnnObj = {};
