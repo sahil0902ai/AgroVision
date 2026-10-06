@@ -2714,4 +2714,289 @@ details.model-details summary:hover {
   }
 }
 
+/* =========================================================
+   AGROVISION — Power BI Style Analytical Filter Toolbar
+   ========================================================= */
+
+.filter-toolbar-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-toolbar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.filter-toolbar-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-toolbar-icon {
+  font-size: 14px;
+  color: #059669;
+}
+
+.filter-toolbar-title {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #0d3b2e;
+}
+
+.filter-count-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.filter-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-filter-action {
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-filter-reset {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+.btn-filter-reset:hover {
+  background: #fee2e2;
+  border-color: #fecdd3;
+  color: #dc2626;
+}
+
+.btn-filter-apply {
+  background: #0d3b2e;
+  border: 1px solid #0d3b2e;
+  color: #ffffff;
+}
+
+.btn-filter-apply:hover {
+  background: #059669;
+  border-color: #059669;
+}
+
+/* 7-column Responsive Grid */
+.filter-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 1240px) {
+  .filter-controls-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 800px) {
+  .filter-controls-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .filter-controls-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filter-control-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-control-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 6px 8px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.filter-select:focus {
+  background: #ffffff;
+  border-color: #059669;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.12);
+}
+
+.custom-date-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+}
+
+.custom-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-date-input {
+  padding: 5px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 11.5px;
+  background: #ffffff;
+  color: #1e293b;
+  outline: none;
+}
+
+/* Active Chips Row */
+.active-filter-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.active-filter-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.chips-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.filter-chip-remove {
+  background: none;
+  border: none;
+  color: #059669;
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-chip-remove:hover {
+  color: #dc2626;
+}
+
+.clear-all-chips-btn {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.clear-all-chips-btn:hover {
+  text-decoration: underline;
+}
+
+/* No Results Container */
+.no-results-card {
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+.no-results-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.no-results-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.no-results-sub {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 14px;
+}
+
+
 

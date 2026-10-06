@@ -18,6 +18,7 @@ router = APIRouter()
 def get_records(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
+    field_name: str | None = Query(None, description="Filter by field or parcel name"),
     stress_severity: str | None = Query(None, description="Filter by SNN stress severity (High, Low, Moderate)"),
     growth_stage: str | None = Query(None, description="Filter by crop growth stage"),
     search: str | None = Query(None, description="Search by record UUID or keywords"),
@@ -30,29 +31,32 @@ def get_records(
     """
     query = db.query(AnalysisRecordDB)
 
-    if stress_severity:
+    if isinstance(field_name, str) and field_name.strip():
+        query = query.filter(AnalysisRecordDB.field_name.ilike(f"%{field_name.strip()}%"))
+
+    if isinstance(stress_severity, str) and stress_severity.strip():
         query = query.filter(AnalysisRecordDB.stress_severity.ilike(stress_severity.strip()))
 
-    if growth_stage:
+    if isinstance(growth_stage, str) and growth_stage.strip():
         query = query.filter(AnalysisRecordDB.growth_stage.ilike(growth_stage.strip()))
 
-    if search:
+    if isinstance(search, str) and search.strip():
         search_term = f"%{search.strip()}%"
         query = query.filter(
             (AnalysisRecordDB.record_uuid.ilike(search_term)) |
             (AnalysisRecordDB.stress_severity.ilike(search_term))
         )
 
-    if start_date:
+    if isinstance(start_date, str) and start_date.strip():
         try:
-            start_dt = datetime.fromisoformat(start_date)
+            start_dt = datetime.fromisoformat(start_date.strip())
             query = query.filter(AnalysisRecordDB.created_at >= start_dt)
         except ValueError:
             pass
 
-    if end_date:
+    if isinstance(end_date, str) and end_date.strip():
         try:
-            end_dt = datetime.fromisoformat(end_date)
+            end_dt = datetime.fromisoformat(end_date.strip())
             query = query.filter(AnalysisRecordDB.created_at <= end_dt)
         except ValueError:
             pass

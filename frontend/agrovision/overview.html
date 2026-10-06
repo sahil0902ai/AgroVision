@@ -386,8 +386,143 @@
 
       <div class="overview-container">
 
+        <!-- ============ POWER BI ANALYTICAL FILTER TOOLBAR ============ -->
+        <div class="filter-toolbar-card" id="filterToolbarCard">
+          
+          <div class="filter-toolbar-header">
+            <div class="filter-toolbar-title-wrap">
+              <span class="filter-toolbar-icon">⚙️</span>
+              <span class="filter-toolbar-title">Analytical Filters</span>
+              <span class="filter-count-badge" id="filterCountBadge" style="display:none;">0 active</span>
+            </div>
+            <div class="filter-toolbar-actions">
+              <button type="button" onclick="resetAllFilters()" class="btn-filter-action btn-filter-reset" id="resetFiltersBtn" title="Reset all filters">
+                ↺ Reset Filters
+              </button>
+              <button type="button" onclick="applyAnalyticsFilters()" class="btn-filter-action btn-filter-apply" id="applyFiltersBtn">
+                ⚡ Apply Filters
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Controls Grid (7 Analytical Filters) -->
+          <div class="filter-controls-grid">
+            
+            <!-- 1. Field -->
+            <div class="filter-control-item">
+              <label class="filter-control-label" for="filterField">Field / Parcel</label>
+              <select id="filterField" class="filter-select" onchange="onFilterControlChange()">
+                <option value="all">All Fields</option>
+                <option value="Field A">Field A — North Parcel (Zone 1)</option>
+                <option value="Field B">Field B — South Parcel (Zone 2)</option>
+                <option value="Field C">Field C — East Plot (Zone 3)</option>
+              </select>
+            </div>
+
+            <!-- 2. Date Range -->
+            <div class="filter-control-item">
+              <label class="filter-control-label" for="filterDateRange">Date Range</label>
+              <select id="filterDateRange" class="filter-select" onchange="onDateRangePresetChange()">
+                <option value="all" selected>All Time</option>
+                <option value="today">Today</option>
+                <option value="7days">Past 7 Days</option>
+                <option value="30days">Past 30 Days</option>
+                <option value="season">This Season (90d)</option>
+                <option value="custom">Custom Range…</option>
+              </select>
+            </div>
+
+            <!-- 3. Crop Stage -->
+            <div class="filter-control-item">
+              <label class="filter-control-label" for="filterCropStage">Crop Stage</label>
+              <select id="filterCropStage" class="filter-select" onchange="onFilterControlChange()">
+                <option value="all" selected>All Crop Stages</option>
+                <option value="Seedling">Seedling</option>
+                <option value="Vegetative">Vegetative</option>
+                <option value="Flowering">Flowering</option>
+                <option value="Boll Formation">Boll Formation</option>
+                <option value="Maturity">Maturity</option>
+              </select>
+            </div>
+
+            <!-- 4. Visual Stress (CNN) -->
+            <div class="filter-control-item">
+              <label class="filter-control-label" for="filterVisualStress">Visual Stress (CNN)</label>
+              <select id="filterVisualStress" class="filter-select" onchange="onFilterControlChange()">
+                <option value="all" selected>All Visual Conditions</option>
+                <option value="Healthy">Healthy Leaf</option>
+                <option value="Water Stress">Water Stress</option>
+                <option value="Heat Stress">Heat Stress</option>
+                <option value="Nutrient Deficiency">Nutrient Deficiency</option>
+                <option value="Pollution">Pollution</option>
+              </select>
+            </div>
+
+            <!-- 5. Environmental Stress (SNN) -->
+            <div class="filter-control-item">
+              <label class="filter-control-label" for="filterEnvStress">Environmental (SNN)</label>
+              <select id="filterEnvStress" class="filter-select" onchange="onFilterControlChange()">
+                <option value="all" selected>All Risk Levels</option>
+                <option value="Low">Low Risk</option>
+                <option value="Moderate">Moderate Risk</option>
+                <option value="High">High Risk</option>
+              </select>
+            </div>
+
+            <!-- 6. Expert Alert (Veto Engine) -->
+            <div class="filter-control-item">
+              <label class="filter-control-label" for="filterExpertAlert">Expert Alert</label>
+              <select id="filterExpertAlert" class="filter-select" onchange="onFilterControlChange()">
+                <option value="all" selected>All Alert States</option>
+                <option value="triggered">Precaution / Rules Triggered</option>
+                <option value="clean">Clean (No Rule Triggered)</option>
+              </select>
+            </div>
+
+            <!-- 7. Analysis Status (Fusion) -->
+            <div class="filter-control-item">
+              <label class="filter-control-label" for="filterAnalysisStatus">Analysis Status</label>
+              <select id="filterAnalysisStatus" class="filter-select" onchange="onFilterControlChange()">
+                <option value="all" selected>All Fusion Statuses</option>
+                <option value="aligned">Aligned Evidence</option>
+                <option value="partially_aligned">Partially Aligned</option>
+                <option value="conflicting">Conflicting Evidence</option>
+              </select>
+            </div>
+
+          </div>
+
+          <!-- Custom Date Range Row -->
+          <div class="custom-date-row" id="customDateRow" style="display:none;">
+            <div class="custom-date-inputs">
+              <label class="filter-control-label" for="customStartDate">From:</label>
+              <input type="date" id="customStartDate" class="filter-date-input" onchange="onFilterControlChange()" />
+              <label class="filter-control-label" for="customEndDate">To:</label>
+              <input type="date" id="customEndDate" class="filter-date-input" onchange="onFilterControlChange()" />
+            </div>
+          </div>
+
+          <!-- Active Filter Chips Container -->
+          <div class="active-filter-chips-row" id="activeFilterChipsRow" style="display:none;">
+            <span class="active-filter-label">Applied Filters:</span>
+            <div class="chips-list" id="activeChipsList"></div>
+            <button type="button" onclick="resetAllFilters()" class="clear-all-chips-btn">Clear All ✕</button>
+          </div>
+
+        </div>
+
+        <!-- No Matching Results Empty State -->
+        <div id="noResultsState" class="no-results-card" style="display:none;">
+          <div class="no-results-icon">🔍</div>
+          <div class="no-results-title">No Matching Analyses</div>
+          <div class="no-results-sub">No recorded analysis sessions match your selected filter criteria.</div>
+          <button type="button" onclick="resetAllFilters()" class="btn btn-primary" style="padding:8px 18px; font-size:12px; border-radius:8px;">
+            ↺ Reset Filters to View All
+          </button>
+        </div>
+
         <!-- Real-Time OpenWeather Live Station Banner -->
-        <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:14px; padding:14px 18px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+        <div id="overviewWeatherCard" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:14px; padding:14px 18px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:18px;">🌤️</span>
