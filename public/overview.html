@@ -121,17 +121,19 @@
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    overflow: hidden;
-    margin-top: 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 10px;
   }
   .overview-table {
     width: 100%;
+    min-width: 920px;
     border-collapse: collapse;
     font-size: 12px;
   }
   .overview-table th {
     background: #f8fafc;
-    padding: 10px 14px;
+    padding: 10px 12px;
     text-align: left;
     font-weight: 700;
     font-size: 10.5px;
@@ -139,14 +141,267 @@
     letter-spacing: 0.05em;
     color: #475569;
     border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
   }
   .overview-table td {
-    padding: 12px 14px;
+    padding: 10px 12px;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
   }
   .overview-table tr:hover {
     background: #f8fafc;
+  }
+  .table-filter-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 12px;
+    margin-bottom: 4px;
+  }
+  .filter-search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 6px 10px;
+    min-width: 200px;
+    flex: 1;
+    max-width: 280px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .filter-search-box:focus-within {
+    border-color: #059669;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.12);
+  }
+  .filter-search-box input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 11.5px;
+    color: #1e293b;
+    width: 100%;
+    font-family: inherit;
+  }
+  .filter-controls-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .filter-item label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+  .filter-item select {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 11.5px;
+    color: #1e293b;
+    outline: none;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .filter-item select:focus {
+    border-color: #059669;
+  }
+  .btn-reset-filters {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-reset-filters:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .sortable-th {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .sortable-th:hover {
+    background: #f1f5f9 !important;
+    color: #0d3b2e !important;
+  }
+  .sort-indicator {
+    font-size: 9.5px;
+    color: #94a3b8;
+    margin-left: 3px;
+    display: inline-block;
+  }
+  .sortable-th.active-sort .sort-indicator {
+    color: #059669;
+    font-weight: 800;
+  }
+  .leaf-thumb-compact {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #cbd5e1;
+    display: block;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .leaf-thumb-compact:hover {
+    transform: scale(1.08);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .evidence-bar-wrap {
+    width: 48px;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 3px;
+  }
+  .evidence-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: #059669;
+  }
+  .table-actions-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    flex-wrap: nowrap;
+  }
+  .tbl-action-btn {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .tbl-action-btn.view-btn {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #cbd5e1;
+  }
+  .tbl-action-btn.view-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .tbl-action-btn.open-btn {
+    background: #ecfdf5;
+    color: #059669;
+    border-color: #a7f3d0;
+  }
+  .tbl-action-btn.open-btn:hover {
+    background: #059669;
+    color: #ffffff;
+  }
+  .tbl-action-btn.report-btn {
+    background: #eff6ff;
+    color: #2563eb;
+    border-color: #bfdbfe;
+  }
+  .tbl-action-btn.report-btn:hover {
+    background: #2563eb;
+    color: #ffffff;
+  }
+  .table-pagination-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #ffffff;
+    border-top: 1px solid #f1f5f9;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .pagination-info {
+    font-size: 11.5px;
+    color: #64748b;
+    font-weight: 500;
+  }
+  .pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn-page {
+    padding: 4px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-page:hover:not(:disabled) {
+    background: #059669;
+    color: #ffffff;
+    border-color: #059669;
+  }
+  .btn-page:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .page-numbers-container {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .page-num-btn {
+    min-width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 5px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .page-num-btn:hover {
+    background: #f1f5f9;
+  }
+  .page-num-btn.active {
+    background: #059669;
+    color: #ffffff;
+    border-color: #059669;
+    font-weight: 700;
   }
   .parcel-card {
     background: #f8fafc;
@@ -819,39 +1074,148 @@
               </div>
             </div>
 
-            <!-- Recent Analysis History Table (Top 5) -->
-            <div class="panel">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                  <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700;">Recent Analysis Archive</h3>
-                  <p class="panel-sub" style="margin:2px 0 0;">Latest 5 multi-modal field scans recorded to database.</p>
+            <!-- RECENT ANALYSES TABLE (Power BI-Style Analytical Grid) -->
+            <div class="panel" id="recentAnalysesPanel">
+              <!-- Header with Title, Count, and "View All" -->
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:20px;">📊</span>
+                  <div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">Recent Analyses</h3>
+                      <span id="recentAnalysesCountBadge" style="font-size:11px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">0 Scans</span>
+                    </div>
+                    <p class="panel-sub" style="margin:2px 0 0;">Multi-modal CNN foliar analysis & SNN environmental telemetry records</p>
+                  </div>
                 </div>
-                <a href="history.html" style="font-size:12px; color:#059669; font-weight:600; text-decoration:none;">
-                  View All Archive →
-                </a>
+                
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <button type="button" class="btn btn-action-outline" id="tableExportCsvBtn" onclick="exportOverviewTableCsv()" style="font-size:11.5px; padding:5px 10px; border-radius:7px;">
+                    📥 Export CSV
+                  </button>
+                  <a href="history.html" class="btn btn-primary" style="font-size:11.5px; padding:5px 12px; border-radius:7px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                    <span>View All</span>
+                    <span>→</span>
+                  </a>
+                </div>
               </div>
 
+              <!-- Power BI Filter & Search Toolbar -->
+              <div class="table-filter-toolbar">
+                <div class="filter-search-box">
+                  <span style="font-size:13px; color:#64748b;">🔍</span>
+                  <input
+                    type="text"
+                    id="tableFilterSearch"
+                    placeholder="Search UUID, diagnosis, risk…"
+                    oninput="handleTableFilterChange()"
+                    aria-label="Search analyses in table"
+                  />
+                  <button type="button" id="clearTableSearchBtn" onclick="clearTableSearch()" style="display:none; background:none; border:none; color:#94a3b8; cursor:pointer; font-size:12px;">✖</button>
+                </div>
+
+                <div class="filter-controls-group">
+                  <div class="filter-item">
+                    <label for="tableFilterVisual">Visual</label>
+                    <select id="tableFilterVisual" onchange="handleTableFilterChange()">
+                      <option value="">All Visual</option>
+                      <option value="healthy">Healthy</option>
+                      <option value="water_stress">Water Stress</option>
+                      <option value="heat_stress">Heat Stress</option>
+                      <option value="nutrient_deficiency">Nutrient Deficiency</option>
+                      <option value="pollution">Pollution</option>
+                    </select>
+                  </div>
+
+                  <div class="filter-item">
+                    <label for="tableFilterEnv">Env. Risk</label>
+                    <select id="tableFilterEnv" onchange="handleTableFilterChange()">
+                      <option value="">All Risks</option>
+                      <option value="Low">Low Risk</option>
+                      <option value="Moderate">Moderate Risk</option>
+                      <option value="High">High Risk</option>
+                    </select>
+                  </div>
+
+                  <div class="filter-item">
+                    <label for="tableFilterExpert">Expert</label>
+                    <select id="tableFilterExpert" onchange="handleTableFilterChange()">
+                      <option value="">All Checks</option>
+                      <option value="normal">Normal</option>
+                      <option value="alert">Alerts</option>
+                    </select>
+                  </div>
+
+                  <div class="filter-item">
+                    <label for="tablePageSize">Rows</label>
+                    <select id="tablePageSize" onchange="handlePageSizeChange()">
+                      <option value="5" selected>5</option>
+                      <option value="10">10</option>
+                      <option value="25">25</option>
+                    </select>
+                  </div>
+
+                  <button type="button" id="tableResetFiltersBtn" class="btn-reset-filters" onclick="resetTableFilters()" title="Reset all filters">
+                    ↺ Reset
+                  </button>
+                </div>
+              </div>
+
+              <!-- Responsive Table Container with Horizontal Scroll -->
               <div class="overview-table-wrap">
-                <table class="overview-table">
+                <table class="overview-table" id="overviewAnalysisTable">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Leaf Scan</th>
-                      <th>Visual Result</th>
-                      <th>Env Risk</th>
-                      <th>Expert Rule</th>
-                      <th style="text-align:right;">Action</th>
+                      <th class="sortable-th" onclick="sortTableBy('date')" title="Sort by Date">
+                        <span>Date &amp; Time</span> <span id="sortIconDate" class="sort-indicator">▼</span>
+                      </th>
+                      <th style="width:48px; text-align:center;">Leaf Image</th>
+                      <th class="sortable-th" onclick="sortTableBy('visual')" title="Sort by Visual Result">
+                        <span>Visual Result (CNN)</span> <span id="sortIconVisual" class="sort-indicator">⇅</span>
+                      </th>
+                      <th class="sortable-th" onclick="sortTableBy('confidence')" title="Sort by CNN Evidence">
+                        <span>CNN Evidence</span> <span id="sortIconConfidence" class="sort-indicator">⇅</span>
+                      </th>
+                      <th class="sortable-th" onclick="sortTableBy('env')" title="Sort by Environmental Result">
+                        <span>Environmental Result (SNN)</span> <span id="sortIconEnv" class="sort-indicator">⇅</span>
+                      </th>
+                      <th class="sortable-th" onclick="sortTableBy('expert')" title="Sort by Expert Check">
+                        <span>Expert Check</span> <span id="sortIconExpert" class="sort-indicator">⇅</span>
+                      </th>
+                      <th class="sortable-th" onclick="sortTableBy('final')" title="Sort by Final Assessment">
+                        <span>Final Assessment</span> <span id="sortIconFinal" class="sort-indicator">⇅</span>
+                      </th>
+                      <th style="text-align:right; min-width:140px;">Action</th>
                     </tr>
                   </thead>
                   <tbody id="overviewRecentTbody">
                     <tr>
-                      <td colspan="6" style="text-align:center; padding:24px; color:#64748b;">
+                      <td colspan="8" style="text-align:center; padding:24px; color:#64748b;">
                         Loading recent session history…
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
+
+              <!-- Pagination Footer -->
+              <div class="table-pagination-footer" id="tablePaginationFooter">
+                <div class="pagination-info" id="tablePaginationInfo">
+                  Showing 0 to 0 of 0 records
+                </div>
+                <div class="pagination-buttons" id="tablePaginationBtns">
+                  <button type="button" class="btn-page" id="tablePrevBtn" onclick="changeTablePage(-1)" disabled>
+                    ◀ Prev
+                  </button>
+                  <div id="tablePageNumbers" class="page-numbers-container">
+                    <!-- Page number buttons -->
+                  </div>
+                  <button type="button" class="btn-page" id="tableNextBtn" onclick="changeTablePage(1)" disabled>
+                    Next ▶
+                  </button>
+                </div>
+              </div>
+
             </div>
 
           </div>
@@ -996,6 +1360,45 @@
 
       </div>
     </main>
+  </div>
+
+  <!-- QUICK ANALYSIS PREVIEW MODAL -->
+  <div id="quickViewModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); z-index:9999; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(3px);">
+    <div style="background:#ffffff; border-radius:14px; max-width:620px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 25px -5px rgba(0,0,0,0.15); border:1px solid #e2e8f0; display:flex; flex-direction:column;">
+      
+      <!-- Modal Header -->
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid #e2e8f0; background:#f8fafc; border-top-left-radius:14px; border-top-right-radius:14px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:18px;">🌿</span>
+          <div>
+            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;" id="qvModalTitle">Analysis Preview</h3>
+            <span style="font-size:11px; color:#64748b;" id="qvModalDate">Recorded: -</span>
+          </div>
+        </div>
+        <button type="button" onclick="closeQuickViewModal()" style="background:none; border:none; font-size:18px; color:#64748b; cursor:pointer; padding:4px 8px; border-radius:6px;" aria-label="Close modal">✕</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding:16px 18px;" id="qvModalBody">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 18px; border-top:1px solid #e2e8f0; background:#f8fafc; border-bottom-left-radius:14px; border-bottom-right-radius:14px; flex-wrap:wrap; gap:8px;">
+        <button type="button" class="btn-reset-filters" onclick="closeQuickViewModal()" style="font-size:11.5px; padding:6px 12px;">
+          Close
+        </button>
+        <div style="display:flex; gap:8px;">
+          <a id="qvModalReportBtn" href="javascript:void(0)" target="_blank" class="tbl-action-btn report-btn" style="font-size:11.5px; padding:6px 12px;">
+            📄 Generate PDF Report
+          </a>
+          <a id="qvModalOpenDetailBtn" href="javascript:void(0)" class="tbl-action-btn open-btn" style="font-size:11.5px; padding:6px 14px;">
+            Open Analysis →
+          </a>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>

@@ -139,7 +139,7 @@ async function loadRecords() {
     if (!records || records.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" style="text-align:center; padding:40px; color:#64748b;">
+          <td colspan="8" style="text-align:center; padding:40px; color:#64748b;">
             <div style="font-size:24px; margin-bottom:8px;">🌾</div>
             <strong style="color:#0d3b2e; font-size:14px;">No analysis records found</strong>
             <p style="margin:4px 0 0; font-size:12px; color:#64748b;">Try adjusting your search filters or create a new leaf analysis scan.</p>
@@ -178,60 +178,134 @@ async function loadRecords() {
         if (r.cnn_predictions_json) {
           const cnnObj = JSON.parse(r.cnn_predictions_json);
           const topKey = Object.keys(cnnObj).reduce((a, b) => cnnObj[a] > cnnObj[b] ? a : b);
-          topClass = topKey.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase());
-          topPct = cnnObj[topKey];
+          topClass = topKey.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+          const rawVal = cnnObj[topKey];
+          topPct = rawVal <= 1.0 ? rawVal * 100 : rawVal;
         }
       } catch (_) {}
 
-      // Color map for predicted class
-      const classColorMap = {
-        "Water Stress": "#dc2626",
-        "Heat Stress": "#dc2626",
-        "Nutrient Deficiency": "#d97706",
-        "Pollution": "#dc2626",
-        "Healthy": "#059669"
-      };
-      const classColor = classColorMap[topClass] || "#0d3b2e";
+      // Visual Class Badge & Color
+      let classBadge = `<span style="background:#ecfdf5; color:#059669; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">🟢 Healthy</span>`;
+      let classColor = "#059669";
+      const lowerClass = topClass.toLowerCase();
 
+      if (lowerClass.includes("water")) {
+        classBadge = `<span style="background:#eff6ff; color:#2563eb; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">💧 Water Stress</span>`;
+        classColor = "#2563eb";
+      } else if (lowerClass.includes("heat")) {
+        classBadge = `<span style="background:#fff7ed; color:#ea580c; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">☀️ Heat Stress</span>`;
+        classColor = "#ea580c";
+      } else if (lowerClass.includes("nutrient")) {
+        classBadge = `<span style="background:#fefce8; color:#ca8a04; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">🍃 Nutrient Def.</span>`;
+        classColor = "#ca8a04";
+      } else if (lowerClass.includes("pollution")) {
+        classBadge = `<span style="background:#f5f3ff; color:#7c3aed; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">🌫️ Pollution</span>`;
+        classColor = "#7c3aed";
+      }
+
+      // SNN Environmental Risk Badge
       const sev = r.stress_severity || "Moderate";
-      const sevDisplay = sev === "High" ? `<span style="background:#fee2e2; color:#dc2626; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;">🔴 High</span>`
-        : (sev === "Low" ? `<span style="background:#ecfdf5; color:#059669; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;">🟢 Low</span>`
-        : `<span style="background:#fef3c7; color:#d97706; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;">🟡 Moderate</span>`);
+      let envPill = `<span style="background:#fef3c7; color:#d97706; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap;">🟡 Moderate</span>`;
+      if (sev === "High") {
+        envPill = `<span style="background:#fee2e2; color:#dc2626; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap;">🔴 High</span>`;
+      } else if (sev === "Low") {
+        envPill = `<span style="background:#ecfdf5; color:#059669; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap;">🟢 Low</span>`;
+      }
+
+      // SNN micro telemetry
+      const tempStr = r.temperature !== undefined ? `${r.temperature.toFixed(1)}°C` : "31°C";
+      const humStr = r.humidity !== undefined ? `${r.humidity.toFixed(0)}%` : "72%";
+      let soilNum = 68;
+      if (r.soil_moisture !== undefined) {
+        soilNum = r.soil_moisture <= 1.0 ? Math.round(r.soil_moisture * 100) : Math.round(r.soil_moisture);
+      }
+      const envTelemetrySub = `<div style="font-size:10px; color:#64748b; margin-top:2px; white-space:nowrap;">${tempStr} · ${humStr} · ${soilNum}% SM</div>`;
+
+      // Expert Check
+      let isAlert = false;
+      let ruleName = "Normal Baseline";
+      try {
+        if (r.expert_veto_json) {
+          const expObj = JSON.parse(r.expert_veto_json);
+          if (expObj.triggered_rules && expObj.triggered_rules.length > 0) {
+            isAlert = true;
+            ruleName = expObj.triggered_rules[0].name || expObj.triggered_rules[0].rule_id || "Expert Rule";
+          }
+        }
+      } catch (_) {}
+      if (!isAlert && r.expert_veto_rule_triggered) {
+        isAlert = true;
+        ruleName = "Safety Threshold";
+      }
+
+      let expertBadge = `<span style="background:#f8fafc; color:#475569; border:1px solid #e2e8f0; font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:6px; white-space:nowrap;" title="Verified by Agronomic Rules">🛡️ Normal</span>`;
+      if (isAlert) {
+        const shortRule = ruleName.length > 15 ? `${ruleName.substring(0, 14)}…` : ruleName;
+        expertBadge = `<span style="background:#fffbeb; color:#b45309; border:1px solid #fed7aa; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;" title="${ruleName}">⚠️ ${shortRule}</span>`;
+      }
+
+      // Final Assessment
+      let relationship = "ALIGNED";
+      try {
+        if (r.fusion_json) {
+          const fObj = JSON.parse(r.fusion_json);
+          relationship = (fObj.relationship || "ALIGNED").toUpperCase();
+        }
+      } catch (_) {}
+
+      let finalBadge = `<span style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;">⚖️ Aligned</span>`;
+      if (relationship.includes("DIVERGENT") || relationship.includes("CONFLICT")) {
+        finalBadge = `<span style="background:#fef3c7; color:#d97706; border:1px solid #fde68a; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;">⚡ Divergent</span>`;
+      } else if (relationship.includes("VETO") || relationship.includes("OVERRULE") || relationship.includes("CRITICAL")) {
+        finalBadge = `<span style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;">🛡️ Safety Veto</span>`;
+      }
 
       const dateStr = r.created_at ? new Date(r.created_at).toLocaleString([], {
         year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
       }) : "Recent";
-
+      const uuidShort = (r.record_uuid || "").substring(0, 8);
       const imgSrc = r.image_url || "images/leaf_placeholder.jpg";
-
-      const expertStatus = r.expert_veto_rule_triggered ? "⚠️ Alert" : "✓ Normal";
-      const expertColor = r.expert_veto_rule_triggered ? "#d97706" : "#059669";
+      const reportUrl = getApiUrl(`/api/v1/records/${r.record_uuid}/report`);
 
       return `
         <tr>
-          <td style="color:#0f172a; font-weight:600; white-space:nowrap;">${dateStr}</td>
           <td>
+            <div style="font-weight:700; color:#0f172a; white-space:nowrap;">${dateStr}</div>
+            <div style="font-size:10px; color:#64748b; font-family:monospace; margin-top:1px;">ID: ${uuidShort}</div>
+          </td>
+          <td style="text-align:center;">
             <a href="analysis_detail.html?uuid=${r.record_uuid}">
-              <img src="${imgSrc}" class="leaf-thumb" alt="Leaf thumbnail" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\\'http://www.w3.org/2000/svg\\\' width=\\\'42\\\' height=\\\'42\\\'><rect width=\\\'42\\\' height=\\\'42\\\' fill=\\\'%23e2e8f0\\\'/><text x=\\\'50%\\\' y=\\\'55%\\\' dominant-baseline=\\\'middle\\\' text-anchor=\\\'middle\\\' fill=\\\'%2364748b\\\' font-size=\\\'16\\\'>🌿</text></svg>'" />
+              <img src="${imgSrc}" class="leaf-thumb" alt="Leaf thumbnail" style="width:36px; height:36px; border-radius:6px; object-fit:cover; border:1px solid #cbd5e1;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'36\\' height=\\'36\\'><rect width=\\'36\\' height=\\'36\\' fill=\\'%23e2e8f0\\'/><text x=\\'50%\\' y=\\'55%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%2364748b\\' font-size=\\'14\\'>🌿</text></svg>'" />
             </a>
           </td>
           <td>
-            <strong style="color:${classColor}; font-size:12.5px;">${topClass}</strong>
-            <div style="font-size:10px; color:#94a3b8;">${r.record_uuid}</div>
+            ${classBadge}
           </td>
           <td>
-            <span style="font-weight:700; color:#0f172a;">${topPct ? topPct.toFixed(0) + "%" : "—"}</span>
+            <div style="font-weight:700; color:#0f172a; font-size:11.5px;">${topPct.toFixed(1)}%</div>
+            <div style="width:48px; height:4px; background:#e2e8f0; border-radius:999px; overflow:hidden; margin-top:3px;">
+              <div style="height:100%; width:${Math.min(100, Math.max(10, Math.round(topPct)))}%; background:${classColor};"></div>
+            </div>
           </td>
           <td>
-            ${sevDisplay}
+            ${envPill}
+            ${envTelemetrySub}
           </td>
           <td>
-            <span style="font-weight:700; font-size:11px; color:${expertColor};">${expertStatus}</span>
+            ${expertBadge}
+          </td>
+          <td>
+            ${finalBadge}
           </td>
           <td style="text-align:right; white-space:nowrap;">
-            <a href="analysis_detail.html?uuid=${r.record_uuid}" class="action-link-btn" title="View complete structured analysis">
-              Inspect →
-            </a>
+            <div style="display:flex; align-items:center; justify-content:flex-end; gap:5px;">
+              <a href="analysis_detail.html?uuid=${r.record_uuid}" class="action-link-btn" title="Open complete structured analysis" style="padding:4px 8px; font-size:11px;">
+                Open →
+              </a>
+              <a href="${reportUrl}" target="_blank" class="action-link-btn" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe; padding:4px 8px; font-size:11px;" title="Generate PDF report">
+                PDF ↗
+              </a>
+            </div>
           </td>
         </tr>
       `;
@@ -246,7 +320,7 @@ async function loadRecords() {
     console.error("Failed to load records:", err);
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align:center; padding:30px; color:#dc2626;">
+        <td colspan="8" style="text-align:center; padding:30px; color:#dc2626;">
           <strong>Unable to load historical records.</strong>
           <p style="margin:4px 0 0; font-size:12px;">Please ensure the backend database service is operational.</p>
         </td>

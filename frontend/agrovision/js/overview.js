@@ -333,54 +333,8 @@ function renderOverviewDashboard() {
       advText.textContent = "Environmental metrics and soil moisture are in healthy ranges. Continue regular crop care.";
     }
 
-    // 7. Populate Recent Analysis History Table (Top 5)
-    const recentTbody = document.getElementById("overviewRecentTbody");
-    if (recentTbody) {
-      const top5 = records.slice(0, 5);
-      recentTbody.innerHTML = top5.map(r => {
-        let rClass = "Evaluated";
-        try {
-          if (r.cnn_predictions_json) {
-            const cObj = JSON.parse(r.cnn_predictions_json);
-            const tKey = Object.keys(cObj).reduce((a, b) => cObj[a] > cObj[b] ? a : b);
-            rClass = tKey.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
-          }
-        } catch (_) {}
-
-        const rSev = r.stress_severity || "Moderate";
-        const rSevPill = rSev === "High" ? `<span style="background:#fee2e2; color:#dc2626; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;">🔴 High</span>`
-          : (rSev === "Low" ? `<span style="background:#ecfdf5; color:#059669; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;">🟢 Low</span>`
-          : `<span style="background:#fef3c7; color:#d97706; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;">🟡 Moderate</span>`);
-
-        const rExpert = r.expert_veto_rule_triggered 
-          ? `<span style="color:#d97706; font-weight:700; font-size:11px;">⚠️ Alert</span>`
-          : `<span style="color:#059669; font-weight:700; font-size:11px;">✓ Normal</span>`;
-
-        const dateShort = r.created_at ? new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "Recent";
-        const imgUrl = r.image_url || "images/leaf_placeholder.jpg";
-
-        return `
-          <tr>
-            <td style="color:#1e293b; font-weight:600; white-space:nowrap;">${dateShort}</td>
-            <td>
-              <a href="analysis_detail.html?uuid=${r.record_uuid}">
-                <img src="${imgUrl}" alt="Leaf" style="width:34px; height:34px; border-radius:6px; object-fit:cover; border:1px solid #cbd5e1;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'34\\' height=\\'34\\'><rect width=\\'34\\' height=\\'34\\' fill=\\'%23e2e8f0\\'/><text x=\\'50%\\' y=\\'55%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%2364748b\\' font-size=\\'14\\'>🌿</text></svg>'" />
-              </a>
-            </td>
-            <td>
-              <strong style="color:#0f172a; font-size:12px;">${rClass}</strong>
-            </td>
-            <td>${rSevPill}</td>
-            <td>${rExpert}</td>
-            <td style="text-align:right;">
-              <a href="analysis_detail.html?uuid=${r.record_uuid}" class="action-link-btn" style="padding:4px 10px; font-size:11px; text-decoration:none;">
-                View →
-              </a>
-            </td>
-          </tr>
-        `;
-      }).join("");
-    }
+    // 7. Render Enterprise Power BI Analyses Table
+    renderRecentAnalysesTable();
 
   } else {
     // 0 Records match state
@@ -402,17 +356,8 @@ function renderOverviewDashboard() {
     if (sevBadgeEl) sevBadgeEl.textContent = "Ready";
     if (alignBadgeEl) alignBadgeEl.textContent = "Ready";
 
-    const recentTbody = document.getElementById("overviewRecentTbody");
-    if (recentTbody) {
-      recentTbody.innerHTML = `
-        <tr>
-          <td colspan="6" style="text-align:center; padding:30px; color:#64748b;">
-            <strong>No analysis records found</strong>
-            <p style="margin:4px 0 0; font-size:11.5px;">Click "Launch New Leaf Check" to analyze your first cotton plant.</p>
-          </td>
-        </tr>
-      `;
-    }
+    renderRecentAnalysesTable();
+  }
   }
 }
 
@@ -1516,3 +1461,571 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+// =========================================================
+// POWER BI RECENT ANALYSES TABLE (Sorting, Filtering, Pagination, Quick View)
+// =========================================================
+
+let tableCurrentPage = 1;
+let tablePageSize = 5;
+let currentSortColumn = 'date';
+let currentSortDirection = 'desc';
+let tableFilterSearchText = '';
+let tableFilterVisualValue = '';
+let tableFilterEnvValue = '';
+let tableFilterExpertValue = '';
+
+function handleTableFilterChange() {
+  const searchInput = document.getElementById("tableFilterSearch");
+  const clearSearchBtn = document.getElementById("clearTableSearchBtn");
+  const visualSelect = document.getElementById("tableFilterVisual");
+  const envSelect = document.getElementById("tableFilterEnv");
+  const expertSelect = document.getElementById("tableFilterExpert");
+
+  tableFilterSearchText = (searchInput?.value || "").trim().toLowerCase();
+  if (clearSearchBtn) {
+    clearSearchBtn.style.display = tableFilterSearchText ? "inline-block" : "none";
+  }
+  tableFilterVisualValue = visualSelect?.value || "";
+  tableFilterEnvValue = envSelect?.value || "";
+  tableFilterExpertValue = expertSelect?.value || "";
+
+  tableCurrentPage = 1;
+  renderRecentAnalysesTable();
+}
+
+function clearTableSearch() {
+  const searchInput = document.getElementById("tableFilterSearch");
+  if (searchInput) searchInput.value = "";
+  handleTableFilterChange();
+}
+
+function handlePageSizeChange() {
+  const pageSizeSelect = document.getElementById("tablePageSize");
+  if (pageSizeSelect) {
+    tablePageSize = parseInt(pageSizeSelect.value, 10) || 5;
+  }
+  tableCurrentPage = 1;
+  renderRecentAnalysesTable();
+}
+
+function resetTableFilters() {
+  const searchInput = document.getElementById("tableFilterSearch");
+  const visualSelect = document.getElementById("tableFilterVisual");
+  const envSelect = document.getElementById("tableFilterEnv");
+  const expertSelect = document.getElementById("tableFilterExpert");
+  const clearSearchBtn = document.getElementById("clearTableSearchBtn");
+
+  if (searchInput) searchInput.value = "";
+  if (visualSelect) visualSelect.value = "";
+  if (envSelect) envSelect.value = "";
+  if (expertSelect) expertSelect.value = "";
+  if (clearSearchBtn) clearSearchBtn.style.display = "none";
+
+  tableFilterSearchText = '';
+  tableFilterVisualValue = '';
+  tableFilterEnvValue = '';
+  tableFilterExpertValue = '';
+  tableCurrentPage = 1;
+
+  renderRecentAnalysesTable();
+}
+
+function sortTableBy(column) {
+  if (currentSortColumn === column) {
+    currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSortColumn = column;
+    currentSortDirection = (column === 'date' || column === 'confidence') ? 'desc' : 'asc';
+  }
+  updateSortHeaderIndicators();
+  renderRecentAnalysesTable();
+}
+
+function updateSortHeaderIndicators() {
+  const columns = ['date', 'visual', 'confidence', 'env', 'expert', 'final'];
+  columns.forEach(col => {
+    const iconId = `sortIcon${col.charAt(0).toUpperCase() + col.slice(1)}`;
+    const iconEl = document.getElementById(iconId);
+    const thEl = iconEl?.closest("th");
+    if (iconEl) {
+      if (currentSortColumn === col) {
+        iconEl.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+        if (thEl) thEl.classList.add("active-sort");
+      } else {
+        iconEl.textContent = '⇅';
+        if (thEl) thEl.classList.remove("active-sort");
+      }
+    }
+  });
+}
+
+function getRecordTopClass(r) {
+  let topClass = "Evaluated";
+  let topPct = 0;
+  try {
+    if (r.cnn_predictions_json) {
+      const cObj = JSON.parse(r.cnn_predictions_json);
+      const tKey = Object.keys(cObj).reduce((a, b) => cObj[a] > cObj[b] ? a : b);
+      topClass = tKey.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+      const rawVal = cObj[tKey];
+      topPct = rawVal <= 1.0 ? rawVal * 100 : rawVal;
+    }
+  } catch (_) {}
+  if (topClass === "Evaluated" && r.stress_severity) {
+    topClass = r.stress_severity === "Low" ? "Healthy" : "Water Stress";
+    topPct = r.confidence_score ? (r.confidence_score <= 1.0 ? r.confidence_score * 100 : r.confidence_score) : 88;
+  }
+  return { topClass, topPct };
+}
+
+function getRecordExpertStatus(r) {
+  let isAlert = false;
+  let ruleName = "Normal Baseline";
+  let rulePrecaution = "";
+  try {
+    if (r.expert_veto_json) {
+      const expObj = JSON.parse(r.expert_veto_json);
+      if (expObj.triggered_rules && expObj.triggered_rules.length > 0) {
+        isAlert = true;
+        ruleName = expObj.triggered_rules[0].name || expObj.triggered_rules[0].rule_id || "Expert Rule";
+        rulePrecaution = expObj.triggered_rules[0].precaution || expObj.triggered_rules[0].interpretation || "";
+      } else if (expObj.overall_status && expObj.overall_status !== "NO_RULE_TRIGGERED" && expObj.overall_status !== "No Rule Triggered") {
+        isAlert = true;
+        ruleName = expObj.overall_status.replace(/_/g, " ");
+      }
+    }
+  } catch (_) {}
+  if (!isAlert && r.expert_veto_rule_triggered) {
+    isAlert = true;
+    ruleName = "Safety Threshold";
+  }
+  return { isAlert, ruleName, rulePrecaution };
+}
+
+function getRecordFinalAssessment(r) {
+  let relationship = "ALIGNED";
+  let summary = "";
+  try {
+    if (r.fusion_json) {
+      const fObj = JSON.parse(r.fusion_json);
+      relationship = (fObj.relationship || "ALIGNED").toUpperCase();
+      summary = fObj.summary || "";
+    }
+  } catch (_) {}
+  return { relationship, summary };
+}
+
+function changeTablePage(delta) {
+  tableCurrentPage += delta;
+  renderRecentAnalysesTable();
+}
+
+function setTablePage(pageNum) {
+  tableCurrentPage = pageNum;
+  renderRecentAnalysesTable();
+}
+
+function renderRecentAnalysesTable() {
+  const tbody = document.getElementById("overviewRecentTbody");
+  const countBadge = document.getElementById("recentAnalysesCountBadge");
+  const paginationInfo = document.getElementById("tablePaginationInfo");
+  const pageNumbersContainer = document.getElementById("tablePageNumbers");
+  const prevBtn = document.getElementById("tablePrevBtn");
+  const nextBtn = document.getElementById("tableNextBtn");
+
+  if (!tbody) return;
+
+  // 1. If database is completely empty:
+  if (!rawAllRecords || rawAllRecords.length === 0) {
+    if (countBadge) countBadge.textContent = "0 Scans";
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align:center; padding:36px 16px; color:#64748b;">
+          <div style="font-size:32px; margin-bottom:8px;">🍃</div>
+          <h4 style="font-size:14px; font-weight:700; color:#0f172a; margin:0 0 4px;">No analysis records yet.</h4>
+          <p style="font-size:12px; color:#64748b; margin:0 0 14px;">Start your first analysis to diagnose foliar health and environmental conditions.</p>
+          <a href="dashboard.html" class="btn btn-primary" style="font-size:12px; padding:7px 16px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
+            <span>Start your first analysis</span>
+            <span>→</span>
+          </a>
+        </td>
+      </tr>
+    `;
+    if (paginationInfo) paginationInfo.textContent = "Showing 0 to 0 of 0 records";
+    if (pageNumbersContainer) pageNumbersContainer.innerHTML = "";
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+    return;
+  }
+
+  // 2. Filter records
+  let filtered = [...rawAllRecords];
+
+  // Visual Category Filter from donut click
+  if (currentCategoryFilter) {
+    filtered = filtered.filter(r => {
+      const { topClass } = getRecordTopClass(r);
+      const formatted = topClass.toLowerCase().replace(/\s+/g, "_");
+      return formatted.includes(currentCategoryFilter.toLowerCase()) || currentCategoryFilter.toLowerCase().includes(formatted);
+    });
+  }
+
+  // Env Category Filter from donut click
+  if (currentEnvCategoryFilter) {
+    filtered = filtered.filter(r => {
+      const sev = (r.stress_severity || "").trim().toLowerCase();
+      return sev === currentEnvCategoryFilter.toLowerCase();
+    });
+  }
+
+  // Table-specific text search
+  if (tableFilterSearchText) {
+    const q = tableFilterSearchText;
+    filtered = filtered.filter(r => {
+      const { topClass } = getRecordTopClass(r);
+      const { ruleName } = getRecordExpertStatus(r);
+      const uuidMatch = (r.record_uuid || "").toLowerCase().includes(q);
+      const classMatch = topClass.toLowerCase().includes(q);
+      const sevMatch = (r.stress_severity || "").toLowerCase().includes(q);
+      const ruleMatch = ruleName.toLowerCase().includes(q);
+      return uuidMatch || classMatch || sevMatch || ruleMatch;
+    });
+  }
+
+  // Table-specific visual dropdown
+  if (tableFilterVisualValue) {
+    filtered = filtered.filter(r => {
+      const { topClass } = getRecordTopClass(r);
+      const val = tableFilterVisualValue.toLowerCase().replace(/_/g, " ");
+      return topClass.toLowerCase().includes(val);
+    });
+  }
+
+  // Table-specific env dropdown
+  if (tableFilterEnvValue) {
+    filtered = filtered.filter(r => {
+      return (r.stress_severity || "").toLowerCase() === tableFilterEnvValue.toLowerCase();
+    });
+  }
+
+  // Table-specific expert dropdown
+  if (tableFilterExpertValue) {
+    filtered = filtered.filter(r => {
+      const { isAlert } = getRecordExpertStatus(r);
+      return tableFilterExpertValue === "alert" ? isAlert : !isAlert;
+    });
+  }
+
+  if (countBadge) {
+    countBadge.textContent = `${filtered.length} Scans`;
+  }
+
+  // If filtered set is empty
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align:center; padding:32px 16px; color:#64748b;">
+          <div style="font-size:26px; margin-bottom:6px;">🔍</div>
+          <strong style="font-size:13px; color:#334155; display:block;">No records match your filter criteria</strong>
+          <p style="font-size:11.5px; color:#64748b; margin:4px 0 12px;">Try clearing search keywords or resetting visual/environmental filters.</p>
+          <button type="button" class="btn-reset-filters" onclick="resetTableFilters()">Reset Filters</button>
+        </td>
+      </tr>
+    `;
+    if (paginationInfo) paginationInfo.textContent = "Showing 0 to 0 of 0 records";
+    if (pageNumbersContainer) pageNumbersContainer.innerHTML = "";
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+    return;
+  }
+
+  // 3. Sort records
+  filtered.sort((a, b) => {
+    let valA, valB;
+    if (currentSortColumn === 'date') {
+      valA = new Date(a.created_at || 0).getTime();
+      valB = new Date(b.created_at || 0).getTime();
+    } else if (currentSortColumn === 'visual') {
+      valA = getRecordTopClass(a).topClass;
+      valB = getRecordTopClass(b).topClass;
+    } else if (currentSortColumn === 'confidence') {
+      valA = getRecordTopClass(a).topPct;
+      valB = getRecordTopClass(b).topPct;
+    } else if (currentSortColumn === 'env') {
+      const rank = { "high": 3, "moderate": 2, "low": 1 };
+      valA = rank[(a.stress_severity || "low").toLowerCase()] || 0;
+      valB = rank[(b.stress_severity || "low").toLowerCase()] || 0;
+    } else if (currentSortColumn === 'expert') {
+      valA = getRecordExpertStatus(a).isAlert ? 1 : 0;
+      valB = getRecordExpertStatus(b).isAlert ? 1 : 0;
+    } else if (currentSortColumn === 'final') {
+      valA = getRecordFinalAssessment(a).relationship;
+      valB = getRecordFinalAssessment(b).relationship;
+    }
+
+    if (valA < valB) return currentSortDirection === 'asc' ? -1 : 1;
+    if (valA > valB) return currentSortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // 4. Pagination
+  const totalRecords = filtered.length;
+  const totalPages = Math.ceil(totalRecords / tablePageSize) || 1;
+  tableCurrentPage = Math.max(1, Math.min(tableCurrentPage, totalPages));
+
+  const startIdx = (tableCurrentPage - 1) * tablePageSize;
+  const endIdx = Math.min(startIdx + tablePageSize, totalRecords);
+  const pageRecords = filtered.slice(startIdx, endIdx);
+
+  // Update pagination info
+  if (paginationInfo) {
+    paginationInfo.textContent = `Showing ${startIdx + 1} to ${endIdx} of ${totalRecords} records (Page ${tableCurrentPage} of ${totalPages})`;
+  }
+
+  if (prevBtn) prevBtn.disabled = tableCurrentPage <= 1;
+  if (nextBtn) nextBtn.disabled = tableCurrentPage >= totalPages;
+
+  if (pageNumbersContainer) {
+    let pagesHtml = "";
+    const maxVisiblePages = 5;
+    let startP = Math.max(1, tableCurrentPage - Math.floor(maxVisiblePages / 2));
+    let endP = Math.min(totalPages, startP + maxVisiblePages - 1);
+    if (endP - startP + 1 < maxVisiblePages) {
+      startP = Math.max(1, endP - maxVisiblePages + 1);
+    }
+    for (let p = startP; p <= endP; p++) {
+      pagesHtml += `
+        <button type="button" class="page-num-btn ${p === tableCurrentPage ? 'active' : ''}" onclick="setTablePage(${p})">
+          ${p}
+        </button>
+      `;
+    }
+    pageNumbersContainer.innerHTML = pagesHtml;
+  }
+
+  // 5. Render Rows
+  tbody.innerHTML = pageRecords.map(r => {
+    const { topClass, topPct } = getRecordTopClass(r);
+    const { isAlert, ruleName } = getRecordExpertStatus(r);
+    const { relationship } = getRecordFinalAssessment(r);
+
+    // Visual Class Badge & Color
+    let classBadge = `<span style="background:#ecfdf5; color:#059669; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">🟢 Healthy</span>`;
+    let classColor = "#059669";
+    const lowerClass = topClass.toLowerCase();
+
+    if (lowerClass.includes("water")) {
+      classBadge = `<span style="background:#eff6ff; color:#2563eb; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">💧 Water Stress</span>`;
+      classColor = "#2563eb";
+    } else if (lowerClass.includes("heat")) {
+      classBadge = `<span style="background:#fff7ed; color:#ea580c; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">☀️ Heat Stress</span>`;
+      classColor = "#ea580c";
+    } else if (lowerClass.includes("nutrient")) {
+      classBadge = `<span style="background:#fefce8; color:#ca8a04; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">🍃 Nutrient Def.</span>`;
+      classColor = "#ca8a04";
+    } else if (lowerClass.includes("pollution")) {
+      classBadge = `<span style="background:#f5f3ff; color:#7c3aed; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">🌫️ Pollution</span>`;
+      classColor = "#7c3aed";
+    }
+
+    // SNN Environmental Risk Badge
+    const sev = r.stress_severity || "Moderate";
+    let envPill = `<span style="background:#fef3c7; color:#d97706; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap;">🟡 Moderate</span>`;
+    if (sev === "High") {
+      envPill = `<span style="background:#fee2e2; color:#dc2626; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap;">🔴 High</span>`;
+    } else if (sev === "Low") {
+      envPill = `<span style="background:#ecfdf5; color:#059669; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap;">🟢 Low</span>`;
+    }
+
+    // SNN micro telemetry
+    const tempStr = r.temperature !== undefined ? `${r.temperature.toFixed(1)}°C` : "31°C";
+    const humStr = r.humidity !== undefined ? `${r.humidity.toFixed(0)}%` : "72%";
+    let soilNum = 68;
+    if (r.soil_moisture !== undefined) {
+      soilNum = r.soil_moisture <= 1.0 ? Math.round(r.soil_moisture * 100) : Math.round(r.soil_moisture);
+    }
+    const envTelemetrySub = `<div style="font-size:10px; color:#64748b; margin-top:2px; white-space:nowrap;">${tempStr} · ${humStr} · ${soilNum}% SM</div>`;
+
+    // Expert Check Badge
+    let expertBadge = `<span style="background:#f8fafc; color:#475569; border:1px solid #e2e8f0; font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:6px; white-space:nowrap;" title="Verified by Agronomic Rules">🛡️ Normal</span>`;
+    if (isAlert) {
+      const shortRule = ruleName.length > 15 ? `${ruleName.substring(0, 14)}…` : ruleName;
+      expertBadge = `<span style="background:#fffbeb; color:#b45309; border:1px solid #fed7aa; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;" title="${ruleName}">⚠️ ${shortRule}</span>`;
+    }
+
+    // Final Assessment Badge
+    let finalBadge = `<span style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;">⚖️ Aligned</span>`;
+    if (relationship.includes("DIVERGENT") || relationship.includes("CONFLICT")) {
+      finalBadge = `<span style="background:#fef3c7; color:#d97706; border:1px solid #fde68a; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;">⚡ Divergent</span>`;
+    } else if (relationship.includes("VETO") || relationship.includes("OVERRULE") || relationship.includes("CRITICAL")) {
+      finalBadge = `<span style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;">🛡️ Safety Veto</span>`;
+    }
+
+    // Date & Time
+    const dt = r.created_at ? new Date(r.created_at) : new Date();
+    const dateFormatted = dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const timeFormatted = dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+    const uuidShort = (r.record_uuid || "").substring(0, 8);
+    const imgUrl = r.image_url || "images/leaf_placeholder.jpg";
+    const reportUrl = getApiUrl(`/api/v1/records/${r.record_uuid}/report`);
+
+    return `
+      <tr class="table-row-compact">
+        <td>
+          <div style="font-weight:700; color:#0f172a; white-space:nowrap;">${dateFormatted}</div>
+          <div style="font-size:10px; color:#64748b; margin-top:1px; display:flex; align-items:center; gap:4px;">
+            <span>${timeFormatted}</span>
+            <span>·</span>
+            <span style="font-family:monospace; color:#94a3b8;">${uuidShort}</span>
+          </div>
+        </td>
+        <td style="text-align:center;">
+          <img
+            src="${imgUrl}"
+            alt="Leaf"
+            class="leaf-thumb-compact"
+            onclick="openQuickViewModal('${r.record_uuid}')"
+            title="Click for quick preview"
+            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'36\\' height=\\'36\\'><rect width=\\'36\\' height=\\'36\\' fill=\\'%23e2e8f0\\'/><text x=\\'50%\\' y=\\'55%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%2364748b\\' font-size=\\'14\\'>🌿</text></svg>'"
+          />
+        </td>
+        <td>
+          ${classBadge}
+        </td>
+        <td>
+          <div style="font-weight:700; color:#0f172a; font-size:11.5px;">${topPct.toFixed(1)}%</div>
+          <div class="evidence-bar-wrap">
+            <div class="evidence-bar-fill" style="width:${Math.min(100, Math.max(10, Math.round(topPct)))}%; background:${classColor};"></div>
+          </div>
+        </td>
+        <td>
+          ${envPill}
+          ${envTelemetrySub}
+        </td>
+        <td>
+          ${expertBadge}
+        </td>
+        <td>
+          ${finalBadge}
+        </td>
+        <td style="text-align:right;">
+          <div class="table-actions-group">
+            <button type="button" class="tbl-action-btn view-btn" onclick="openQuickViewModal('${r.record_uuid}')" title="Quick preview modal">
+              👁️ View
+            </button>
+            <a href="analysis_detail.html?uuid=${r.record_uuid}" class="tbl-action-btn open-btn" title="Open full analysis page">
+              Open →
+            </a>
+            <a href="${reportUrl}" target="_blank" class="tbl-action-btn report-btn" title="Generate & view official PDF agronomic report">
+              PDF ↗
+            </a>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function openQuickViewModal(uuid) {
+  const modal = document.getElementById("quickViewModal");
+  const modalTitle = document.getElementById("qvModalTitle");
+  const modalDate = document.getElementById("qvModalDate");
+  const modalBody = document.getElementById("qvModalBody");
+  const openDetailBtn = document.getElementById("qvModalOpenDetailBtn");
+  const reportBtn = document.getElementById("qvModalReportBtn");
+
+  if (!modal) return;
+
+  const record = (rawAllRecords || []).find(r => r.record_uuid === uuid);
+  if (!record) return;
+
+  const { topClass, topPct } = getRecordTopClass(record);
+  const { isAlert, ruleName, rulePrecaution } = getRecordExpertStatus(record);
+  const { relationship, summary } = getRecordFinalAssessment(record);
+
+  const dt = record.created_at ? new Date(record.created_at) : new Date();
+  if (modalTitle) modalTitle.textContent = `${topClass} Assessment`;
+  if (modalDate) modalDate.textContent = `Recorded: ${dt.toLocaleString()} · ID: ${record.record_uuid}`;
+  if (openDetailBtn) openDetailBtn.href = `analysis_detail.html?uuid=${record.record_uuid}`;
+  if (reportBtn) reportBtn.href = getApiUrl(`/api/v1/records/${record.record_uuid}/report`);
+
+  let recsList = [];
+  try {
+    if (record.recommendations_json) {
+      recsList = JSON.parse(record.recommendations_json);
+    }
+  } catch (_) {}
+  if (!Array.isArray(recsList) || recsList.length === 0) {
+    recsList = [
+      "Inspect leaf symptoms under natural daylight",
+      "Review soil moisture and irrigation scheduling",
+      "Monitor ambient temperature and microclimate trends"
+    ];
+  }
+
+  if (modalBody) {
+    modalBody.innerHTML = `
+      <div style="display:grid; grid-template-columns:110px 1fr; gap:14px; align-items:start; margin-bottom:14px;">
+        <img
+          src="${record.image_url || 'images/leaf_placeholder.jpg'}"
+          alt="Leaf scan"
+          style="width:110px; height:110px; border-radius:10px; object-fit:cover; border:1px solid #cbd5e1;"
+          onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'110\\' height=\\'110\\'><rect width=\\'110\\' height=\\'110\\' fill=\\'%23e2e8f0\\'/><text x=\\'50%\\' y=\\'55%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%2364748b\\' font-size=\\'30\\'>🌿</text></svg>'"
+        />
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <strong style="font-size:1.15rem; color:#0d3b2e;">${topClass}</strong>
+            <span style="font-size:11px; font-weight:700; color:#059669; background:#ecfdf5; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">${topPct.toFixed(1)}% CNN Evidence</span>
+          </div>
+          <p style="font-size:12px; color:#475569; margin:0 0 10px; line-height:1.45;">
+            ${summary || `Foliar image evaluated as ${topClass} under ${record.stress_severity || 'Moderate'} environmental stress risk.`}
+          </p>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <span style="font-size:10.5px; font-weight:700; background:#f1f5f9; color:#334155; padding:3px 8px; border-radius:6px;">
+              🌡️ ${record.temperature !== undefined ? record.temperature.toFixed(1) : 31}°C
+            </span>
+            <span style="font-size:10.5px; font-weight:700; background:#f1f5f9; color:#334155; padding:3px 8px; border-radius:6px;">
+              💧 ${record.humidity !== undefined ? record.humidity.toFixed(0) : 72}% RH
+            </span>
+            <span style="font-size:10.5px; font-weight:700; background:#f1f5f9; color:#334155; padding:3px 8px; border-radius:6px;">
+              🌱 ${record.soil_moisture !== undefined ? (record.soil_moisture <= 1 ? Math.round(record.soil_moisture * 100) : Math.round(record.soil_moisture)) : 68}% Soil
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expert Veto & Agronomic Precaution -->
+      <div style="background:${isAlert ? '#fffbeb' : '#f8fafc'}; border:1px solid ${isAlert ? '#fed7aa' : '#e2e8f0'}; border-radius:10px; padding:12px 14px; margin-bottom:14px;">
+        <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:${isAlert ? '#9a3412' : '#0d3b2e'}; margin-bottom:4px;">
+          <span>${isAlert ? '⚠️' : '🛡️'}</span>
+          <span>Expert Check: ${ruleName}</span>
+        </div>
+        <p style="margin:0; font-size:11.5px; color:#475569; line-height:1.45;">
+          ${rulePrecaution || 'Sensor metrics and visual markers verified against cotton agronomic thresholds. No hazardous anomalies detected.'}
+        </p>
+      </div>
+
+      <!-- Farmer Action Checklist -->
+      <div>
+        <strong style="font-size:12px; color:#0d3b2e; display:block; margin-bottom:6px;">Actionable Next Steps:</strong>
+        <ul style="margin:0; padding-left:18px; font-size:11.5px; color:#334155; display:flex; flex-direction:column; gap:4px;">
+          ${recsList.slice(0, 3).map(rec => `<li>${rec}</li>`).join("")}
+        </ul>
+      </div>
+    `;
+  }
+
+  modal.style.display = "flex";
+}
+
+function closeQuickViewModal() {
+  const modal = document.getElementById("quickViewModal");
+  if (modal) modal.style.display = "none";
+}
+
+function exportOverviewTableCsv() {
+  let url = getApiUrl("/api/v1/records/export/csv");
+  window.open(url, "_blank");
+}
+
