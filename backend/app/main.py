@@ -33,16 +33,17 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def no_cache_html(request, call_next):
+async def no_cache_static(request, call_next):
     """
-    HTML must always be revalidated (ETag/Last-Modified) so frontend updates
-    reach users; without this, browsers heuristically cache pages and serve
-    stale UI after deployments.
+    HTML, CSS, and JS must be revalidated so frontend updates
+    reach users in real-time without stale browser caching.
     """
     response = await call_next(request)
     content_type = response.headers.get("content-type", "")
-    if content_type.startswith("text/html"):
-        response.headers["Cache-Control"] = "no-cache"
+    if any(content_type.startswith(t) for t in ["text/html", "text/css", "application/javascript", "text/javascript"]):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
     return response
 
 # Startup verification
