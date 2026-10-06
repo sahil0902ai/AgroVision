@@ -16,9 +16,6 @@
 const USERS_KEY = "agrovision_users";
 const SESSION_KEY = "agrovision_current_user";
 
-const DEMO_EMAIL = "demo@agrovision.org";
-const DEMO_PASSWORD = "password123";
-
 function toHex(buffer) {
   return Array.from(new Uint8Array(buffer))
     .map(b => b.toString(16).padStart(2, "0"))
@@ -27,7 +24,7 @@ function toHex(buffer) {
 
 async function hashPassword(password, saltHex) {
   if (!window.crypto || !crypto.subtle) {
-    throw new Error("Secure context required for password hashing. Open the app over http://localhost.");
+    throw new Error("Secure context required for password hashing. Open the app over HTTPS or localhost.");
   }
   const saltBytes = new Uint8Array(saltHex.match(/.{2}/g).map(h => parseInt(h, 16)));
   const material = new TextEncoder().encode(saltHex + ":" + password);
@@ -45,23 +42,6 @@ function concatBuffers(a, b) {
 function randomSalt() {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return toHex(bytes);
-}
-
-// Pre-seed demo user if storage is empty
-async function initUsers() {
-  const existing = localStorage.getItem(USERS_KEY);
-  if (!existing) {
-    const salt = randomSalt();
-    const demoUsers = [
-      {
-        name: "Farmer Demo",
-        email: DEMO_EMAIL,
-        salt: salt,
-        hash: await hashPassword(DEMO_PASSWORD, salt)
-      }
-    ];
-    localStorage.setItem(USERS_KEY, JSON.stringify(demoUsers));
-  }
 }
 
 function getUsers() {
@@ -218,9 +198,8 @@ function requireLogin() {
   }
 }
 
-// On the login page: seed demo user and honor ?mode=signup
+// On the login page: honor ?mode=signup
 document.addEventListener("DOMContentLoaded", () => {
-  initUsers();
   if (document.getElementById("tabSignup")) {
     const params = new URLSearchParams(window.location.search);
     if (params.get("mode") === "signup") {

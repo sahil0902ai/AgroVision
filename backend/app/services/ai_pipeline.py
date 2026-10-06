@@ -51,13 +51,27 @@ class AIPipelineService:
         silently: the six form values are always used as provided, and every
         default is a documented training-range midpoint.
         """
+        raw_sm = env_data.get("soil_moisture")
+        if raw_sm is not None:
+            sm = float(raw_sm)
+            soil_moisture = sm / 100.0 if sm > 1.0 else sm
+        else:
+            soil_moisture = None
+
+        raw_ozone = env_data.get("ozone")
+        if raw_ozone is not None:
+            oz = float(raw_ozone)
+            ozone = oz / 1000.0 if oz > 1.0 else oz
+        else:
+            ozone = None
+
         payload = {
             "temperature": env_data.get("temperature"),
             "humidity": env_data.get("humidity"),
-            "rainfall": env_data.get("rainfall_mm"),
-            "soil_moisture": env_data.get("soil_moisture"),
+            "rainfall": env_data.get("rainfall_mm", env_data.get("rainfall", 0.0)),
+            "soil_moisture": soil_moisture,
             "aqi": env_data.get("aqi"),
-            "ozone": env_data.get("ozone"),
+            "ozone": ozone,
             "growth_stage": env_data.get("growth_stage"),
             "observation_date": env_data.get("observation_date") or date.today().isoformat(),
         }
@@ -128,10 +142,13 @@ class AIPipelineService:
             cnn_percents, predicted_severity, env_data
         )
 
+        visual_feature_dim = len(cnn_result.get("visual_feature_vector", []))
+
         return {
             "record_uuid": rec_id,
             "image_url": f"/uploads/images/{orig_filename}",
             "heatmap_url": f"/uploads/heatmaps/{heatmap_filename}",
+            "visual_feature_dim": visual_feature_dim,
             "cnn_predictions": cnn_percents,
             "snn_result": {
                 "severity": predicted_severity,

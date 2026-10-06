@@ -18,7 +18,7 @@ class CNNInferenceEngine:
     - Returns predicted stress class, softmax class probabilities, and 128-dim feature embeddings for SNN fusion.
     - Gracefully handles missing weights and corrupted/invalid image inputs.
     """
-    def __init__(self, weights_path="models/best_agrovision_cnn.pth", device=None):
+    def __init__(self, weights_path=None, device=None):
         if device is None:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
@@ -27,17 +27,19 @@ class CNNInferenceEngine:
         self.model = AgroVisionCNN(num_classes=5).to(self.device)
         self.model.eval() # Set evaluation mode
         
-        self.weights_path = weights_path
+        self.weights_path = None
         self.weights_loaded = False
-        
-        if weights_path and os.path.exists(weights_path):
+
+        resolved = self._find_checkpoint(weights_path)
+        if resolved is not None:
             try:
-                state_dict = torch.load(weights_path, map_location=self.device)
+                state_dict = torch.load(resolved, map_location=self.device)
                 self.model.load_state_dict(state_dict)
                 self.weights_loaded = True
-                print(f"[CNNInferenceEngine] Successfully loaded weights from: {weights_path}")
+                self.weights_path = str(resolved)
+                print(f"[CNNInferenceEngine] Successfully loaded weights from: {resolved}")
             except Exception as e:
-                print(f"[CNNInferenceEngine] Warning: Failed to load weights from {weights_path}: {e}")
+                print(f"[CNNInferenceEngine] Warning: Failed to load weights from {resolved}: {e}")
         else:
             print(f"[CNNInferenceEngine] Notice: Weights file '{weights_path}' not found. Initialized with PyTorch model architecture.")
 
@@ -50,6 +52,31 @@ class CNNInferenceEngine:
                 std=[0.229, 0.224, 0.225]
             )
         ])
+
+    @staticmethod
+    def _find_checkpoint(preferred: str | Path | None) -> Path | None:
+        if preferred:
+            p = Path(preferred)
+            if p.is_file():
+                return p.resolve()
+            module_dir = Path(__file__).resolve().parent.parent
+            if (module_dir / preferred).is_file():
+                return (module_dir / preferred).resolve()
+            if (module_dir.parent / preferred).is_file():
+                return (module_dir.parent / preferred).resolve()
+            return None
+
+        for candidate in (
+            Path("models/best_agrovision_cnn.pth"),
+            Path("backend/models/best_agrovision_cnn.pth"),
+            Path("../models/best_agrovision_cnn.pth"),
+            Path(__file__).resolve().parent.parent / "models" / "best_agrovision_cnn.pth",
+            Path("best_agrovision_cnn.pth"),
+            Path("../best_agrovision_cnn.pth"),
+        ):
+            if candidate.is_file():
+                return candidate.resolve()
+        return None
 
     def preprocess_image(self, image_input):
         """

@@ -14,9 +14,9 @@ def get_analytics_summary(db: Session = Depends(get_db)):
     mod_count = db.query(func.count(AnalysisRecordDB.id)).filter(AnalysisRecordDB.stress_severity == "Moderate").scalar() or 0
     low_count = db.query(func.count(AnalysisRecordDB.id)).filter(AnalysisRecordDB.stress_severity == "Low").scalar() or 0
 
-    avg_temp = db.query(func.avg(AnalysisRecordDB.temperature)).scalar() or 31.0
-    avg_humidity = db.query(func.avg(AnalysisRecordDB.humidity)).scalar() or 72.0
-    avg_soil = db.query(func.avg(AnalysisRecordDB.soil_moisture)).scalar() or 68.0
+    avg_temp = db.query(func.avg(AnalysisRecordDB.temperature)).scalar()
+    avg_humidity = db.query(func.avg(AnalysisRecordDB.humidity)).scalar()
+    avg_soil = db.query(func.avg(AnalysisRecordDB.soil_moisture)).scalar()
 
     return {
         "total_scans": total_scans,
@@ -26,8 +26,8 @@ def get_analytics_summary(db: Session = Depends(get_db)):
             {"name": "High Stress", "value": high_count, "color": "#EF4444"}
         ],
         "environmental_averages": {
-            "temperature_C": round(avg_temp, 1),
-            "humidity_percent": round(avg_humidity, 1),
-            "soil_moisture_percent": round(avg_soil, 1)
+            "temperature_C": round(avg_temp, 1) if avg_temp is not None else 0.0,
+            "humidity_percent": round(avg_humidity, 1) if avg_humidity is not None else 0.0,
+            "soil_moisture_percent": round(avg_soil, 1) if avg_soil is not None else 0.0
         }
     }

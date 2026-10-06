@@ -75,16 +75,16 @@ def combine_multimodal_analysis(
         # 3. Persist record to database for history and PDF report traceability
         rec_uuid = f"AV-{uuid.uuid4().hex[:12].upper()}"
         try:
-            env_in = payload.environmental_inputs
+            env_in = payload.environmental_inputs or {}
             db_record = AnalysisRecordDB(
                 record_uuid=rec_uuid,
-                image_url="/static/images/cotton_leaf_sample.jpg",
-                temperature=float(env_in.get("temperature", 31.0)),
-                humidity=float(env_in.get("humidity", 72.0)),
-                soil_moisture=float(env_in.get("soil_moisture", 0.42)),
-                rainfall_mm=float(env_in.get("rainfall", env_in.get("rainfall_mm", 18.0))),
-                aqi=float(env_in.get("aqi", 84.0)),
-                ozone=float(env_in.get("ozone", 0.041)),
+                image_url="",
+                temperature=float(env_in.get("temperature", 0.0)),
+                humidity=float(env_in.get("humidity", 0.0)),
+                soil_moisture=float(env_in.get("soil_moisture", 0.0)),
+                rainfall_mm=float(env_in.get("rainfall", env_in.get("rainfall_mm", 0.0))),
+                aqi=float(env_in.get("aqi", 0.0)),
+                ozone=float(env_in.get("ozone", 0.0)),
                 growth_stage=str(env_in.get("growth_stage", "Flowering")),
                 stress_severity=payload.environmental_evidence.severity,
                 confidence_score=payload.environmental_evidence.confidence * 100.0 if payload.environmental_evidence.confidence <= 1.0 else payload.environmental_evidence.confidence,

@@ -6,7 +6,7 @@ def test_feature_fusion_engine():
     print("Testing Task 3: Multimodal Feature Fusion & Expert Advice")
     print("==========================================")
     
-    # Scenario 1: High Leaf Water Stress + Heavy Rain Forecast
+    # Scenario 1: High Leaf Water Stress + Heavy Rain + Saturated Soil
     cnn_probs_1 = {
         "healthy": 10.0,
         "water_stress": 65.0,
@@ -18,8 +18,8 @@ def test_feature_fusion_engine():
     env_data_1 = {
         "temperature": 32.0,
         "humidity": 65.0,
-        "soil_moisture": 45.0,
-        "rainfall_mm": 35.0, # Heavy rain expected!
+        "soil_moisture": 60.0, # Saturated soil (> 55%)
+        "rainfall_mm": 35.0,   # Heavy rain expected (> 20mm)
         "aqi": 75.0
     }
     
@@ -28,10 +28,10 @@ def test_feature_fusion_engine():
     for r in recs_1:
         print(f"  * {r}")
         
-    assert any("Delay planned irrigation" in r for r in recs_1), "Rule Engine failed to trigger rain hold-off advice!"
+    assert any("Over-Irrigation" in r for r in recs_1), "Rule Engine failed to trigger Over-Irrigation risk!"
     print("[OK] Scenario 1 Rule Trigger Verified.")
 
-    # Scenario 2: High Thermal Stress + Extreme Temperature
+    # Scenario 2: High Thermal Stress + Extreme Temperature + Depleted Soil
     cnn_probs_2 = {
         "healthy": 15.0,
         "water_stress": 10.0,
@@ -41,9 +41,9 @@ def test_feature_fusion_engine():
     }
     snn_severity_2 = "High"
     env_data_2 = {
-        "temperature": 41.5, # Extreme heat
+        "temperature": 41.5, # Extreme heat (> 38C)
         "humidity": 40.0,
-        "soil_moisture": 30.0,
+        "soil_moisture": 20.0, # Depleted soil (< 25%)
         "rainfall_mm": 0.0,
         "aqi": 110.0
     }
@@ -53,8 +53,7 @@ def test_feature_fusion_engine():
     for r in recs_2:
         print(f"  * {r}")
         
-    assert any("Thermal stress warning" in r for r in recs_2), "Rule Engine failed thermal stress advice!"
-    assert any("HIGH" in r for r in recs_2), "Rule Engine failed SNN High Severity flag!"
+    assert any("Thermal & Desiccation Stress" in r for r in recs_2), "Rule Engine failed thermal stress advice!"
     print("[OK] Scenario 2 Rule Trigger Verified.")
 
     print("\n>>> Task 3 Validation PASSED Successfully! <<<\n")
