@@ -47,14 +47,115 @@ function openLatestOverviewReport() {
 
 async function loadOverviewData() {
   try {
-    const response = await fetch(getApiUrl("/api/v1/records?limit=10"));
+    const response = await fetch(getApiUrl("/api/v1/records?limit=200"));
     if (!response.ok) throw new Error("API response error");
 
     const data = await response.json();
     const records = Array.isArray(data) ? data : (data.records || []);
 
-    const totalScansEl = document.getElementById("statTotalScans");
-    if (totalScansEl) totalScansEl.textContent = `${records.length} Scans`;
+    // 1. Compute 100% Real Database Analytics KPIs
+    const totalAnalyses = records.length;
+    let healthyCount = 0;
+    let stressedCount = 0;
+    let alertsCount = 0;
+    let recentWeekCount = 0;
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+    records.forEach(r => {
+      // Trend calculation
+      const createdAt = r.created_at ? new Date(r.created_at).getTime() : 0;
+      if (createdAt >= sevenDaysAgo) recentWeekCount++;
+
+      // Parse CNN Visual Class
+      let topClass = "";
+      try {
+        if (r.cnn_predictions_json) {
+          const cnnObj = JSON.parse(r.cnn_predictions_json);
+          topClass = Object.keys(cnnObj).reduce((a, b) => (cnnObj[a] > cnnObj[b] ? a : b), "").toLowerCase();
+        }
+      } catch (_) {}
+
+      if (topClass === "healthy") {
+        healthyCount++;
+      } else if (topClass) {
+        stressedCount++;
+      } else if (r.stress_severity === "Low") {
+        healthyCount++;
+      } else if (r.stress_severity === "Moderate" || r.stress_severity === "High") {
+        stressedCount++;
+      }
+
+      // Parse Expert Veto Alerts
+      try {
+        if (r.expert_veto_json) {
+          const expObj = JSON.parse(r.expert_veto_json);
+          if (
+            (expObj.triggered_rules && expObj.triggered_rules.length > 0) ||
+            (expObj.overall_status && expObj.overall_status !== "NO_RULE_TRIGGERED" && expObj.overall_status !== "No Rule Triggered")
+          ) {
+            alertsCount++;
+          }
+        }
+      } catch (_) {}
+    });
+
+    // Populate KPI 1: Total Analyses
+    const totalValEl = document.getElementById("statTotalScans");
+    const totalSubEl = document.getElementById("kpiTotalSub");
+    const totalTrendEl = document.getElementById("kpiTotalTrend");
+    if (totalValEl) totalValEl.textContent = totalAnalyses > 0 ? String(totalAnalyses) : "0";
+    if (totalSubEl) totalSubEl.textContent = totalAnalyses > 0 ? "Total verified sessions" : "No data yet";
+    if (totalTrendEl) {
+      totalTrendEl.innerHTML = totalAnalyses > 0 
+        ? `<span style="color:#059669; font-weight:700;">+${recentWeekCount}</span> this week · All Zones`
+        : `<span>●</span> Awaiting field scans`;
+    }
+
+    // Populate KPI 2: Healthy Plants
+    const healthyValEl = document.getElementById("statHealthyVal");
+    const healthySubEl = document.getElementById("statHealthySub");
+    const healthyBarEl = document.getElementById("statHealthyBar");
+    if (healthyValEl) healthyValEl.textContent = String(healthyCount);
+    if (healthySubEl) {
+      healthySubEl.textContent = totalAnalyses > 0 
+        ? `${((healthyCount / totalAnalyses) * 100).toFixed(1)}% of total` 
+        : "No data yet";
+    }
+    if (healthyBarEl) {
+      healthyBarEl.style.width = totalAnalyses > 0 ? `${Math.round((healthyCount / totalAnalyses) * 100)}%` : "0%";
+    }
+
+    // Populate KPI 3: Stressed Plants
+    const stressedValEl = document.getElementById("statStressedVal");
+    const stressedSubEl = document.getElementById("statStressedSub");
+    const stressedBarEl = document.getElementById("statStressedBar");
+    if (stressedValEl) stressedValEl.textContent = String(stressedCount);
+    if (stressedSubEl) {
+      stressedSubEl.textContent = totalAnalyses > 0 
+        ? `${((stressedCount / totalAnalyses) * 100).toFixed(1)}% · Require Attention` 
+        : "No data yet";
+    }
+    if (stressedBarEl) {
+      stressedBarEl.style.width = totalAnalyses > 0 ? `${Math.round((stressedCount / totalAnalyses) * 100)}%` : "0%";
+    }
+
+    // Populate KPI 4: Expert Alerts
+    const alertsValEl = document.getElementById("statAlertsVal");
+    const alertsSubEl = document.getElementById("statAlertsSub");
+    const alertsFooterEl = document.getElementById("statAlertsFooter");
+    if (alertsValEl) alertsValEl.textContent = String(alertsCount);
+    if (alertsSubEl) {
+      alertsSubEl.textContent = totalAnalyses > 0 
+        ? `${alertsCount} rule precautions flagged` 
+        : "No data yet";
+    }
+    if (alertsFooterEl) {
+      alertsFooterEl.innerHTML = totalAnalyses === 0
+        ? `<span>🛡️</span> Rules EVR-001–005 Ready`
+        : (alertsCount > 0 
+            ? `<span style="color:#dc2626; font-weight:700;">⚠️ ${alertsCount} Precautions</span> Flagged`
+            : `<span style="color:#059669; font-weight:700;">✓ Clean</span> No Rule Conflicts`);
+    }
 
     if (records.length > 0) {
       const latest = records[0];
