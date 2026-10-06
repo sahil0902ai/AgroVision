@@ -3235,62 +3235,75 @@ details.model-details summary:hover {
   }
 }
 
-@media (max-width: 600px) {
-  .weather-metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .data-sources-list {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
+/* =========================================================
+   AgroVision — Weather & Environmental Analytics Grid
+   Power BI / Enterprise Matched Dual-Card Layout
+   ========================================================= */
+.weather-intel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 22px;
+  align-items: stretch;
 }
 
-/* =========================================================
-   AgroVision — Weather Forecast Widget (Power BI Inspired)
-   ========================================================= */
+.current-field-weather-card,
 .weather-forecast-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 20px;
+  padding: 16px 18px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
   transition: all 0.2s ease;
 }
 
+.weather-card-header,
 .forecast-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 12px;
   border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 12px;
+  padding-bottom: 10px;
+  min-height: 52px;
 }
 
+.weather-card-title-group,
 .forecast-card-title-group {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+.weather-card-icon,
 .forecast-card-icon {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: #eff6ff;
-  color: #2563eb;
+  background: #ecfdf5;
+  color: #059669;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   flex-shrink: 0;
-  border: 1px solid #dbeafe;
+  border: 1px solid #d1fae5;
 }
 
+.forecast-card-icon {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #dbeafe;
+}
+
+.weather-card-title,
 .forecast-card-title {
   font-size: 13.5px;
   font-weight: 800;
@@ -3301,24 +3314,42 @@ details.model-details summary:hover {
   margin: 0;
 }
 
+.weather-source-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid #a7f3d0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.weather-card-subtitle,
 .forecast-card-subtitle {
   font-size: 11px;
   color: #64748b;
   margin-top: 2px;
+  line-height: 1.35;
 }
 
+.weather-card-actions,
 .forecast-card-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
 }
 
+.weather-refresh-btn,
 .btn-view-extended {
   background: #f8fafc;
   border: 1px solid #cbd5e1;
   color: #334155;
   padding: 5px 12px;
-  font-size: 11.5px;
+  font-size: 11px;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
@@ -3326,27 +3357,134 @@ details.model-details summary:hover {
   align-items: center;
   gap: 5px;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
+.weather-refresh-btn:hover,
 .btn-view-extended:hover {
   background: #f1f5f9;
   border-color: #94a3b8;
   color: #0f172a;
 }
 
-/* 3-Day Primary Grid (Today, Tomorrow, Day After) */
+.weather-refresh-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* 5 Metrics Layout inside Left Weather Card */
+.weather-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.weather-metric-tile {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 11px;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.15s ease;
+}
+
+.weather-metric-tile:hover {
+  background: #f1f5f9;
+}
+
+.weather-metric-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 3px;
+}
+
+.weather-metric-val {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.15;
+}
+
+.weather-metric-sub {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 2px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Data Sources Provenance Area */
+.weather-data-sources-strip {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 7px 12px;
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 10.5px;
+}
+
+.data-sources-title {
+  font-weight: 700;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+}
+
+.data-sources-list {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.data-source-item {
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+}
+
+.data-source-item strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.data-source-arrow {
+  color: #059669;
+  font-weight: 700;
+}
+
+/* 3-Day Forecast Grid inside Right Card */
 .forecast-primary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .forecast-day-tile {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px 14px;
+  border-radius: 8px;
+  padding: 10px 11px;
   display: flex;
   flex-direction: column;
   transition: all 0.15s ease;
@@ -3367,19 +3505,19 @@ details.model-details summary:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   border-bottom: 1px solid #edf2f7;
-  padding-bottom: 6px;
+  padding-bottom: 4px;
 }
 
 .forecast-day-label {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 800;
   color: #0f172a;
 }
 
 .forecast-day-date {
-  font-size: 10.5px;
+  font-size: 10px;
   color: #64748b;
   font-weight: 600;
 }
@@ -3387,12 +3525,12 @@ details.model-details summary:hover {
 .forecast-day-main {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
 .forecast-weather-icon {
-  font-size: 26px;
+  font-size: 22px;
   line-height: 1;
 }
 
@@ -3402,34 +3540,37 @@ details.model-details summary:hover {
 }
 
 .forecast-temp-val {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #0f172a;
   line-height: 1.1;
 }
 
 .forecast-temp-range {
-  font-size: 10.5px;
+  font-size: 10px;
   color: #64748b;
   font-weight: 600;
 }
 
 .forecast-condition-text {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #334155;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .forecast-metrics-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 4px;
   background: #ffffff;
   border: 1px solid #f1f5f9;
   border-radius: 6px;
-  padding: 6px 8px;
-  margin-bottom: 8px;
+  padding: 5px 6px;
+  margin-bottom: 6px;
 }
 
 .forecast-metric-mini {
@@ -3438,19 +3579,18 @@ details.model-details summary:hover {
 }
 
 .forecast-mini-lbl {
-  font-size: 9.5px;
+  font-size: 8.5px;
   color: #64748b;
   text-transform: uppercase;
   font-weight: 700;
 }
 
 .forecast-mini-val {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
   color: #0f172a;
 }
 
-/* Rain Probability Mini Track */
 .forecast-pop-bar-wrap {
   width: 100%;
   height: 4px;
@@ -3468,14 +3608,15 @@ details.model-details summary:hover {
 }
 
 .forecast-agri-badge {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 3px 6px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   gap: 4px;
   margin-top: auto;
+  line-height: 1.3;
 }
 
 .agri-badge-low {
@@ -3501,21 +3642,21 @@ details.model-details summary:hover {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 12px 14px;
-  margin-top: 10px;
+  padding: 10px 12px;
+  margin-top: auto;
   overflow-x: auto;
 }
 
 .forecast-extended-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .forecast-extended-table th {
-  padding: 8px 10px;
+  padding: 6px 8px;
   text-align: left;
-  font-size: 10px;
+  font-size: 9.5px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #64748b;
@@ -3523,7 +3664,7 @@ details.model-details summary:hover {
 }
 
 .forecast-extended-table td {
-  padding: 8px 10px;
+  padding: 6px 8px;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
 }
@@ -3532,9 +3673,21 @@ details.model-details summary:hover {
   background: #ffffff;
 }
 
-@media (max-width: 860px) {
-  .forecast-primary-grid {
+@media (max-width: 1024px) {
+  .weather-intel-grid {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 640px) {
+  .forecast-primary-grid {
+    grid-template-columns: 1fr;
+  }
+  .data-sources-list {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
 
