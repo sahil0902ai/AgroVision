@@ -232,12 +232,6 @@
           </a>
         </li>
         <li>
-          <a href="#myFieldsSection" class="side-nav-item">
-            <span class="nav-icon">🌾</span>
-            <span class="nav-label">My Fields</span>
-          </a>
-        </li>
-        <li>
           <a href="history.html#reportsSection" class="side-nav-item">
             <span class="nav-icon">📄</span>
             <span class="nav-label">Reports</span>
@@ -301,14 +295,10 @@
             <span id="globalHeaderDate">Today</span>
           </div>
 
-          <!-- Real Field Selector -->
-          <div class="header-field-select-wrap">
-            <select class="header-field-select" id="fieldSelect" aria-label="Select Farm Field">
-              <option value="zone-1">Field A — North Parcel (Zone 1)</option>
-              <option value="zone-2">Field B — South Parcel (Zone 2)</option>
-              <option value="zone-3">Field C — East Plot (Zone 3)</option>
-            </select>
-            <span class="header-field-chevron">▼</span>
+          <!-- Farm Station Badge -->
+          <div class="header-location-badge" id="globalHeaderLocation">
+            <span style="font-size:13px;">📍</span>
+            <span>Wardha Farm Station</span>
           </div>
 
           <!-- System Notifications -->
@@ -319,28 +309,21 @@
             </button>
             <div class="header-dropdown-menu" id="notifDropdownMenu">
               <div style="font-size:12px; font-weight:800; color:#0d3b2e; border-bottom:1px solid #f1f5f9; padding-bottom:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                <span>System &amp; Field Alerts</span>
+                <span>System Alerts</span>
                 <span style="font-size:10px; color:#059669; font-weight:700; background:#ecfdf5; padding:1px 6px; border-radius:4px;">Live</span>
               </div>
               <div class="notif-item">
                 <span style="font-size:14px;">🌤️</span>
                 <div>
-                  <strong style="color:#0f172a; font-size:11.5px; display:block;">OpenWeather Telemetry Sync</strong>
-                  <span style="color:#64748b; font-size:11px;">Active live streaming for selected microclimate parcel.</span>
+                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Live Weather Active</strong>
+                  <span style="color:#64748b; font-size:11px;">Real-time weather telemetry connected.</span>
                 </div>
               </div>
               <div class="notif-item">
-                <span style="font-size:14px;">⚖️</span>
+                <span style="font-size:14px;">🌿</span>
                 <div>
-                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Expert Veto Engine Ready</strong>
-                  <span style="color:#64748b; font-size:11px;">Rules EVR-001 through EVR-005 loaded and operational.</span>
-                </div>
-              </div>
-              <div class="notif-item">
-                <span style="font-size:14px;">🧠</span>
-                <div>
-                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Multimodal AI Models</strong>
-                  <span style="color:#64748b; font-size:11px;">CNN visual detector &amp; SNN spiking networks initialized.</span>
+                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Smart Crop Advisor Ready</strong>
+                  <span style="color:#64748b; font-size:11px;">AI stress detection models ready for scans.</span>
                 </div>
               </div>
             </div>
@@ -364,9 +347,6 @@
                 <div style="font-size:11px; color:#64748b; text-overflow:ellipsis; overflow:hidden;" id="headerUserEmail">farmer@agrovision.org</div>
                 <div style="margin-top:6px;"><span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Verified Operator</span></div>
               </div>
-              <a href="#myFieldsSection" class="profile-menu-link">
-                <span>🌾</span> <span>My Monitored Fields</span>
-              </a>
               <a href="history.html#reportsSection" class="profile-menu-link">
                 <span>📄</span> <span>Agronomic Reports</span>
               </a>
@@ -386,142 +366,7 @@
 
       <div class="overview-container">
 
-        <!-- ============ POWER BI ANALYTICAL FILTER TOOLBAR ============ -->
-        <div class="filter-toolbar-card" id="filterToolbarCard">
-          
-          <div class="filter-toolbar-header">
-            <div class="filter-toolbar-title-wrap">
-              <span class="filter-toolbar-icon">⚙️</span>
-              <span class="filter-toolbar-title">Analytical Filters</span>
-              <span class="filter-count-badge" id="filterCountBadge" style="display:none;">0 active</span>
-            </div>
-            <div class="filter-toolbar-actions">
-              <button type="button" onclick="resetAllFilters()" class="btn-filter-action btn-filter-reset" id="resetFiltersBtn" title="Reset all filters">
-                ↺ Reset Filters
-              </button>
-              <button type="button" onclick="applyAnalyticsFilters()" class="btn-filter-action btn-filter-apply" id="applyFiltersBtn">
-                ⚡ Apply Filters
-              </button>
-            </div>
-          </div>
-
-          <!-- Filter Controls Grid (7 Analytical Filters) -->
-          <div class="filter-controls-grid">
-            
-            <!-- 1. Field -->
-            <div class="filter-control-item">
-              <label class="filter-control-label" for="filterField">Field / Parcel</label>
-              <select id="filterField" class="filter-select" onchange="onFilterControlChange()">
-                <option value="all">All Fields</option>
-                <option value="Field A">Field A — North Parcel (Zone 1)</option>
-                <option value="Field B">Field B — South Parcel (Zone 2)</option>
-                <option value="Field C">Field C — East Plot (Zone 3)</option>
-              </select>
-            </div>
-
-            <!-- 2. Date Range -->
-            <div class="filter-control-item">
-              <label class="filter-control-label" for="filterDateRange">Date Range</label>
-              <select id="filterDateRange" class="filter-select" onchange="onDateRangePresetChange()">
-                <option value="all" selected>All Time</option>
-                <option value="today">Today</option>
-                <option value="7days">Past 7 Days</option>
-                <option value="30days">Past 30 Days</option>
-                <option value="season">This Season (90d)</option>
-                <option value="custom">Custom Range…</option>
-              </select>
-            </div>
-
-            <!-- 3. Crop Stage -->
-            <div class="filter-control-item">
-              <label class="filter-control-label" for="filterCropStage">Crop Stage</label>
-              <select id="filterCropStage" class="filter-select" onchange="onFilterControlChange()">
-                <option value="all" selected>All Crop Stages</option>
-                <option value="Seedling">Seedling</option>
-                <option value="Vegetative">Vegetative</option>
-                <option value="Flowering">Flowering</option>
-                <option value="Boll Formation">Boll Formation</option>
-                <option value="Maturity">Maturity</option>
-              </select>
-            </div>
-
-            <!-- 4. Visual Stress (CNN) -->
-            <div class="filter-control-item">
-              <label class="filter-control-label" for="filterVisualStress">Visual Stress (CNN)</label>
-              <select id="filterVisualStress" class="filter-select" onchange="onFilterControlChange()">
-                <option value="all" selected>All Visual Conditions</option>
-                <option value="Healthy">Healthy Leaf</option>
-                <option value="Water Stress">Water Stress</option>
-                <option value="Heat Stress">Heat Stress</option>
-                <option value="Nutrient Deficiency">Nutrient Deficiency</option>
-                <option value="Pollution">Pollution</option>
-              </select>
-            </div>
-
-            <!-- 5. Environmental Stress (SNN) -->
-            <div class="filter-control-item">
-              <label class="filter-control-label" for="filterEnvStress">Environmental (SNN)</label>
-              <select id="filterEnvStress" class="filter-select" onchange="onFilterControlChange()">
-                <option value="all" selected>All Risk Levels</option>
-                <option value="Low">Low Risk</option>
-                <option value="Moderate">Moderate Risk</option>
-                <option value="High">High Risk</option>
-              </select>
-            </div>
-
-            <!-- 6. Expert Alert (Veto Engine) -->
-            <div class="filter-control-item">
-              <label class="filter-control-label" for="filterExpertAlert">Expert Alert</label>
-              <select id="filterExpertAlert" class="filter-select" onchange="onFilterControlChange()">
-                <option value="all" selected>All Alert States</option>
-                <option value="triggered">Precaution / Rules Triggered</option>
-                <option value="clean">Clean (No Rule Triggered)</option>
-              </select>
-            </div>
-
-            <!-- 7. Analysis Status (Fusion) -->
-            <div class="filter-control-item">
-              <label class="filter-control-label" for="filterAnalysisStatus">Analysis Status</label>
-              <select id="filterAnalysisStatus" class="filter-select" onchange="onFilterControlChange()">
-                <option value="all" selected>All Fusion Statuses</option>
-                <option value="aligned">Aligned Evidence</option>
-                <option value="partially_aligned">Partially Aligned</option>
-                <option value="conflicting">Conflicting Evidence</option>
-              </select>
-            </div>
-
-          </div>
-
-          <!-- Custom Date Range Row -->
-          <div class="custom-date-row" id="customDateRow" style="display:none;">
-            <div class="custom-date-inputs">
-              <label class="filter-control-label" for="customStartDate">From:</label>
-              <input type="date" id="customStartDate" class="filter-date-input" onchange="onFilterControlChange()" />
-              <label class="filter-control-label" for="customEndDate">To:</label>
-              <input type="date" id="customEndDate" class="filter-date-input" onchange="onFilterControlChange()" />
-            </div>
-          </div>
-
-          <!-- Active Filter Chips Container -->
-          <div class="active-filter-chips-row" id="activeFilterChipsRow" style="display:none;">
-            <span class="active-filter-label">Applied Filters:</span>
-            <div class="chips-list" id="activeChipsList"></div>
-            <button type="button" onclick="resetAllFilters()" class="clear-all-chips-btn">Clear All ✕</button>
-          </div>
-
-        </div>
-
-        <!-- No Matching Results Empty State -->
-        <div id="noResultsState" class="no-results-card" style="display:none;">
-          <div class="no-results-icon">🔍</div>
-          <div class="no-results-title">No Matching Analyses</div>
-          <div class="no-results-sub">No recorded analysis sessions match your selected filter criteria.</div>
-          <button type="button" onclick="resetAllFilters()" class="btn btn-primary" style="padding:8px 18px; font-size:12px; border-radius:8px;">
-            ↺ Reset Filters to View All
-          </button>
-        </div>
-
-        <!-- 1. Power BI Top KPI Cards Row (Immediately below Filter Toolbar) -->
+        <!-- 1. Top KPI Cards Row -->
         <div class="kpi-grid-4" style="margin-bottom:20px;">
           
           <!-- 1. Total Analyses -->
@@ -940,34 +785,6 @@
                 <p id="advisoryText" style="margin:0; font-size:11.5px; color:#475569;">
                   Environmental telemetry is within standard agronomic ranges. Continue regular soil moisture surveillance during current vegetative and flowering phases.
                 </p>
-              </div>
-            </div>
-
-            <!-- Monitored Field Parcels -->
-            <div class="panel" id="myFieldsSection">
-              <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">Monitored Parcels</h3>
-              <div style="display:flex; flex-direction:column; gap:8px;">
-                <div class="parcel-card active" onclick="selectParcel('Zone 1')">
-                  <div>
-                    <div style="font-weight:700; font-size:12px; color:#0d3b2e;">Field A — North Parcel</div>
-                    <div style="font-size:10.5px; color:#64748b;">Zone 1 · 4.8 Ha · Flowering</div>
-                  </div>
-                  <span style="background:#ecfdf5; color:#059669; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">Active</span>
-                </div>
-                <div class="parcel-card" onclick="selectParcel('Zone 2')">
-                  <div>
-                    <div style="font-weight:700; font-size:12px; color:#0d3b2e;">Field B — South Parcel</div>
-                    <div style="font-size:10.5px; color:#64748b;">Zone 2 · 4.2 Ha · Boll Dev</div>
-                  </div>
-                  <span style="background:#ecfdf5; color:#059669; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">Active</span>
-                </div>
-                <div class="parcel-card" onclick="selectParcel('Zone 3')">
-                  <div>
-                    <div style="font-weight:700; font-size:12px; color:#0d3b2e;">Field C — East Plot</div>
-                    <div style="font-size:10.5px; color:#64748b;">Zone 3 · 3.5 Ha · Vegetative</div>
-                  </div>
-                  <span style="background:#ecfdf5; color:#059669; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">Active</span>
-                </div>
               </div>
             </div>
 

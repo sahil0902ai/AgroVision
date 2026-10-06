@@ -56,12 +56,6 @@
           </a>
         </li>
         <li>
-          <a href="overview.html#myFieldsSection" class="side-nav-item">
-            <span class="nav-icon">🌾</span>
-            <span class="nav-label">My Fields</span>
-          </a>
-        </li>
-        <li>
           <a href="history.html#reportsSection" class="side-nav-item">
             <span class="nav-icon">📄</span>
             <span class="nav-label">Reports</span>
@@ -99,7 +93,7 @@
         <div class="header-left-group">
           <div class="header-title-box">
             <h1 class="header-title" id="assistantPageTitle">AI Assistant</h1>
-            <p class="header-subtitle">Grounded agronomic decision support &amp; expert rule explanations</p>
+            <p class="header-subtitle">Grounded agronomic decision support &amp; crop advice</p>
           </div>
         </div>
 
@@ -110,13 +104,13 @@
             type="search"
             class="header-search-input"
             id="globalSearchInput"
-            placeholder="Search fields, analyses, reports…"
-            aria-label="Search fields, analyses, reports"
+            placeholder="Search farm knowledge, recommendations…"
+            aria-label="Search farm knowledge"
             onkeydown="handleGlobalSearch(event)"
           />
         </div>
 
-        <!-- Right: Date, Field Selector, Notifications, User Profile -->
+        <!-- Right: Date, Location, Notifications, User Profile -->
         <div class="header-right-group">
           
           <!-- Date Badge -->
@@ -125,14 +119,10 @@
             <span id="globalHeaderDate">Today</span>
           </div>
 
-          <!-- Real Field Selector -->
-          <div class="header-field-select-wrap">
-            <select class="header-field-select" id="fieldSelect" aria-label="Select Farm Field">
-              <option value="zone-1">Field A — North Parcel (Zone 1)</option>
-              <option value="zone-2">Field B — South Parcel (Zone 2)</option>
-              <option value="zone-3">Field C — East Plot (Zone 3)</option>
-            </select>
-            <span class="header-field-chevron">▼</span>
+          <!-- Farm Station Badge -->
+          <div class="header-location-badge" id="globalHeaderLocation">
+            <span style="font-size:13px;">📍</span>
+            <span>Wardha Farm Station</span>
           </div>
 
           <a href="dashboard.html" class="btn btn-primary" style="padding:7px 12px; font-size:11.5px; border-radius:8px; font-weight:700; text-decoration:none; white-space:nowrap;">
@@ -147,28 +137,14 @@
             </button>
             <div class="header-dropdown-menu" id="notifDropdownMenu">
               <div style="font-size:12px; font-weight:800; color:#0d3b2e; border-bottom:1px solid #f1f5f9; padding-bottom:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                <span>System &amp; Field Alerts</span>
+                <span>System Alerts</span>
                 <span style="font-size:10px; color:#059669; font-weight:700; background:#ecfdf5; padding:1px 6px; border-radius:4px;">Live</span>
               </div>
               <div class="notif-item">
                 <span style="font-size:14px;">🌤️</span>
                 <div>
-                  <strong style="color:#0f172a; font-size:11.5px; display:block;">OpenWeather Telemetry Sync</strong>
-                  <span style="color:#64748b; font-size:11px;">Active live streaming for selected microclimate parcel.</span>
-                </div>
-              </div>
-              <div class="notif-item">
-                <span style="font-size:14px;">⚖️</span>
-                <div>
-                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Expert Veto Engine Ready</strong>
-                  <span style="color:#64748b; font-size:11px;">Rules EVR-001 through EVR-005 loaded and operational.</span>
-                </div>
-              </div>
-              <div class="notif-item">
-                <span style="font-size:14px;">🧠</span>
-                <div>
-                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Multimodal AI Models</strong>
-                  <span style="color:#64748b; font-size:11px;">CNN visual detector &amp; SNN spiking networks initialized.</span>
+                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Live Weather Connected</strong>
+                  <span style="color:#64748b; font-size:11px;">Real-time farm station weather active.</span>
                 </div>
               </div>
             </div>
@@ -192,9 +168,6 @@
                 <div style="font-size:11px; color:#64748b; text-overflow:ellipsis; overflow:hidden;" id="headerUserEmail">farmer@agrovision.org</div>
                 <div style="margin-top:6px;"><span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Verified Operator</span></div>
               </div>
-              <a href="overview.html#myFieldsSection" class="profile-menu-link">
-                <span>🌾</span> <span>My Monitored Fields</span>
-              </a>
               <a href="history.html#reportsSection" class="profile-menu-link">
                 <span>📄</span> <span>Agronomic Reports</span>
               </a>

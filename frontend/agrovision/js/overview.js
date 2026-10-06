@@ -1,30 +1,16 @@
 /* =========================================================
    AgroVision — Farm Overview Logic
-   Power BI Analytical Filter Bar & Reactive Dashboard
-   Pulls verified records from /api/v1/records
+   Pulls verified records from /api/v1/records & live weather
    ========================================================= */
 
 let rawAllRecords = [];
 let latestRecordUuid = null;
-
-// Filter state store
-const currentFilters = {
-  field: "all",
-  dateRange: "all",
-  customStart: "",
-  customEnd: "",
-  cropStage: "all",
-  visualStress: "all",
-  envStress: "all",
-  expertAlert: "all",
-  analysisStatus: "all",
-  searchQuery: ""
-};
+let currentSearchQuery = "";
 
 // Auth check
 const currentUser = typeof requireLogin === "function" ? requireLogin() : null;
 if (currentUser && document.getElementById("welcomeMsg")) {
-  const nameFirst = currentUser.name.split(" ")[0];
+  const nameFirst = (currentUser.name || "Farmer").split(" ")[0];
   document.getElementById("welcomeMsg").textContent = `Welcome back, ${nameFirst}`;
 }
 
@@ -43,32 +29,6 @@ function getApiUrl(endpoint) {
   return endpoint;
 }
 
-function selectParcel(zoneName) {
-  const cards = document.querySelectorAll(".parcel-card");
-  cards.forEach(card => card.classList.remove("active"));
-  if (event && event.currentTarget) {
-    event.currentTarget.classList.add("active");
-  }
-  
-  const fieldFilter = document.getElementById("filterField");
-  const fieldSelect = document.getElementById("fieldSelect");
-  
-  let targetVal = "all";
-  if (zoneName.includes("1")) targetVal = "Field A";
-  else if (zoneName.includes("2")) targetVal = "Field B";
-  else if (zoneName.includes("3")) targetVal = "Field C";
-
-  if (fieldFilter) {
-    fieldFilter.value = targetVal;
-    onFilterControlChange();
-  }
-  if (fieldSelect) {
-    if (zoneName.includes("1")) fieldSelect.selectedIndex = 0;
-    else if (zoneName.includes("2")) fieldSelect.selectedIndex = 1;
-    else if (zoneName.includes("3")) fieldSelect.selectedIndex = 2;
-  }
-}
-
 function openLatestOverviewReport() {
   if (latestRecordUuid) {
     window.open(getApiUrl(`/api/v1/records/${latestRecordUuid}/report`), "_blank");
@@ -77,343 +37,10 @@ function openLatestOverviewReport() {
   }
 }
 
-// =========================================================
-// Filter Controller Functions
-// =========================================================
-
-function onDateRangePresetChange() {
-  const datePreset = document.getElementById("filterDateRange")?.value || "all";
-  const customRow = document.getElementById("customDateRow");
-  
-  if (datePreset === "custom") {
-    if (customRow) customRow.style.display = "flex";
-  } else {
-    if (customRow) customRow.style.display = "none";
-    const startInput = document.getElementById("customStartDate");
-    const endInput = document.getElementById("customEndDate");
-    if (startInput) startInput.value = "";
-    if (endInput) endInput.value = "";
-    currentFilters.customStart = "";
-    currentFilters.customEnd = "";
-  }
-  
-  onFilterControlChange();
-}
-
-function onFilterControlChange() {
-  currentFilters.field = document.getElementById("filterField")?.value || "all";
-  currentFilters.dateRange = document.getElementById("filterDateRange")?.value || "all";
-  currentFilters.customStart = document.getElementById("customStartDate")?.value || "";
-  currentFilters.customEnd = document.getElementById("customEndDate")?.value || "";
-  currentFilters.cropStage = document.getElementById("filterCropStage")?.value || "all";
-  currentFilters.visualStress = document.getElementById("filterVisualStress")?.value || "all";
-  currentFilters.envStress = document.getElementById("filterEnvStress")?.value || "all";
-  currentFilters.expertAlert = document.getElementById("filterExpertAlert")?.value || "all";
-  currentFilters.analysisStatus = document.getElementById("filterAnalysisStatus")?.value || "all";
-
-  renderActiveFilterChips();
-  
-  const filtered = filterRecords(rawAllRecords, currentFilters);
-  renderFilteredDashboard(filtered);
-}
-
-function applyAnalyticsFilters() {
-  onFilterControlChange();
-}
-
-function resetAllFilters() {
-  // Reset select elements
-  const filterField = document.getElementById("filterField");
-  const filterDate = document.getElementById("filterDateRange");
-  const filterCrop = document.getElementById("filterCropStage");
-  const filterVisual = document.getElementById("filterVisualStress");
-  const filterEnv = document.getElementById("filterEnvStress");
-  const filterExpert = document.getElementById("filterExpertAlert");
-  const filterStatus = document.getElementById("filterAnalysisStatus");
-  const customRow = document.getElementById("customDateRow");
-  const startInput = document.getElementById("customStartDate");
-  const endInput = document.getElementById("customEndDate");
-  const searchInput = document.getElementById("globalSearchInput");
-
-  if (filterField) filterField.value = "all";
-  if (filterDate) filterDate.value = "all";
-  if (filterCrop) filterCrop.value = "all";
-  if (filterVisual) filterVisual.value = "all";
-  if (filterEnv) filterEnv.value = "all";
-  if (filterExpert) filterExpert.value = "all";
-  if (filterStatus) filterStatus.value = "all";
-  if (customRow) customRow.style.display = "none";
-  if (startInput) startInput.value = "";
-  if (endInput) endInput.value = "";
-  if (searchInput) searchInput.value = "";
-
-  currentFilters.field = "all";
-  currentFilters.dateRange = "all";
-  currentFilters.customStart = "";
-  currentFilters.customEnd = "";
-  currentFilters.cropStage = "all";
-  currentFilters.visualStress = "all";
-  currentFilters.envStress = "all";
-  currentFilters.expertAlert = "all";
-  currentFilters.analysisStatus = "all";
-  currentFilters.searchQuery = "";
-
-  renderActiveFilterChips();
-  renderFilteredDashboard(rawAllRecords);
-}
-
-function removeFilterChip(filterKey) {
-  if (filterKey === "field") {
-    const el = document.getElementById("filterField");
-    if (el) el.value = "all";
-    currentFilters.field = "all";
-  } else if (filterKey === "dateRange") {
-    const el = document.getElementById("filterDateRange");
-    if (el) el.value = "all";
-    const customRow = document.getElementById("customDateRow");
-    if (customRow) customRow.style.display = "none";
-    const startInput = document.getElementById("customStartDate");
-    const endInput = document.getElementById("customEndDate");
-    if (startInput) startInput.value = "";
-    if (endInput) endInput.value = "";
-    currentFilters.dateRange = "all";
-    currentFilters.customStart = "";
-    currentFilters.customEnd = "";
-  } else if (filterKey === "cropStage") {
-    const el = document.getElementById("filterCropStage");
-    if (el) el.value = "all";
-    currentFilters.cropStage = "all";
-  } else if (filterKey === "visualStress") {
-    const el = document.getElementById("filterVisualStress");
-    if (el) el.value = "all";
-    currentFilters.visualStress = "all";
-  } else if (filterKey === "envStress") {
-    const el = document.getElementById("filterEnvStress");
-    if (el) el.value = "all";
-    currentFilters.envStress = "all";
-  } else if (filterKey === "expertAlert") {
-    const el = document.getElementById("filterExpertAlert");
-    if (el) el.value = "all";
-    currentFilters.expertAlert = "all";
-  } else if (filterKey === "analysisStatus") {
-    const el = document.getElementById("filterAnalysisStatus");
-    if (el) el.value = "all";
-    currentFilters.analysisStatus = "all";
-  } else if (filterKey === "searchQuery") {
-    const el = document.getElementById("globalSearchInput");
-    if (el) el.value = "";
-    currentFilters.searchQuery = "";
-  }
-
-  onFilterControlChange();
-}
-
-function renderActiveFilterChips() {
-  const chipsListEl = document.getElementById("activeChipsList");
-  const chipsRowEl = document.getElementById("activeFilterChipsRow");
-  const badgeEl = document.getElementById("filterCountBadge");
-  if (!chipsListEl || !chipsRowEl) return;
-
-  const chips = [];
-
-  if (currentFilters.field !== "all") {
-    chips.push({ key: "field", label: `Field: ${currentFilters.field}` });
-  }
-
-  if (currentFilters.dateRange === "custom") {
-    const start = currentFilters.customStart || "Start";
-    const end = currentFilters.customEnd || "End";
-    chips.push({ key: "dateRange", label: `Date: ${start} → ${end}` });
-  } else if (currentFilters.dateRange !== "all") {
-    const dateLabels = {
-      today: "Today",
-      "7days": "Past 7 Days",
-      "30days": "Past 30 Days",
-      season: "This Season (90d)"
-    };
-    chips.push({ key: "dateRange", label: `Date: ${dateLabels[currentFilters.dateRange] || currentFilters.dateRange}` });
-  }
-
-  if (currentFilters.cropStage !== "all") {
-    chips.push({ key: "cropStage", label: `Stage: ${currentFilters.cropStage}` });
-  }
-
-  if (currentFilters.visualStress !== "all") {
-    chips.push({ key: "visualStress", label: `Visual: ${currentFilters.visualStress}` });
-  }
-
-  if (currentFilters.envStress !== "all") {
-    chips.push({ key: "envStress", label: `Env: ${currentFilters.envStress} Risk` });
-  }
-
-  if (currentFilters.expertAlert !== "all") {
-    const alertLabel = currentFilters.expertAlert === "triggered" ? "Precaution / Alert" : "Clean Rules";
-    chips.push({ key: "expertAlert", label: `Alert: ${alertLabel}` });
-  }
-
-  if (currentFilters.analysisStatus !== "all") {
-    const statusLabels = {
-      aligned: "Aligned",
-      partially_aligned: "Partially Aligned",
-      conflicting: "Conflicting"
-    };
-    chips.push({ key: "analysisStatus", label: `Fusion: ${statusLabels[currentFilters.analysisStatus] || currentFilters.analysisStatus}` });
-  }
-
-  if (currentFilters.searchQuery) {
-    chips.push({ key: "searchQuery", label: `Search: "${currentFilters.searchQuery}"` });
-  }
-
-  if (chips.length > 0) {
-    chipsRowEl.style.display = "flex";
-    if (badgeEl) {
-      badgeEl.style.display = "inline-block";
-      badgeEl.textContent = `${chips.length} active`;
-    }
-    chipsListEl.innerHTML = chips.map(c => `
-      <div class="filter-chip">
-        <span>${c.label}</span>
-        <button type="button" class="filter-chip-remove" onclick="removeFilterChip('${c.key}')" title="Remove filter">✕</button>
-      </div>
-    `).join("");
-  } else {
-    chipsRowEl.style.display = "none";
-    if (badgeEl) badgeEl.style.display = "none";
-    chipsListEl.innerHTML = "";
-  }
-}
-
-// =========================================================
-// Filter Matching Logic
-// =========================================================
-
-function filterRecords(records, filters) {
-  if (!Array.isArray(records)) return [];
-
-  const now = Date.now();
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
-
-  return records.filter(r => {
-    // 1. Field
-    if (filters.field !== "all") {
-      const recField = (r.field_name || "").toLowerCase();
-      if (!recField.includes(filters.field.toLowerCase())) return false;
-    }
-
-    // 2. Date Range
-    const createdAt = r.created_at ? new Date(r.created_at).getTime() : 0;
-    if (filters.dateRange === "today") {
-      if (createdAt < startOfToday.getTime()) return false;
-    } else if (filters.dateRange === "7days") {
-      if (createdAt < now - 7 * 24 * 60 * 60 * 1000) return false;
-    } else if (filters.dateRange === "30days") {
-      if (createdAt < now - 30 * 24 * 60 * 60 * 1000) return false;
-    } else if (filters.dateRange === "season") {
-      if (createdAt < now - 90 * 24 * 60 * 60 * 1000) return false;
-    } else if (filters.dateRange === "custom") {
-      if (filters.customStart) {
-        const startTimestamp = new Date(filters.customStart + "T00:00:00").getTime();
-        if (createdAt < startTimestamp) return false;
-      }
-      if (filters.customEnd) {
-        const endTimestamp = new Date(filters.customEnd + "T23:59:59").getTime();
-        if (createdAt > endTimestamp) return false;
-      }
-    }
-
-    // 3. Crop Stage
-    if (filters.cropStage !== "all") {
-      const recStage = (r.growth_stage || "").replace(/_/g, " ").toLowerCase();
-      const filterStage = filters.cropStage.toLowerCase();
-      if (!recStage.includes(filterStage) && !filterStage.includes(recStage)) return false;
-    }
-
-    // 4. Visual Stress (CNN)
-    let topCnnClass = "";
-    try {
-      if (r.cnn_predictions_json) {
-        const cnnObj = JSON.parse(r.cnn_predictions_json);
-        topCnnClass = Object.keys(cnnObj).reduce((a, b) => (cnnObj[a] > cnnObj[b] ? a : b), "").toLowerCase().replace(/_/g, " ");
-      }
-    } catch (_) {}
-
-    if (filters.visualStress !== "all") {
-      const targetVisual = filters.visualStress.toLowerCase();
-      if (targetVisual === "healthy") {
-        if (!topCnnClass.includes("healthy")) return false;
-      } else if (targetVisual.includes("water")) {
-        if (!topCnnClass.includes("water")) return false;
-      } else if (targetVisual.includes("heat")) {
-        if (!topCnnClass.includes("heat")) return false;
-      } else if (targetVisual.includes("nutrient")) {
-        if (!topCnnClass.includes("nutrient")) return false;
-      } else if (targetVisual.includes("pollution")) {
-        if (!topCnnClass.includes("pollution")) return false;
-      }
-    }
-
-    // 5. Environmental Stress (SNN)
-    if (filters.envStress !== "all") {
-      const recSev = (r.stress_severity || "Moderate").toLowerCase();
-      if (recSev !== filters.envStress.toLowerCase()) return false;
-    }
-
-    // 6. Expert Alert
-    let hasAlert = false;
-    if (r.expert_veto_rule_triggered) {
-      hasAlert = true;
-    } else {
-      try {
-        if (r.expert_veto_json) {
-          const expObj = JSON.parse(r.expert_veto_json);
-          if (
-            (expObj.triggered_rules && expObj.triggered_rules.length > 0) ||
-            (expObj.overall_status && expObj.overall_status !== "NO_RULE_TRIGGERED" && expObj.overall_status !== "No Rule Triggered")
-          ) {
-            hasAlert = true;
-          }
-        }
-      } catch (_) {}
-    }
-
-    if (filters.expertAlert === "triggered" && !hasAlert) return false;
-    if (filters.expertAlert === "clean" && hasAlert) return false;
-
-    // 7. Analysis Status (Multimodal Fusion)
-    let fusionRel = "aligned";
-    try {
-      if (r.fusion_json) {
-        const fObj = JSON.parse(r.fusion_json);
-        fusionRel = (fObj.relationship || "ALIGNED").toLowerCase().replace(/ /g, "_");
-      }
-    } catch (_) {}
-
-    if (filters.analysisStatus !== "all") {
-      if (filters.analysisStatus === "aligned" && !fusionRel.includes("aligned") && fusionRel !== "aligned") return false;
-      if (filters.analysisStatus === "partially_aligned" && !fusionRel.includes("partially")) return false;
-      if (filters.analysisStatus === "conflicting" && !fusionRel.includes("conflict")) return false;
-    }
-
-    // 8. Global Search Query
-    if (filters.searchQuery) {
-      const q = filters.searchQuery.toLowerCase();
-      const matchUuid = (r.record_uuid || "").toLowerCase().includes(q);
-      const matchField = (r.field_name || "").toLowerCase().includes(q);
-      const matchStage = (r.growth_stage || "").toLowerCase().includes(q);
-      const matchClass = topCnnClass.includes(q);
-      const matchSev = (r.stress_severity || "").toLowerCase().includes(q);
-      if (!matchUuid && !matchField && !matchStage && !matchClass && !matchSev) return false;
-    }
-
-    return true;
-  });
-}
-
 function handleGlobalSearch(event) {
   if (event.key === "Enter" || event.type === "input") {
-    currentFilters.searchQuery = event.target.value.trim();
-    onFilterControlChange();
+    currentSearchQuery = (event.target.value || "").trim().toLowerCase();
+    renderOverviewDashboard();
   }
 }
 
@@ -421,7 +48,19 @@ function handleGlobalSearch(event) {
 // Dashboard Rendering (KPIs, Hero, Matrix, Table)
 // =========================================================
 
-function renderFilteredDashboard(records) {
+function renderOverviewDashboard() {
+  let records = rawAllRecords;
+  
+  if (currentSearchQuery) {
+    records = rawAllRecords.filter(r => {
+      const q = currentSearchQuery;
+      const matchUuid = (r.record_uuid || "").toLowerCase().includes(q);
+      const matchStage = (r.growth_stage || "").toLowerCase().includes(q);
+      const matchSev = (r.stress_severity || "").toLowerCase().includes(q);
+      return matchUuid || matchStage || matchSev;
+    });
+  }
+
   const totalAnalyses = records.length;
   let healthyCount = 0;
   let stressedCount = 0;
@@ -430,7 +69,6 @@ function renderFilteredDashboard(records) {
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
   records.forEach(r => {
-    // Trend calculation
     const createdAt = r.created_at ? new Date(r.created_at).getTime() : 0;
     if (createdAt >= sevenDaysAgo) recentWeekCount++;
 
@@ -467,24 +105,18 @@ function renderFilteredDashboard(records) {
     } catch (_) {}
   });
 
-  // Toggle No Results State Banner
-  const noResultsEl = document.getElementById("noResultsState");
-  if (noResultsEl) {
-    noResultsEl.style.display = (totalAnalyses === 0 && rawAllRecords.length > 0) ? "block" : "none";
-  }
-
   // Populate KPI 1: Total Analyses
   const totalValEl = document.getElementById("statTotalScans");
   const totalSubEl = document.getElementById("kpiTotalSub");
   const totalTrendEl = document.getElementById("kpiTotalTrend");
   if (totalValEl) totalValEl.textContent = String(totalAnalyses);
   if (totalSubEl) {
-    totalSubEl.textContent = totalAnalyses > 0 ? (totalAnalyses === rawAllRecords.length ? "Total verified sessions" : `Filtered from ${rawAllRecords.length} records`) : "No matching data";
+    totalSubEl.textContent = totalAnalyses > 0 ? "Total verified sessions" : "No recorded scans yet";
   }
   if (totalTrendEl) {
     totalTrendEl.innerHTML = totalAnalyses > 0 
-      ? `<span style="color:#059669; font-weight:700;">+${recentWeekCount}</span> past 7 days · Active filter`
-      : `<span>●</span> No records in selection`;
+      ? `<span style="color:#059669; font-weight:700;">+${recentWeekCount}</span> this past week`
+      : `<span>●</span> Ready for your first leaf check`;
   }
 
   // Populate KPI 2: Healthy Plants
@@ -494,7 +126,7 @@ function renderFilteredDashboard(records) {
   if (healthyValEl) healthyValEl.textContent = String(healthyCount);
   if (healthySubEl) {
     healthySubEl.textContent = totalAnalyses > 0 
-      ? `${((healthyCount / totalAnalyses) * 100).toFixed(1)}% of filtered` 
+      ? `${((healthyCount / totalAnalyses) * 100).toFixed(0)}% optimal condition` 
       : "No data";
   }
   if (healthyBarEl) {
@@ -508,7 +140,7 @@ function renderFilteredDashboard(records) {
   if (stressedValEl) stressedValEl.textContent = String(stressedCount);
   if (stressedSubEl) {
     stressedSubEl.textContent = totalAnalyses > 0 
-      ? `${((stressedCount / totalAnalyses) * 100).toFixed(1)}% · Require Attention` 
+      ? `${((stressedCount / totalAnalyses) * 100).toFixed(0)}% · Need attention` 
       : "No data";
   }
   if (stressedBarEl) {
@@ -522,15 +154,15 @@ function renderFilteredDashboard(records) {
   if (alertsValEl) alertsValEl.textContent = String(alertsCount);
   if (alertsSubEl) {
     alertsSubEl.textContent = totalAnalyses > 0 
-      ? `${alertsCount} rule precautions flagged` 
+      ? `${alertsCount} actionable warnings` 
       : "No data";
   }
   if (alertsFooterEl) {
     alertsFooterEl.innerHTML = totalAnalyses === 0
-      ? `<span>🛡️</span> Rules EVR-001–005 Ready`
+      ? `<span>🛡️</span> Smart Advisory Ready`
       : (alertsCount > 0 
-          ? `<span style="color:#dc2626; font-weight:700;">⚠️ ${alertsCount} Precautions</span> Flagged`
-          : `<span style="color:#059669; font-weight:700;">✓ Clean</span> No Rule Conflicts`);
+          ? `<span style="color:#dc2626; font-weight:700;">⚠️ ${alertsCount} Warnings</span> Active`
+          : `<span style="color:#059669; font-weight:700;">✓ Safe</span> No critical farm hazards`);
   }
 
   // Populate Hero Latest Analysis Card & Telemetry
@@ -595,9 +227,9 @@ function renderFilteredDashboard(records) {
       }
     }
     if (sumEl) {
-      sumEl.textContent = fusionSummary || `Visual ${topClass} observable under ${sev} environmental risk. Crop stage: ${(latest.growth_stage || 'Flowering').replace(/_/g, ' ')}.`;
+      sumEl.textContent = fusionSummary || `Visual condition indicates ${topClass} under ${sev} weather risk.`;
     }
-    if (uuidEl) uuidEl.textContent = `UUID: ${latest.record_uuid}`;
+    if (uuidEl) uuidEl.textContent = `ID: ${latest.record_uuid.substring(0, 8)}…`;
     if (detailLinkEl) detailLinkEl.href = `analysis_detail.html?uuid=${latest.record_uuid}`;
     if (thumbEl && latest.image_url) thumbEl.src = latest.image_url;
 
@@ -664,18 +296,18 @@ function renderFilteredDashboard(records) {
 
     const statMicro = document.getElementById("statMicroclimateIndex");
     const statMicroSub = document.getElementById("statMicroclimateSub");
-    if (statMicro) statMicro.textContent = sev === "High" ? "Elevated Risk" : (sev === "Moderate" ? "Moderate Alert" : "Stable Baseline");
+    if (statMicro) statMicro.textContent = sev === "High" ? "Elevated Risk" : (sev === "Moderate" ? "Moderate Risk" : "Normal Baseline");
     if (statMicroSub) statMicroSub.textContent = `${soilVal} Moisture · ${tempVal}`;
 
     // 6. Update Advisory Card
     const advTitle = document.getElementById("advisoryTitle");
     const advText = document.getElementById("advisoryText");
     if (expertRule && advTitle && advText) {
-      advTitle.textContent = `🛡️ Rule: ${expertRule.rule_id} (${expertRule.name})`;
-      advText.textContent = expertRule.precaution || expertRule.interpretation || "Precautions triggered by expert rules engine.";
+      advTitle.textContent = `🛡️ Farmer Advice: ${expertRule.name || expertRule.rule_id}`;
+      advText.textContent = expertRule.precaution || expertRule.interpretation || "Precautions recommended by farm advisory engine.";
     } else if (advTitle && advText) {
-      advTitle.textContent = "🛡️ Normal Operational Baseline";
-      advText.textContent = "Environmental metrics and soil parameters are within standard thresholds. Continue regular crop monitoring.";
+      advTitle.textContent = "🛡️ Normal Field Conditions";
+      advText.textContent = "Environmental metrics and soil moisture are in healthy ranges. Continue regular crop care.";
     }
 
     // 7. Populate Recent Analysis History Table (Top 5)
@@ -737,23 +369,23 @@ function renderFilteredDashboard(records) {
     const sevBadgeEl = document.getElementById("latestSeverityBadge");
     const alignBadgeEl = document.getElementById("latestAlignmentBadge");
 
-    if (dateEl) dateEl.textContent = "No analyses match active filters";
+    if (dateEl) dateEl.textContent = "No analysis scans yet";
     if (classEl) {
-      classEl.textContent = "No Matching Scans";
+      classEl.textContent = "Ready For First Scan";
       classEl.style.color = "#64748b";
     }
-    if (sumEl) sumEl.textContent = "Adjust or reset your analytical filter criteria above to display records.";
-    if (uuidEl) uuidEl.textContent = "UUID: N/A";
-    if (sevBadgeEl) sevBadgeEl.textContent = "N/A";
-    if (alignBadgeEl) alignBadgeEl.textContent = "N/A";
+    if (sumEl) sumEl.textContent = "Upload a cotton leaf in New Analysis to diagnose crop stress and get actionable advice.";
+    if (uuidEl) uuidEl.textContent = "";
+    if (sevBadgeEl) sevBadgeEl.textContent = "Ready";
+    if (alignBadgeEl) alignBadgeEl.textContent = "Ready";
 
     const recentTbody = document.getElementById("overviewRecentTbody");
     if (recentTbody) {
       recentTbody.innerHTML = `
         <tr>
           <td colspan="6" style="text-align:center; padding:30px; color:#64748b;">
-            <strong>No matching analyses found</strong>
-            <p style="margin:4px 0 0; font-size:11.5px;">Try broadening your filter selection or click "Reset Filters" above.</p>
+            <strong>No analysis records found</strong>
+            <p style="margin:4px 0 0; font-size:11.5px;">Click "Launch New Leaf Check" to analyze your first cotton plant.</p>
           </td>
         </tr>
       `;
@@ -769,21 +401,13 @@ async function loadOverviewData() {
     const data = await response.json();
     rawAllRecords = Array.isArray(data) ? data : (data.records || []);
 
-    const filtered = filterRecords(rawAllRecords, currentFilters);
-    renderFilteredDashboard(filtered);
-    renderActiveFilterChips();
+    renderOverviewDashboard();
   } catch (err) {
     console.error("Error loading farm overview data:", err);
   }
 }
 
-// OpenWeather Integration for Overview
-const OVERVIEW_FIELD_COORDINATES = {
-  0: { lat: 20.975, lon: 78.72, name: "Field A — Wardha South Station" },
-  1: { lat: 21.1458, lon: 79.0882, name: "Field B — Nagpur East Station" },
-  2: { lat: 20.9320, lon: 77.7523, name: "Field C — Amravati West Station" }
-};
-
+// Weather Integration for Overview
 let currentOverviewLat = 20.975;
 let currentOverviewLon = 78.72;
 
@@ -830,7 +454,7 @@ async function fetchOverviewWeather(lat, lon, forceRefresh = false) {
     const oEl = document.getElementById("ovOzone");
     const oSub = document.getElementById("ovOzoneSub");
 
-    if (stEl) stEl.textContent = data.location?.name || "Field Station";
+    if (stEl) stEl.textContent = data.location?.name || "Wardha Farm Station";
     if (coordsEl && data.location?.latitude !== undefined && data.location?.longitude !== undefined) {
       coordsEl.textContent = `(${data.location.latitude.toFixed(3)}°N, ${data.location.longitude.toFixed(3)}°E)`;
     }
@@ -887,7 +511,6 @@ async function fetchOverviewWeather(lat, lon, forceRefresh = false) {
       errorBox.style.display = "block";
       if (errorMsg) errorMsg.textContent = `${err.message || "Weather telemetry unavailable"}. Check internet connection or API settings and click Refresh.`;
     }
-    // Do NOT substitute fake weather - clear or mark indicators
     const tEl = document.getElementById("ovTemp");
     const hEl = document.getElementById("ovHum");
     const rEl = document.getElementById("ovRain");
@@ -926,10 +549,10 @@ function renderForecastWidget(data) {
 
   const locEl = document.getElementById("forecastLocationName");
   const issuedEl = document.getElementById("forecastIssuedAt");
-  if (locEl) locEl.textContent = data.location?.name || "Monitored Parcel";
+  if (locEl) locEl.textContent = data.location?.name || "Wardha Farm Station";
   if (issuedEl) {
     const d = new Date(data.observed_at || Date.now());
-    issuedEl.textContent = `Issued: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · 5-Day Horizon`;
+    issuedEl.textContent = `Issued: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · 5-Day Outlook`;
   }
 
   // Populate 3 primary cards: 0 (Today), 1 (Tomorrow), 2 (Day After)
@@ -1011,14 +634,6 @@ function renderForecastWidget(data) {
 document.addEventListener("DOMContentLoaded", () => {
   loadOverviewData();
 
-  if (typeof getActiveFarmerField === "function") {
-    const active = getActiveFarmerField();
-    if (active) {
-      currentOverviewLat = active.lat;
-      currentOverviewLon = active.lon;
-    }
-  }
-
   const refreshBtn = document.getElementById("overviewWeatherRefreshBtn");
   if (refreshBtn) {
     refreshBtn.addEventListener("click", () => {
@@ -1032,43 +647,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("globalSearchInput");
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
-      currentFilters.searchQuery = e.target.value.trim();
-      onFilterControlChange();
+      currentSearchQuery = (e.target.value || "").trim().toLowerCase();
+      renderOverviewDashboard();
     });
-  }
-
-  // Bind Header Field Selector to Filter Toolbar
-  const headerFieldSelect = document.getElementById("fieldSelect");
-  if (headerFieldSelect) {
-    headerFieldSelect.addEventListener("change", (e) => {
-      const val = e.target.value;
-      const filterField = document.getElementById("filterField");
-      if (filterField) {
-        if (val === "zone-1") filterField.value = "Field A";
-        else if (val === "zone-2") filterField.value = "Field B";
-        else if (val === "zone-3") filterField.value = "Field C";
-        else filterField.value = "all";
-        onFilterControlChange();
-      }
-    });
-  }
-});
-
-// Global field listener from Analytics Header
-window.addEventListener("agrovision:fieldChanged", (e) => {
-  const f = e.detail;
-  if (f) {
-    currentOverviewLat = f.lat;
-    currentOverviewLon = f.lon;
-    fetchOverviewWeather(currentOverviewLat, currentOverviewLon, false);
-    
-    // Also sync filter toolbar field
-    const filterField = document.getElementById("filterField");
-    if (filterField) {
-      if (f.id === "zone-1") filterField.value = "Field A";
-      else if (f.id === "zone-2") filterField.value = "Field B";
-      else if (f.id === "zone-3") filterField.value = "Field C";
-      onFilterControlChange();
-    }
   }
 });

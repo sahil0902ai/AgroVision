@@ -95,17 +95,15 @@ function createSettingsModal() {
 
       <form onsubmit="saveFarmSettings(event)">
         
-        <!-- Section 1: Telemetry & Region -->
+        <!-- Section 1: Farm Location & Region -->
         <div style="margin-bottom:16px;">
           <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#475569; letter-spacing:0.04em; margin-bottom:6px;">
-            Default Monitored Parcel / Zone
+            Farm Location / Weather Station
           </label>
-          <select id="settingsDefZone" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; font-weight:600; color:#1e293b; background:#ffffff;">
-            <option value="Zone 1" ${saved.defaultZone === 'Zone 1' ? 'selected' : ''}>Field A — North Parcel (Zone 1 · Wardha / Sindi)</option>
-            <option value="Zone 2" ${saved.defaultZone === 'Zone 2' ? 'selected' : ''}>Field B — South Parcel (Zone 2 · Nagpur East)</option>
-            <option value="Zone 3" ${saved.defaultZone === 'Zone 3' ? 'selected' : ''}>Field C — East Plot (Zone 3 · Amravati West)</option>
-            <option value="Zone 4" ${saved.defaultZone === 'Zone 4' ? 'selected' : ''}>Field D — Research Plot (Zone 4 · Akola North)</option>
-          </select>
+          <div style="width:100%; padding:9px 12px; border:1px solid #e2e8f0; border-radius:8px; font-size:13px; font-weight:700; color:#0d3b2e; background:#f8fafc; display:flex; align-items:center; gap:8px;">
+            <span>📍</span>
+            <span>Wardha Farm Station (20.975°N, 78.720°E)</span>
+          </div>
         </div>
 
         <!-- Section 2: Units & Sync -->

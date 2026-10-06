@@ -57,12 +57,6 @@
           </a>
         </li>
         <li>
-          <a href="overview.html#myFieldsSection" class="side-nav-item">
-            <span class="nav-icon">🌾</span>
-            <span class="nav-label">My Fields</span>
-          </a>
-        </li>
-        <li>
           <a href="history.html#reportsSection" class="side-nav-item">
             <span class="nav-icon">📄</span>
             <span class="nav-label">Reports</span>
@@ -100,7 +94,7 @@
         <div class="header-left-group">
           <div class="header-title-box">
             <h1 class="header-title" id="dashboardPageTitle">New Analysis</h1>
-            <p class="header-subtitle" id="headerSub">AI-assisted CNN leaf diagnosis &amp; SNN microclimate assessment</p>
+            <p class="header-subtitle" id="headerSub">AI-assisted cotton leaf diagnosis &amp; climate stress check</p>
           </div>
         </div>
 
@@ -111,13 +105,13 @@
             type="search"
             class="header-search-input"
             id="globalSearchInput"
-            placeholder="Search fields, analyses, reports…"
-            aria-label="Search fields, analyses, reports"
+            placeholder="Search analyses, symptoms, reports…"
+            aria-label="Search analyses, symptoms, reports"
             onkeydown="handleGlobalSearch(event)"
           />
         </div>
 
-        <!-- Right: Date, Field Selector, Notifications, User Profile -->
+        <!-- Right: Date, Farm Location, Notifications, User Profile -->
         <div class="header-right-group">
           
           <!-- Date Badge -->
@@ -126,14 +120,10 @@
             <span id="globalHeaderDate">Today</span>
           </div>
 
-          <!-- Real Field Selector -->
-          <div class="header-field-select-wrap">
-            <select class="header-field-select" id="fieldSelect" aria-label="Select Farm Field">
-              <option value="zone-1">Field A — North Parcel (Zone 1)</option>
-              <option value="zone-2">Field B — South Parcel (Zone 2)</option>
-              <option value="zone-3">Field C — East Plot (Zone 3)</option>
-            </select>
-            <span class="header-field-chevron">▼</span>
+          <!-- Farm Location Badge -->
+          <div class="header-location-badge" style="display:flex; align-items:center; gap:6px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; color:#0d3b2e;">
+            <span>📍</span>
+            <span id="globalHeaderLocation">Wardha Farm Station</span>
           </div>
 
           <!-- Reset / New Analysis Trigger -->
@@ -476,7 +466,7 @@
           </div>
 
           <!-- 6 Geometric Slider Rows -->
-          <div style="display:flex; flex-direction:column; gap:7px; margin-bottom:12px;">
+          <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
             <!-- Temperature -->
             <div class="env-slider-row">
               <span class="env-slider-icon">🌡️</span>
@@ -485,7 +475,7 @@
                 <span class="env-source-pill" id="sourcePillTemp" style="font-size:9px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
               </div>
               <input type="range" class="env-slider-input" id="sliderTemp" min="0" max="55" step="0.1" value="31" oninput="handleSliderChange('Temp')" style="accent-color:#ef4444;" />
-              <span class="env-slider-val" id="envTemp">31</span>
+              <span class="env-slider-val" id="envTemp">31.0</span>
             </div>
 
             <!-- Humidity -->
@@ -495,7 +485,7 @@
                 <span class="env-slider-label">Humidity (%)</span>
                 <span class="env-source-pill" id="sourcePillHumidity" style="font-size:9px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
               </div>
-              <input type="range" class="env-slider-input" id="sliderHumidity" min="0" max="100" step="0.5" value="72" oninput="handleSliderChange('Humidity')" style="accent-color:#3b82f6;" />
+              <input type="range" class="env-slider-input" id="sliderHumidity" min="0" max="100" step="1" value="72" oninput="handleSliderChange('Humidity')" style="accent-color:#3b82f6;" />
               <span class="env-slider-val" id="envHumidity">72</span>
             </div>
 
@@ -507,7 +497,7 @@
                 <span class="env-source-pill" id="sourcePillRainfall" style="font-size:9px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
               </div>
               <input type="range" class="env-slider-input" id="sliderRainfall" min="0" max="250" step="0.5" value="18" oninput="handleSliderChange('Rainfall')" style="accent-color:#0284c7;" />
-              <span class="env-slider-val" id="envRainfall">18</span>
+              <span class="env-slider-val" id="envRainfall">18.0</span>
             </div>
 
             <!-- Soil Moisture (Manual Input highlighted) -->
@@ -515,7 +505,7 @@
               <span class="env-slider-icon">🌱</span>
               <div style="display:flex; flex-direction:column; width:130px;">
                 <span class="env-slider-label" style="color:#065f46; font-weight:700;">Soil Moisture (%)</span>
-                <span class="env-source-pill" style="font-size:9px; color:#15803d; font-weight:700;">MANUAL SENSOR</span>
+                <span class="env-source-pill" id="sourcePillSoil" style="font-size:9px; color:#15803d; font-weight:700;">MANUAL SENSOR</span>
               </div>
               <input type="range" class="env-slider-input" id="sliderSoil" min="0" max="100" step="1" value="68" oninput="handleSliderChange('Soil')" style="accent-color:#10b981;" />
               <span class="env-slider-val" id="envSoil" style="color:#065f46; font-weight:800;">68</span>
@@ -544,80 +534,15 @@
             </div>
           </div>
 
-          <!-- Collapsible Model Specs (SNN) -->
-          <details class="model-details" style="margin-top:auto; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
-            <summary style="font-size:11px; font-weight:700; color:#475569; cursor:pointer;">Model Specifications (SNN)</summary>
-            <div class="model-meta-grid" style="margin-top:6px; font-size:10.5px;">
-              <div><strong>Architecture:</strong> 3-Layer LIF (33 → 64 → 64 → 3)</div>
-              <div><strong>Timesteps ($T$):</strong> 10 Steps</div>
-              <div><strong>Membrane Decay:</strong> $\beta = 0.95$</div>
-              <div><strong>Validation:</strong> 91.81% Test Accuracy</div>
-            </div>
-          </details>
-        </div>
-
-        <!-- BOTTOM: Crop & Field Context (Full Width) -->
-        <div class="panel" style="grid-column: 1 / -1; background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:18px 20px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:16px;">🌾</span>
-              <div>
-                <h4 style="margin:0; font-size:13.5px; font-weight:800; color:#0d3b2e;">Crop &amp; Field Context</h4>
-                <span style="font-size:11px; color:#64748b;">Agronomic context applied to both spiking simulation and multimodal expert veto rules</span>
-              </div>
-            </div>
-            <span style="font-size:10.5px; font-weight:700; color:#059669; background:#ecfdf5; padding:3px 10px; border-radius:999px; border:1px solid #a7f3d0;">Active Season Context</span>
-          </div>
-
-          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; margin-bottom:16px;">
-            <!-- Crop Stage -->
-            <div>
-              <label style="font-size:11px; color:#475569; font-weight:700; display:block; margin-bottom:5px;">Crop Growth Stage</label>
-              <select id="cropGrowthStage" class="crop-input" style="width:100%; padding:9px 12px; font-size:12.5px; border-radius:8px; border:1px solid #cbd5e1; background:#f8fafc; font-weight:600; color:#0f172a;">
-                <option value="Flowering" selected>Flowering (High Sensitivity)</option>
-                <option value="Boll_Development">Boll Development</option>
-                <option value="Vegetative">Vegetative</option>
-                <option value="Maturity">Maturity / Defoliation</option>
-                <option value="Sowing">Sowing / Emergence</option>
-              </select>
-            </div>
-
-            <!-- Days Since Sowing -->
-            <div>
-              <label style="font-size:11px; color:#475569; font-weight:700; display:block; margin-bottom:5px;">Days Since Sowing (DAS)</label>
-              <input type="number" id="cropDays" class="crop-input" value="60" min="0" max="250" style="width:100%; padding:9px 12px; font-size:12.5px; border-radius:8px; border:1px solid #cbd5e1; background:#f8fafc; font-weight:600; color:#0f172a;" />
-            </div>
-
-            <!-- Monitored Parcel Context -->
-            <div>
-              <label style="font-size:11px; color:#475569; font-weight:700; display:block; margin-bottom:5px;">Monitored Parcel</label>
-              <div style="padding:9px 12px; font-size:12.5px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; font-weight:600; color:#0f172a;" id="fieldProfileLabel">
-                Field A — North Parcel (Zone 1)
-              </div>
-            </div>
-
-            <!-- Soil Profile Context -->
-            <div>
-              <label style="font-size:11px; color:#475569; font-weight:700; display:block; margin-bottom:5px;">Soil Classification</label>
-              <div style="padding:9px 12px; font-size:12.5px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; font-weight:600; color:#0f172a;">
-                Vertisol (Deep Black Cotton Soil)
-              </div>
-            </div>
-          </div>
-
-          <!-- Guided Workflow Actions Bar -->
-          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; flex-wrap:wrap; gap:12px;">
-            <div style="display:flex; gap:10px;">
-              <button class="btn btn-outline" type="button" onclick="resetAnalysisState()" style="padding:10px 18px; font-size:12.5px; border-radius:8px; border-color:#cbd5e1; font-weight:600;">
-                ↺ Reset All Inputs
-              </button>
-            </div>
-            <div style="display:flex; gap:12px;">
-              <button class="btn btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="padding:11px 28px; font-size:13.5px; border-radius:8px; font-weight:700; display:flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(5,150,105,0.25);">
-                <span>Run Guided Analysis</span>
-                <span style="font-size:16px;">→</span>
-              </button>
-            </div>
+          <!-- Main Actions Bar -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:auto; flex-wrap:wrap; gap:10px;">
+            <button class="btn btn-outline" type="button" onclick="resetAnalysisState()" style="padding:9px 16px; font-size:12px; border-radius:8px; border-color:#cbd5e1; font-weight:600;">
+              ↺ Reset Form
+            </button>
+            <button class="btn btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="padding:10px 24px; font-size:13px; border-radius:8px; font-weight:700; display:flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(5,150,105,0.25);">
+              <span>Run Leaf &amp; Climate Analysis</span>
+              <span style="font-size:15px;">→</span>
+            </button>
           </div>
 
         </div>
@@ -625,377 +550,254 @@
       </div>
 
       <!-- ============================================================
-           STEP 2: Visual Analysis (CNN)
+           STEP 2: Visual Analysis (CNN Leaf Screening)
            ============================================================ -->
       <div id="viewCNN" class="panel" style="display:none; flex-direction:column; gap:16px; width:100%; max-width:880px; margin:0 auto; background:#ffffff; border-radius:18px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.02); box-sizing:border-box;">
         
-        <!-- Header with Leaf Icon and Completed Pill -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:18px;">
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:14px;">
           <div style="display:flex; align-items:center; gap:10px;">
-            <div style="width:34px; height:34px; border-radius:8px; background:#ecfdf5; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid #d1fae5;">🍃</div>
+            <div style="width:36px; height:36px; border-radius:10px; background:#ecfdf5; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid #d1fae5;">🍃</div>
             <div>
-              <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Visual Analysis</h3>
-              <span style="font-size:11px; color:#64748b;">Convolutional Neural Network (CNN) Leaf Screening</span>
+              <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Leaf Condition Diagnosis</h3>
+              <span style="font-size:11.5px; color:#64748b;">Visual leaf symptom identification</span>
             </div>
           </div>
-          <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Completed</span>
+          <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Checked</span>
         </div>
 
-        <!-- Top Dual-Column: Uploaded Leaf Image on Left, Predicted Condition & Class Probabilities on Right -->
-        <div style="display:grid; grid-template-columns:160px 1fr; gap:24px; align-items:start; margin-bottom:20px;">
+        <!-- Dual Column: Image on Left, Diagnosis on Right -->
+        <div style="display:grid; grid-template-columns:160px 1fr; gap:24px; align-items:start; margin-bottom:16px;">
           
-          <!-- Left: Uploaded Leaf Image -->
+          <!-- Left: Leaf Image -->
           <div style="text-align:center;">
-            <img id="fig5LeafImg" src="images/leaf_placeholder.jpg" alt="Uploaded cotton leaf" style="width:150px; height:150px; border-radius:12px; object-fit:cover; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.04);" />
+            <img id="fig5LeafImg" src="" alt="Uploaded cotton leaf" style="width:150px; height:150px; border-radius:12px; object-fit:cover; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.04);" />
             <div id="fig5FileName" style="font-size:11px; color:#64748b; margin-top:6px; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;">cotton_leaf.jpg</div>
           </div>
 
-          <!-- Right: Predicted Condition & Real Class Probabilities -->
+          <!-- Right: Diagnosis & Confidence -->
           <div>
-            <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Predicted Condition</div>
-            <div id="fig5ClassTitle" style="font-size:1.55rem; font-weight:800; color:#0d3b2e; margin:2px 0 6px;">Nutrient Deficiency</div>
-            <span id="fig5ConfPill" style="display:inline-block; background:#fef3c7; color:#d97706; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; border:1px solid #fde68a; margin-bottom:16px;">CNN Confidence: 98.7%</span>
+            <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Diagnosed Leaf Condition</div>
+            <div id="fig5ClassTitle" style="font-size:1.6rem; font-weight:800; color:#0d3b2e; margin:2px 0 6px;">Healthy Leaf</div>
+            <span id="fig5ConfPill" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; border:1px solid #a7f3d0; margin-bottom:14px;">98.7% Certainty</span>
 
-            <!-- Class Probabilities Power BI Horizontal Bar Gauges -->
-            <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; margin-bottom:10px; letter-spacing:0.05em;">Class Probabilities</div>
-            <div id="fig5ProbRows" style="display:flex; flex-direction:column; gap:8px;">
-              <!-- 5 real probability bars generated dynamically from CNN backend -->
+            <!-- Class Probabilities -->
+            <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; margin-bottom:8px; letter-spacing:0.05em;">Possible Conditions Checked:</div>
+            <div id="fig5ProbRows" style="display:flex; flex-direction:column; gap:7px;">
+              <!-- Probabilities filled dynamically -->
             </div>
           </div>
         </div>
 
-        <!-- Expandable Drawers -->
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          
-          <!-- 1. Why this result? -->
-          <details class="model-details" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px;">
-            <summary style="font-size:12px; font-weight:700; color:#1e293b; cursor:pointer;">▶ Why this result?</summary>
-            <div style="margin-top:8px; font-size:12px; color:#475569; line-height:1.55;">
-              <p id="fig5CalloutText" style="margin:0 0 6px;">The image shows foliar patterns, pigmentation, and structural characteristics consistent with the detected stress condition.</p>
-              <div style="background:#f1f5f9; border-left:3px solid #64748b; padding:6px 10px; font-size:11px; color:#475569; border-radius:0 4px 4px 0;">
-                <strong>Decision Support Notice:</strong> This visual screening evaluates foliar symptom patterns to assist agricultural monitoring. It does not constitute a confirmed laboratory disease diagnosis.
-              </div>
-            </div>
-          </details>
-
-          <!-- 2. Model Details (CNN) -->
-          <details class="model-details" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px;">
-            <summary style="font-size:12px; font-weight:700; color:#1e293b; cursor:pointer;">▶ Model Details (CNN)</summary>
-            <div class="model-meta-grid" style="margin-top:8px;">
-              <div><strong>Architecture:</strong> ResNet-18 Custom (110,853 parameters)</div>
-              <div><strong>Input Dimension:</strong> 224 × 224 RGB (3 Channels)</div>
-              <div><strong>Normalization:</strong> ImageNet Mean &amp; Std standard</div>
-              <div><strong>Classification Head:</strong> 5-Class Softmax Categorical Distribution</div>
-              <div><strong>Classes:</strong> Healthy, Water Stress, Heat Stress, Nutrient Deficiency, Pollution</div>
-              <div><strong>Benchmark:</strong> 86.05% Test Accuracy across 5 classes</div>
-              <div id="fig5InferenceMeta"><strong>Inference Time:</strong> ~18ms on CPU</div>
-            </div>
-          </details>
+        <!-- Farmer-Friendly Explanation Box -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px;">
+          <div style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#0d3b2e; margin-bottom:6px;">
+            <span>🌾</span>
+            <span>What this means for your crop:</span>
+          </div>
+          <p id="fig5CalloutText" style="margin:0 0 8px; font-size:12.5px; color:#334155; line-height:1.5;">
+            The leaf shows healthy green color, firm structure, and normal veins without visible stress.
+          </p>
+          <div style="background:#ffffff; border:1px solid #e2e8f0; border-left:3px solid #059669; padding:8px 12px; font-size:11.5px; color:#475569; border-radius:0 6px 6px 0;">
+            <strong>Farmer Guidance:</strong> This scan provides visual screening for common crop stress. Always combine with field soil moisture and weather observations.
+          </div>
         </div>
 
         <!-- Step Navigation Footer -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:6px;">
           <button class="btn btn-outline" onclick="switchView('input')" style="padding:9px 16px; font-size:12px; border-radius:8px; font-weight:600;">
-            ← Back to Leaf &amp; Environment
+            ← Back to Input
           </button>
           <button class="btn btn-primary" onclick="switchView('snn')" style="padding:9px 20px; font-size:12.5px; border-radius:8px; font-weight:700;">
-            Proceed to Environmental Analysis (Step 3) →
+            Proceed to Climate Analysis (Step 3) →
           </button>
         </div>
 
       </div>
 
       <!-- ============================================================
-           STEP 3: Environmental Analysis (SNN)
+           STEP 3: Environmental Analysis (SNN Climate Screening)
            ============================================================ -->
       <div id="viewSNN" class="panel" style="display:none; flex-direction:column; gap:16px; width:100%; max-width:880px; margin:0 auto; background:#ffffff; border-radius:18px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.02); box-sizing:border-box;">
 
-        <!-- Header with Multicolored Chart Icon and Completed Pill -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:18px;">
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:14px;">
           <div style="display:flex; align-items:center; gap:10px;">
-            <div style="width:34px; height:34px; border-radius:8px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid #dbeafe;">📊</div>
+            <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid #dbeafe;">⛅</div>
             <div>
-              <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Environmental Analysis</h3>
-              <span style="font-size:11px; color:#64748b;">Spiking Neural Network (SNN) Neuromorphic Assessment</span>
+              <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Field Climate &amp; Weather Stress</h3>
+              <span style="font-size:11.5px; color:#64748b;">Environmental stress level calculated from weather &amp; soil metrics</span>
             </div>
           </div>
-          <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Completed</span>
+          <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Checked</span>
         </div>
 
-        <!-- Primary Output: Environmental Stress Hero Banner -->
-        <div id="fig6Banner" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px;">
+        <!-- Stress Risk Banner -->
+        <div id="fig6Banner" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
           <div style="display:flex; align-items:center; gap:14px;">
-            <div style="width:48px; height:48px; border-radius:12px; background:#ffffff; border:1px solid #bbf7d0; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;">⛅</div>
+            <div style="width:48px; height:48px; border-radius:12px; background:#ffffff; border:1px solid #bbf7d0; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;">🌱</div>
             <div>
-              <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.05em;">Environmental Stress Risk</div>
-              <div id="fig6ClassTitle" style="font-size:1.6rem; font-weight:800; color:#059669; margin:2px 0 0;">Low</div>
+              <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.05em;">Field Weather Risk Level</div>
+              <div id="fig6ClassTitle" style="font-size:1.6rem; font-weight:800; color:#059669; margin:2px 0 0;">Low Risk</div>
             </div>
           </div>
           <div style="text-align:right;">
-            <span id="fig6StatusPill" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0; display:inline-block;">● Low Risk</span>
-            <div style="font-size:10.5px; color:#64748b; margin-top:4px;">SNN Spiking Model</div>
+            <span id="fig6StatusPill" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0; display:inline-block;">● Good Growing Conditions</span>
           </div>
         </div>
 
-        <!-- Selected Environmental Inputs & Horizontal Analytical Bars -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.05em;">
-            Environmental Factors &amp; Telemetry Inputs
-          </div>
-          <span style="font-size:11px; color:#64748b;">Physical Measurements</span>
+        <!-- Environmental Factors -->
+        <div style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.05em;">
+          Current Field &amp; Weather Measurements:
         </div>
         
-        <div id="fig6FactorsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-          <!-- Filled dynamically with horizontal analytical bars for Temperature, Humidity, Soil Moisture, Rainfall, AQI, Ozone -->
+        <div id="fig6FactorsList" style="display:flex; flex-direction:column; gap:8px;">
+          <!-- Filled dynamically with friendly status rows for Temp, Humidity, Soil Moisture, Rainfall, AQI, Ozone -->
         </div>
 
-        <!-- Expandables -->
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          
-          <!-- 1. Output Evidence -->
-          <details class="model-details" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px;">
-            <summary style="font-size:12px; font-weight:700; color:#1e293b; cursor:pointer;" id="fig6SpikesSummary">▶ Output Evidence (SNN Spikes)</summary>
-            <div id="fig6SpikesDetail" style="margin-top:8px; font-size:12px; color:#475569; line-height:1.55;">
-              <!-- Dynamic spike counts and temporal simulation info -->
-            </div>
-          </details>
-
-          <!-- 2. Model Details (SNN) -->
-          <details class="model-details" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px;">
-            <summary style="font-size:12px; font-weight:700; color:#1e293b; cursor:pointer;">▶ Model Details (SNN)</summary>
-            <div class="model-meta-grid" style="margin-top:8px;">
-              <div><strong>Architecture:</strong> 3-Layer LIF Spiking (64 → 64 → 3)</div>
-              <div><strong>Input Topology:</strong> 33 Multimodal Microclimate, Soil &amp; Spectral Features</div>
-              <div><strong>Temporal Timesteps:</strong> $T = 10$ discrete steps</div>
-              <div><strong>Membrane Decay:</strong> $\beta = 0.95$</div>
-              <div><strong>Output Classes:</strong> Low, Moderate, High</div>
-              <div><strong>Benchmark:</strong> 91.81% Test Accuracy on abiotic stress classification</div>
-              <div id="fig6InferenceMeta"><strong>Inference Time:</strong> ~4ms on CPU</div>
-            </div>
-          </details>
+        <!-- Farmer-friendly climate note -->
+        <div id="fig6SpikesDetail" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 16px; font-size:12px; color:#475569; line-height:1.5;">
+          <strong>Climate Summary:</strong> Temperature and moisture readings are supportive of healthy cotton plant growth.
         </div>
 
         <!-- Step Navigation Footer -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:6px;">
           <button class="btn btn-outline" onclick="switchView('cnn')" style="padding:9px 16px; font-size:12px; border-radius:8px; font-weight:600;">
-            ← Back to Visual Analysis
+            ← Back to Leaf Diagnosis
           </button>
           <button class="btn btn-primary" onclick="switchView('combined')" style="padding:9px 20px; font-size:12.5px; border-radius:8px; font-weight:700;">
-            Proceed to Combined Assessment (Step 4) →
+            Proceed to Final Recommendation (Step 4) →
           </button>
         </div>
 
       </div>
 
       <!-- ============================================================
-           STEP 4: Combined Assessment (Multimodal Fusion & Expert Check)
+           STEP 4: Combined Advisory (Final Farmer Recommendation)
            ============================================================ -->
       <div id="viewCombined" class="panel" style="display:none; flex-direction:column; gap:16px; width:100%; max-width:920px; margin:0 auto; background:#ffffff; border-radius:18px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.02); box-sizing:border-box;">
 
-        <!-- Header with Sprout Icon and Complete Pill -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:18px;">
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:14px;">
           <div style="display:flex; align-items:center; gap:10px;">
-            <div style="width:34px; height:34px; border-radius:8px; background:#ecfdf5; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid #d1fae5;">🌿</div>
+            <div style="width:36px; height:36px; border-radius:10px; background:#ecfdf5; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid #d1fae5;">🌿</div>
             <div>
-              <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Combined Assessment</h3>
-              <span style="font-size:11px; color:#64748b;">Multimodal Fusion &amp; Deterministic Expert Veto Engine</span>
+              <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Final Farmer Advisory</h3>
+              <span style="font-size:11.5px; color:#64748b;">Complete leaf diagnosis &amp; farm action plan</span>
             </div>
           </div>
-          <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Complete</span>
+          <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Ready</span>
         </div>
 
-        <!-- Three Evidence Blocks -->
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; margin-bottom:18px;">
+        <!-- Three Summary Cards -->
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:14px;">
           
-          <!-- Block 1: Visual Evidence (CNN) -->
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px;">
-            <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Visual Evidence (CNN)</div>
-            <div id="fig7EvidenceVisualTitle" style="font-size:14px; font-weight:800; color:#0d3b2e; margin:4px 0 6px;">Nutrient Deficiency</div>
-            <span id="fig7EvidenceVisualBadge" style="display:inline-block; background:#fef3c7; color:#d97706; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; border:1px solid #fde68a;">Confidence: 98.7%</span>
+          <!-- 1. Leaf Scan -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px;">
+            <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">1. Leaf Diagnosis</div>
+            <div id="fig7EvidenceVisualTitle" style="font-size:13.5px; font-weight:800; color:#0d3b2e; margin:4px 0;">Healthy</div>
+            <span id="fig7EvidenceVisualBadge" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">98% Certainty</span>
           </div>
 
-          <!-- Block 2: Environmental Evidence (SNN) -->
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px;">
-            <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Environmental Evidence (SNN)</div>
-            <div id="fig7EvidenceEnvTitle" style="font-size:14px; font-weight:800; color:#059669; margin:4px 0 6px;">Low Stress</div>
-            <span id="fig7EvidenceEnvBadge" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">SNN Neuromorphic Model</span>
+          <!-- 2. Weather Risk -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px;">
+            <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">2. Weather Risk</div>
+            <div id="fig7EvidenceEnvTitle" style="font-size:13.5px; font-weight:800; color:#059669; margin:4px 0;">Low Risk</div>
+            <span id="fig7EvidenceEnvBadge" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">Good Climate</span>
           </div>
 
-          <!-- Block 3: Evidence Relationship -->
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px;">
-            <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Evidence Relationship</div>
-            <div style="margin:4px 0 6px;">
-              <span id="fig7EvidenceRelationship" style="background:#ecfdf5; color:#059669; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px; border:1px solid #a7f3d0; display:inline-block;">Aligned</span>
+          <!-- 3. Agreement -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px;">
+            <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">3. Confidence Status</div>
+            <div style="margin:4px 0;">
+              <span id="fig7EvidenceRelationship" style="background:#ecfdf5; color:#059669; font-size:11.5px; font-weight:800; padding:2px 10px; border-radius:999px; border:1px solid #a7f3d0; display:inline-block;">Agreed</span>
             </div>
-            <span style="font-size:10.5px; color:#64748b;">Multimodal Fusion Logic</span>
+            <span style="font-size:10px; color:#64748b;">Reliable Advisory</span>
           </div>
         </div>
 
-        <!-- Prominent Final Assessment Hero Banner -->
-        <div id="fig7HeroBanner" style="background:#fff1f2; border:1.5px solid #fecdd3; border-radius:14px; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <!-- Prominent Final Assessment Banner -->
+        <div id="fig7HeroBanner" style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:14px; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
           <div style="display:flex; align-items:center; gap:14px;">
-            <div style="width:48px; height:48px; border-radius:12px; background:#ffffff; border:1px solid #fecdd3; display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0;">🌱</div>
+            <div style="width:48px; height:48px; border-radius:12px; background:#ffffff; border:1px solid #bbf7d0; display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0;">🌾</div>
             <div>
-              <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Final Assessment</div>
-              <div id="fig7FinalTitle" style="font-size:1.55rem; font-weight:800; color:#dc2626; margin:2px 0 0;">Nutrient Deficiency Detected</div>
+              <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.05em;">Recommended Crop Status</div>
+              <div id="fig7FinalTitle" style="font-size:1.5rem; font-weight:800; color:#059669; margin:2px 0 0;">Crop in Good Health</div>
             </div>
           </div>
-          <span id="fig7AttentionBadge" style="background:#fef3c7; color:#d97706; font-size:11px; font-weight:700; padding:5px 14px; border-radius:999px; border:1px solid #fde68a;">● Cautionary Monitoring</span>
+          <span id="fig7AttentionBadge" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:5px 14px; border-radius:999px; border:1px solid #a7f3d0;">● Standard Care</span>
         </div>
 
-        <!-- Why this result? Callout Box -->
-        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:14px 18px; margin-bottom:18px;">
+        <!-- Plain Language Explanation -->
+        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:14px 18px; margin-bottom:14px;">
           <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#0369a1; margin-bottom:4px;">
             <span>📄</span>
-            <span>Why this result?</span>
+            <span>Why this advisory?</span>
           </div>
           <p id="fig7FinalDesc" style="margin:0; font-size:12.5px; color:#334155; line-height:1.55;">
-            Visual evidence indicates foliar symptoms associated with nutrient deficiency, while environmental conditions indicate low abiotic risk. The evidence streams are evaluated in synthesis.
+            The leaf scan and field weather measurements both confirm that your cotton crop is in healthy condition.
           </p>
         </div>
 
-        <!-- Macroclimate Weather Context (OpenWeather) -->
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 18px; margin-bottom:18px;" id="fig7WeatherBox">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#0d3b2e;">
-              <span>🌤️</span>
-              <span>Macroclimate Weather &amp; Forecast Context (OpenWeather)</span>
-            </div>
-            <span style="font-size:10.5px; color:#059669; font-weight:700; background:#ecfdf5; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;" id="fig7WeatherBadge">OpenWeather Live</span>
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; font-size:12px; margin-bottom:8px;" id="fig7WeatherGrid">
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px;">
-              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Observed Temp &amp; Rain</div>
-              <div style="font-size:13px; font-weight:800; color:#0f172a;" id="fig7WeatherTemp">26.5°C</div>
-              <div style="font-size:10.5px; color:#64748b;" id="fig7WeatherRain">0.0 mm rain</div>
-            </div>
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px;">
-              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Forecast Rain (48h)</div>
-              <div style="font-size:13px; font-weight:800; color:#0f172a;" id="fig7WeatherForecastRain">0.1 mm</div>
-              <div style="font-size:10.5px; color:#64748b;">Outlook window</div>
-            </div>
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px;">
-              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Air Quality</div>
-              <div style="font-size:13px; font-weight:800; color:#0f172a;" id="fig7WeatherAqi">AQI 84</div>
-              <div style="font-size:10.5px; color:#64748b;" id="fig7WeatherStation">Station telemetry</div>
-            </div>
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px;">
-              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Humidity</div>
-              <div style="font-size:13px; font-weight:800; color:#059669;" id="fig7WeatherHumidity">68%</div>
-              <div style="font-size:10.5px; color:#64748b;">Relative humidity</div>
-            </div>
-          </div>
-          <div style="font-size:11px; color:#64748b; font-style:italic;" id="fig7WeatherSummary">
-            * OpenWeather macroclimate snapshot recorded for this analysis session.
-          </div>
-        </div>
-
-        <!-- EXPERT CHECK (Deterministic Agronomic Rule Layer) -->
-        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:18px 20px; margin-bottom:18px;" id="fig7ExpertSection">
-          
-          <!-- Header Bar -->
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:12px; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+        <!-- Actionable Steps for Farmer -->
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:18px 20px; margin-bottom:14px;" id="fig7ExpertSection">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px;">
             <div style="display:flex; align-items:center; gap:8px;">
-              <div style="width:30px; height:30px; border-radius:8px; background:#fff7ed; border:1px solid #ffedd5; display:flex; align-items:center; justify-content:center; font-size:16px;">🛡️</div>
-              <div>
-                <h4 style="margin:0; font-size:13.5px; font-weight:800; color:#0f172a;">Expert Check</h4>
-                <div style="font-size:10.5px; color:#64748b; font-weight:600;">Deterministic Rule Layer (Agronomic Qualification &amp; Safety Gate)</div>
-              </div>
+              <span style="font-size:16px;">📋</span>
+              <h4 style="margin:0; font-size:13.5px; font-weight:800; color:#0f172a;">Recommended Action Steps</h4>
             </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span id="fig7RuleIdBadge" style="background:#f1f5f9; color:#334155; font-size:11px; font-weight:800; font-family:monospace; padding:3px 10px; border-radius:6px; border:1px solid #cbd5e1;">EVR-004</span>
-              <span id="fig7RuleStatusBadge" style="background:#fff1f2; color:#e11d48; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; border:1px solid #fecdd3;">Evidence Conflict</span>
-            </div>
+            <span id="fig7RuleStatusBadge" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px; border:1px solid #a7f3d0;">Standard Routine</span>
           </div>
 
-          <!-- Transparency Notice -->
-          <div style="background:#f8fafc; border-left:3px solid #64748b; padding:8px 12px; font-size:11px; color:#475569; border-radius:0 6px 6px 0; margin-bottom:14px; line-height:1.45;">
-            <strong>Deterministic Safeguard:</strong> This layer evaluates deterministic physical conditions to qualify AI model inferences without replacing CNN or SNN reasoning. Thresholds are illustrative decision-support parameters requiring local agronomic calibration.
-          </div>
-
-          <!-- Active Rule Detailed Container -->
           <div id="fig7RuleDetailsContainer">
-            <!-- Populated dynamically by JavaScript -->
+            <!-- Populated dynamically with clear, step-by-step farmer instructions -->
           </div>
-
-          <!-- Expandable Rule Registry & Threshold Audit -->
-          <details class="model-details" style="margin-top:14px; background:#fafafa; border:1px solid #f1f5f9; border-radius:8px; padding:10px 14px;">
-            <summary style="font-size:11px; font-weight:700; color:#475569; cursor:pointer;">▶ Auditable Deterministic Rule Registry (7 Rules)</summary>
-            <div style="margin-top:10px; font-size:11px; color:#64748b; line-height:1.5; overflow-x:auto;">
-              <table style="width:100%; border-collapse:collapse; text-align:left; font-size:11px;">
-                <thead>
-                  <tr style="border-bottom:1px solid #e2e8f0; color:#334155;">
-                    <th style="padding:6px 8px;">Rule ID</th>
-                    <th style="padding:6px 8px;">Rule Name</th>
-                    <th style="padding:6px 8px;">Logic &amp; Thresholds (Illustrative)</th>
-                    <th style="padding:6px 8px;">Deterministic Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="border-bottom:1px solid #f1f5f9;">
-                    <td style="padding:6px 8px; font-family:monospace; font-weight:700; color:#0f172a;">EVR-001</td>
-                    <td style="padding:6px 8px;">Waterlogging / Hypoxia</td>
-                    <td style="padding:6px 8px;">Rainfall ≥ 20mm AND Soil Moisture ≥ 55%</td>
-                    <td style="padding:6px 8px;"><span style="color:#dc2626; font-weight:600;">High Environmental Risk</span></td>
-                  </tr>
-                  <tr style="border-bottom:1px solid #f1f5f9;">
-                    <td style="padding:6px 8px; font-family:monospace; font-weight:700; color:#0f172a;">EVR-002</td>
-                    <td style="padding:6px 8px;">Thermal Desiccation</td>
-                    <td style="padding:6px 8px;">Air Temp ≥ 38°C AND Soil Moisture ≤ 25%</td>
-                    <td style="padding:6px 8px;"><span style="color:#dc2626; font-weight:600;">High Environmental Risk</span></td>
-                  </tr>
-                  <tr style="border-bottom:1px solid #f1f5f9;">
-                    <td style="padding:6px 8px; font-family:monospace; font-weight:700; color:#0f172a;">EVR-003</td>
-                    <td style="padding:6px 8px;">Pollution &amp; Ozone</td>
-                    <td style="padding:6px 8px;">AQI ≥ 100 OR Ozone ≥ 0.045 OR CNN Pollution ≥ 25%</td>
-                    <td style="padding:6px 8px;"><span style="color:#d97706; font-weight:600;">Precaution Detected</span></td>
-                  </tr>
-                  <tr style="border-bottom:1px solid #f1f5f9;">
-                    <td style="padding:6px 8px; font-family:monospace; font-weight:700; color:#0f172a;">EVR-004</td>
-                    <td style="padding:6px 8px;">Evidence Disagreement</td>
-                    <td style="padding:6px 8px;">CNN Healthy ≥ 60% BUT SNN Stress = HIGH</td>
-                    <td style="padding:6px 8px;"><span style="color:#e11d48; font-weight:600;">Evidence Conflict</span></td>
-                  </tr>
-                  <tr style="border-bottom:1px solid #f1f5f9;">
-                    <td style="padding:6px 8px; font-family:monospace; font-weight:700; color:#0f172a;">EVR-005</td>
-                    <td style="padding:6px 8px;">Aligned Water Stress</td>
-                    <td style="padding:6px 8px;">CNN Water Stress ≥ 40% AND SNN Stress = HIGH</td>
-                    <td style="padding:6px 8px;"><span style="color:#dc2626; font-weight:600;">High Environmental Risk</span></td>
-                  </tr>
-                  <tr style="border-bottom:1px solid #f1f5f9;">
-                    <td style="padding:6px 8px; font-family:monospace; font-weight:700; color:#0f172a;">EVR-006</td>
-                    <td style="padding:6px 8px;">Nutrient Chlorosis</td>
-                    <td style="padding:6px 8px;">CNN Nutrient Deficiency ≥ 30%</td>
-                    <td style="padding:6px 8px;"><span style="color:#d97706; font-weight:600;">Precaution Detected</span></td>
-                  </tr>
-                  <tr>
-                    <td style="padding:6px 8px; font-family:monospace; font-weight:700; color:#0f172a;">EVR-007</td>
-                    <td style="padding:6px 8px;">Baseline Normal</td>
-                    <td style="padding:6px 8px;">CNN Healthy ≥ 50% AND SNN Stress = LOW</td>
-                    <td style="padding:6px 8px;"><span style="color:#059669; font-weight:600;">No Rule Triggered</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </details>
-
         </div>
 
-        <!-- Bottom Action Bar -->
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-top:1px solid #f1f5f9; padding-top:16px;">
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="history.html" id="fig7ReportBtn" class="btn btn-outline" style="padding:9px 16px; font-size:12px; border-radius:8px; font-weight:600; text-decoration:none;">
-              <span>📄</span> View in History
+        <!-- Live Farm Weather Reference -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 16px; margin-bottom:14px;" id="fig7WeatherBox">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:#0d3b2e;">
+              <span>🌤️</span>
+              <span>Farm Weather Telemetry (OpenWeather)</span>
+            </div>
+            <span style="font-size:10px; color:#059669; font-weight:700;" id="fig7WeatherBadge">Live Data</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; font-size:11.5px;" id="fig7WeatherGrid">
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;">
+              <div style="font-size:9.5px; color:#64748b; font-weight:700;">Observed Temp</div>
+              <div style="font-size:12.5px; font-weight:800; color:#0f172a;" id="fig7WeatherTemp">--°C</div>
+            </div>
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;">
+              <div style="font-size:9.5px; color:#64748b; font-weight:700;">Rainfall</div>
+              <div style="font-size:12.5px; font-weight:800; color:#0f172a;" id="fig7WeatherRain">-- mm</div>
+            </div>
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;">
+              <div style="font-size:9.5px; color:#64748b; font-weight:700;">Air Quality</div>
+              <div style="font-size:12.5px; font-weight:800; color:#0f172a;" id="fig7WeatherAqi">-- AQI</div>
+            </div>
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;">
+              <div style="font-size:9.5px; color:#64748b; font-weight:700;">Humidity</div>
+              <div style="font-size:12.5px; font-weight:800; color:#059669;" id="fig7WeatherHumidity">--%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Action Buttons -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px solid #f1f5f9; padding-top:14px;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="history.html" id="fig7ReportBtn" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:600; text-decoration:none;">
+              <span>📄</span> View History
             </a>
-            <button onclick="saveCurrentAnalysis()" class="btn btn-outline" style="padding:9px 16px; font-size:12px; border-radius:8px; font-weight:600; cursor:pointer;">
-              <span>💾</span> Save Analysis
+            <button onclick="saveCurrentAnalysis()" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:600; cursor:pointer;">
+              <span>💾</span> Save Result
             </button>
-            <a href="assistant.html" id="fig7AskAIBtn" class="btn btn-outline" style="padding:9px 16px; font-size:12px; border-radius:8px; font-weight:600; text-decoration:none;">
-              <span>💬</span> Ask AI Assistant
+            <a href="assistant.html" id="fig7AskAIBtn" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:600; text-decoration:none;">
+              <span>💬</span> Ask AI Advice
             </a>
           </div>
-          <button onclick="resetAnalysisState()" class="btn btn-primary" style="padding:10px 22px; font-size:13px; border-radius:8px; font-weight:700; display:flex; align-items:center; gap:6px;">
-            <span>➕</span> Start New Analysis
+          <button onclick="resetAnalysisState()" class="btn btn-primary" style="padding:9px 18px; font-size:12px; border-radius:8px; font-weight:700; display:flex; align-items:center; gap:6px;">
+            <span>➕</span> New Analysis
           </button>
         </div>
 
