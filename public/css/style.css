@@ -4494,6 +4494,130 @@ details.model-details summary:hover {
   line-height: 1.5;
 }
 
+/* =========================================================
+   VISUAL STRESS DISTRIBUTION (CNN) DONUT CHART
+   ========================================================= */
+
+.visual-dist-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.visual-dist-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 14px rgba(13, 59, 46, 0.05);
+}
+
+.visual-dist-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.donut-viewport-wrap {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto;
+}
+
+.donut-center-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.visual-dist-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dist-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+  font-size: 11.5px;
+  border: 1px solid transparent;
+}
+
+.dist-legend-row:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.dist-legend-row.active-filter {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  font-weight: 700;
+}
+
+.dist-legend-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dist-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dist-legend-name {
+  color: #334155;
+  font-weight: 600;
+  font-size: 11.5px;
+}
+
+.dist-legend-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.dist-count-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+  min-width: 18px;
+  text-align: right;
+}
+
+.dist-pct-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #64748b;
+  width: 38px;
+  text-align: right;
+}
+
+@media (max-width: 480px) {
+  .visual-dist-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+
+
 
 
 

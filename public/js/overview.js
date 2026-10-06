@@ -52,12 +52,28 @@ function renderOverviewDashboard() {
   let records = rawAllRecords;
   
   if (currentSearchQuery) {
-    records = rawAllRecords.filter(r => {
+    records = records.filter(r => {
       const q = currentSearchQuery;
       const matchUuid = (r.record_uuid || "").toLowerCase().includes(q);
       const matchStage = (r.growth_stage || "").toLowerCase().includes(q);
       const matchSev = (r.stress_severity || "").toLowerCase().includes(q);
       return matchUuid || matchStage || matchSev;
+    });
+  }
+
+  if (currentCategoryFilter) {
+    records = records.filter(r => {
+      let topClass = "";
+      try {
+        if (r.cnn_predictions_json) {
+          const cnnObj = JSON.parse(r.cnn_predictions_json);
+          topClass = Object.keys(cnnObj).reduce((a, b) => (cnnObj[a] > cnnObj[b] ? a : b), "").toLowerCase();
+        }
+      } catch (_) {}
+      if (!topClass) {
+        topClass = (r.stress_severity || "").toLowerCase() === "low" ? "healthy" : "water_stress";
+      }
+      return topClass === currentCategoryFilter.toLowerCase() || topClass.replace("_", " ") === currentCategoryFilter.toLowerCase().replace("_", " ");
     });
   }
 
@@ -970,8 +986,7 @@ function renderCanvasTrendFallback(ctx, canvas, data) {
   if (!trendHiddenSeries.healthy) drawLine(data.series.healthy, "#059669");
   if (!trendHiddenSeries.stressed) drawLine(data.series.stressed, "#ea580c");
 
-  // Draw X labels
-  ctx.fillStyle = "#64748b";
+    ctx.fillStyle = "#64748b";
   const step = Math.max(1, Math.floor(n / 6));
   for (let i = 0; i < n; i += step) {
     const x = padding.left + (i / (n - 1 || 1)) * chartW;
@@ -979,9 +994,255 @@ function renderCanvasTrendFallback(ctx, canvas, data) {
   }
 }
 
+// =========================================================
+// VISUAL STRESS DISTRIBUTION (CNN) DONUT CHART
+// =========================================================
+
+let visualDistChartInstance = null;
+let currentCategoryFilter = null;
+let latestVisualDistData = null;
+
+async function fetchVisualDistribution() {
+  const loadingEl = document.getElementById("visualDistLoading");
+  const emptyEl = document.getElementById("visualDistEmpty");
+  const contentEl = document.getElementById("visualDistContent");
+
+  if (loadingEl) loadingEl.style.display = "block";
+  if (emptyEl) emptyEl.style.display = "none";
+  if (contentEl) contentEl.style.opacity = "0.3";
+
+  try {
+    const res = await fetch(getApiUrl("/api/v1/analytics/visual-distribution"));
+    if (!res.ok) throw new Error("Could not fetch visual distribution");
+
+    const data = await res.json();
+    latestVisualDistData = data;
+
+    if (loadingEl) loadingEl.style.display = "none";
+
+    const centerCountEl = document.getElementById("donutTotalCount");
+    if (centerCountEl) {
+      centerCountEl.textContent = String(data.total_analyses || 0);
+    }
+
+    if (!data.has_data || data.total_analyses === 0) {
+      if (emptyEl) emptyEl.style.display = "block";
+      if (contentEl) contentEl.style.display = "none";
+      if (visualDistChartInstance) {
+        visualDistChartInstance.destroy();
+        visualDistChartInstance = null;
+      }
+      return;
+    }
+
+    if (emptyEl) emptyEl.style.display = "none";
+    if (contentEl) {
+      contentEl.style.display = "grid";
+      contentEl.style.opacity = "1";
+    }
+
+    renderVisualDistDonut(data);
+    renderVisualDistLegend(data.categories);
+
+  } catch (err) {
+    console.error("Visual distribution fetch error:", err);
+    if (loadingEl) loadingEl.style.display = "none";
+    if (emptyEl) emptyEl.style.display = "block";
+    if (contentEl) contentEl.style.display = "none";
+  }
+}
+
+function renderVisualDistDonut(data) {
+  const canvas = document.getElementById("visualDistCanvas");
+  if (!canvas) return;
+
+  if (visualDistChartInstance) {
+    visualDistChartInstance.destroy();
+    visualDistChartInstance = null;
+  }
+
+  const ctx = canvas.getContext("2d");
+  const categories = data.categories || [];
+
+  const labels = categories.map(c => c.name);
+  const counts = categories.map(c => c.count);
+  const colors = categories.map(c => c.color);
+
+  // Check if non-zero
+  const hasNonZero = counts.some(c => c > 0);
+  const chartData = hasNonZero ? counts : [1];
+  const chartColors = hasNonZero ? colors : ["#e2e8f0"];
+
+  if (typeof Chart !== "undefined") {
+    visualDistChartInstance = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            data: chartData,
+            backgroundColor: chartColors,
+            hoverBackgroundColor: chartColors,
+            borderColor: "#ffffff",
+            borderWidth: 2,
+            hoverOffset: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "72%",
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: hasNonZero,
+            backgroundColor: "#0f172a",
+            titleFont: { size: 11.5, weight: "bold", family: "Inter, sans-serif" },
+            bodyFont: { size: 11, family: "Inter, sans-serif" },
+            padding: 8,
+            cornerRadius: 6,
+            callbacks: {
+              label: function(context) {
+                const idx = context.dataIndex;
+                const cat = categories[idx];
+                if (!cat) return "";
+                return ` ${cat.name}: ${cat.count} scans (${cat.percentage}%)`;
+              }
+            }
+          }
+        },
+        onClick: (event, elements) => {
+          if (elements && elements.length > 0) {
+            const idx = elements[0].index;
+            const cat = categories[idx];
+            if (cat) {
+              toggleCategoryFilter(cat.key, cat.name);
+            }
+          }
+        }
+      }
+    });
+  } else {
+    renderCanvasDonutFallback(ctx, canvas, categories, hasNonZero);
+  }
+}
+
+function renderVisualDistLegend(categories) {
+  const legendContainer = document.getElementById("visualDistLegend");
+  if (!legendContainer) return;
+
+  legendContainer.innerHTML = categories.map(cat => {
+    const isActive = currentCategoryFilter === cat.key;
+    return `
+      <div
+        class="dist-legend-row ${isActive ? 'active-filter' : ''}"
+        onclick="toggleCategoryFilter('${cat.key}', '${cat.name}')"
+        title="Click to filter recent list by ${cat.name}"
+      >
+        <div class="dist-legend-left">
+          <span class="dist-dot" style="background:${cat.color};"></span>
+          <span class="dist-legend-name">${cat.name}</span>
+        </div>
+        <div class="dist-legend-right">
+          <span class="dist-count-badge">${cat.count}</span>
+          <span class="dist-pct-tag">${cat.percentage}%</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function toggleCategoryFilter(categoryKey, categoryName) {
+  if (currentCategoryFilter === categoryKey) {
+    currentCategoryFilter = null;
+  } else {
+    currentCategoryFilter = categoryKey;
+  }
+
+  // Update Active Filter Badge
+  const badge = document.getElementById("visualDistActiveFilterBadge");
+  const badgeText = document.getElementById("activeFilterBadgeText");
+  if (badge && badgeText) {
+    if (currentCategoryFilter) {
+      badge.style.display = "inline-flex";
+      badgeText.textContent = `${categoryName || categoryKey}`;
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+  // Re-render legend highlight
+  if (latestVisualDistData && latestVisualDistData.categories) {
+    renderVisualDistLegend(latestVisualDistData.categories);
+  }
+
+  // Re-render dashboard table with active filter
+  renderOverviewDashboard();
+}
+
+function clearCategoryFilter() {
+  currentCategoryFilter = null;
+  const badge = document.getElementById("visualDistActiveFilterBadge");
+  if (badge) badge.style.display = "none";
+
+  if (latestVisualDistData && latestVisualDistData.categories) {
+    renderVisualDistLegend(latestVisualDistData.categories);
+  }
+
+  renderOverviewDashboard();
+}
+
+function renderCanvasDonutFallback(ctx, canvas, categories, hasData) {
+  const size = 140;
+  canvas.width = size * window.devicePixelRatio;
+  canvas.height = size * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  ctx.clearRect(0, 0, size, size);
+
+  const cx = size / 2;
+  const cy = size / 2;
+  const outerRadius = size / 2 - 4;
+  const innerRadius = outerRadius * 0.72;
+
+  if (!hasData) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+    ctx.arc(cx, cy, innerRadius, Math.PI * 2, 0, true);
+    ctx.fillStyle = "#e2e8f0";
+    ctx.fill();
+    return;
+  }
+
+  let total = categories.reduce((sum, c) => sum + c.count, 0) || 1;
+  let startAngle = -Math.PI / 2;
+
+  categories.forEach(cat => {
+    if (cat.count === 0) return;
+    const sliceAngle = (cat.count / total) * Math.PI * 2;
+    const endAngle = startAngle + sliceAngle;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerRadius, startAngle, endAngle);
+    ctx.arc(cx, cy, innerRadius, endAngle, startAngle, true);
+    ctx.closePath();
+    ctx.fillStyle = cat.color;
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    startAngle = endAngle;
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   loadOverviewData();
   fetchAnalysisTrend("30d");
+  fetchVisualDistribution();
 
   const refreshBtn = document.getElementById("overviewWeatherRefreshBtn");
   if (refreshBtn) {

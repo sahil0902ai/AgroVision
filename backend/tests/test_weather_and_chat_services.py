@@ -244,6 +244,25 @@ class TestHttpIntegration(unittest.TestCase):
             self.assertEqual(data["message"], "Not enough data for trend analysis")
             self.assertEqual(data["total_records"], 0)
 
+    def test_get_analytics_visual_distribution(self):
+        req = urllib.request.Request(f"{BASE_URL}/api/v1/analytics/visual-distribution")
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read().decode())
+            self.assertIn("total_analyses", data)
+            self.assertIn("has_data", data)
+            self.assertIn("categories", data)
+            self.assertEqual(len(data["categories"]), 5)
+            cat_names = [c["name"] for c in data["categories"]]
+            self.assertIn("Healthy", cat_names)
+            self.assertIn("Water Stress", cat_names)
+            self.assertIn("Heat Stress", cat_names)
+            self.assertIn("Nutrient Deficiency", cat_names)
+            self.assertIn("Pollution", cat_names)
+            for c in data["categories"]:
+                self.assertIn("count", c)
+                self.assertIn("percentage", c)
+                self.assertIn("color", c)
+
 
 if __name__ == "__main__":
     unittest.main()

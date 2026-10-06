@@ -856,9 +856,59 @@
 
           </div>
 
-          <!-- RIGHT COLUMN (1fr): Active Precautions, Field Parcels, Quick Actions -->
+          <!-- RIGHT COLUMN (1fr): Visual Stress Distribution, Active Precautions, Quick Actions -->
           <div style="display:flex; flex-direction:column; gap:20px;">
             
+            <!-- VISUAL STRESS DISTRIBUTION (CNN) DONUT CARD -->
+            <div class="visual-dist-card" id="visualDistCard">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:18px;">🌿</span>
+                  <div>
+                    <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">Visual Stress Distribution (CNN)</h3>
+                    <p class="panel-sub" style="margin:2px 0 0;">Foliar classification breakdown across verified scans</p>
+                  </div>
+                </div>
+                <button type="button" id="visualDistActiveFilterBadge" style="display:none; font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0; cursor:pointer;" onclick="clearCategoryFilter()" title="Click to clear filter">
+                  <span id="activeFilterBadgeText">Filtered</span> ✖
+                </button>
+              </div>
+
+              <!-- Loading State -->
+              <div id="visualDistLoading" style="display:none; text-align:center; padding:30px 10px; color:#64748b; font-size:12px;">
+                <span>⏳ Loading distribution data…</span>
+              </div>
+
+              <!-- Empty State -->
+              <div id="visualDistEmpty" style="display:none; text-align:center; padding:24px 16px; background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:12px;">
+                <div style="font-size:26px; margin-bottom:6px;">🍃</div>
+                <strong style="font-size:12.5px; color:#334155; display:block;">No visual scans recorded yet</strong>
+                <p style="margin:4px 0 0; font-size:11px; color:#64748b; line-height:1.45;">
+                  Scans will be categorized into 5 CNN stress classes as you perform leaf checks.
+                </p>
+              </div>
+
+              <!-- Main Donut + Legend Layout (2 Columns: Donut with Center Text | Detailed Legend) -->
+              <div id="visualDistContent" class="visual-dist-grid">
+                
+                <!-- Donut Container with Centered Total -->
+                <div class="donut-viewport-wrap">
+                  <canvas id="visualDistCanvas" width="140" height="140"></canvas>
+                  <div class="donut-center-label" id="donutCenterLabel">
+                    <div id="donutTotalCount" style="font-size:1.35rem; font-weight:800; color:#0d3b2e; line-height:1;">0</div>
+                    <div style="font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px;">Analyses</div>
+                  </div>
+                </div>
+
+                <!-- Power BI Compact Interactive Legend -->
+                <div class="visual-dist-legend" id="visualDistLegend">
+                  <!-- Populated dynamically with Count, Percentage, Color Dot, and Click Filter -->
+                </div>
+
+              </div>
+
+            </div>
+
             <!-- Agronomic Precautions & Advisory Alert -->
             <div class="panel">
               <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">

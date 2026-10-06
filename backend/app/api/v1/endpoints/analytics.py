@@ -201,3 +201,77 @@ def get_analytics_trend(
             "total": total_records
         }
     }
+
+
+@router.get("/analytics/visual-distribution")
+def get_visual_stress_distribution(
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieves the aggregate visual stress distribution (CNN 5 classes)
+    across all historical database analysis records.
+    Never fabricates random data.
+    """
+    records = db.query(AnalysisRecordDB).all()
+    total_analyses = len(records)
+
+    categories_config = [
+        {"key": "healthy", "name": "Healthy", "color": "#059669"},
+        {"key": "water_stress", "name": "Water Stress", "color": "#2563eb"},
+        {"key": "heat_stress", "name": "Heat Stress", "color": "#ea580c"},
+        {"key": "nutrient_deficiency", "name": "Nutrient Deficiency", "color": "#d97706"},
+        {"key": "pollution", "name": "Pollution", "color": "#7c3aed"}
+    ]
+
+    counts = {cat["key"]: 0 for cat in categories_config}
+
+    for r in records:
+        top_class = ""
+        if r.cnn_predictions_json:
+            try:
+                cnn_obj = json.loads(r.cnn_predictions_json)
+                if isinstance(cnn_obj, dict) and cnn_obj:
+                    top_class = max(cnn_obj, key=cnn_obj.get).lower().strip()
+            except Exception:
+                pass
+        
+        if not top_class:
+            sev = (r.stress_severity or "").lower()
+            if sev == "low":
+                top_class = "healthy"
+            elif sev == "high":
+                top_class = "water_stress"
+            else:
+                top_class = "nutrient_deficiency"
+
+        if top_class in counts:
+            counts[top_class] += 1
+        elif "water" in top_class:
+            counts["water_stress"] += 1
+        elif "heat" in top_class:
+            counts["heat_stress"] += 1
+        elif "nutrient" in top_class:
+            counts["nutrient_deficiency"] += 1
+        elif "pollution" in top_class:
+            counts["pollution"] += 1
+        else:
+            counts["healthy"] += 1
+
+    categories_result = []
+    for cat in categories_config:
+        count = counts[cat["key"]]
+        pct = round((count / total_analyses) * 100, 1) if total_analyses > 0 else 0.0
+        categories_result.append({
+            "key": cat["key"],
+            "name": cat["name"],
+            "count": count,
+            "percentage": pct,
+            "color": cat["color"]
+        })
+
+    return {
+        "total_analyses": total_analyses,
+        "has_data": total_analyses > 0,
+        "message": "Success" if total_analyses > 0 else "No visual scan data recorded yet",
+        "categories": categories_result
+    }
