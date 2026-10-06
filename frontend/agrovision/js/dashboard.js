@@ -754,55 +754,142 @@ function renderFigure7(data) {
     }
   }
 
-  // 6. Expert Check Left Box
-  const expertStatus = document.getElementById("fig7ExpertStatus");
-  const expertText = document.getElementById("fig7ExpertText");
-  if (rules.length > 0) {
-    if (expertStatus) {
-      expertStatus.textContent = "Precaution Detected";
-      expertStatus.style.background = "#fef3c7";
-      expertStatus.style.color = "#d97706";
+  // 6. Expert Check Transparent Analytical Rules Section
+  const ruleDetailsContainer = document.getElementById("fig7RuleDetailsContainer");
+  const topRuleIdBadge = document.getElementById("fig7RuleIdBadge");
+  const topRuleStatusBadge = document.getElementById("fig7RuleStatusBadge");
+
+  const defaultBaselineRule = {
+    rule_id: "EVR-007",
+    name: "Routine Crop Health Maintenance",
+    severity: "INFO",
+    rule_status: "No Rule Triggered",
+    condition: "CNN Healthy >= 50.0% AND SNN Environmental Stress is LOW",
+    reason: "All environmental telemetry readings and visual foliar indicators remain within normal agricultural baseline parameters.",
+    impact: "Crop canopy exhibits stable physiological vigor with balanced vegetative growth and low environmental hazard.",
+    precaution: "Maintain scheduled irrigation cycles and continue routine crop scouting.",
+    what_to_check: "Continue routine weekly canopy scouting and maintain regular soil moisture sensor log reviews."
+  };
+
+  const activeRulesList = (rules && rules.length > 0) ? rules : [defaultBaselineRule];
+
+  function getExpertRuleMeta(r) {
+    const rid = (r.rule_id || "").toUpperCase();
+    const sev = (r.severity || "").toUpperCase();
+    const rel = (relRaw || "").toUpperCase();
+
+    let status = r.rule_status;
+    let statusBg = "#fef3c7";
+    let statusColor = "#d97706";
+    let statusBorder = "#fde68a";
+
+    if (!status) {
+      if (rid === "EVR-004" || rel === "CONFLICTING" || (r.name && r.name.toLowerCase().includes("disagreement"))) {
+        status = "Evidence Conflict";
+      } else if (rid === "EVR-001" || rid === "EVR-002" || rid === "EVR-005" || sev === "CRITICAL" || sev === "WARNING" || envClass.toLowerCase() === "high") {
+        status = "High Environmental Risk";
+      } else if (rid === "EVR-007" || sev === "INFO") {
+        status = "No Rule Triggered";
+      } else {
+        status = "Precaution Detected";
+      }
     }
-    if (expertText) {
-      expertText.innerHTML = rules.map(r => `
-        <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">🛡️ Rule: ${r.rule_id} (${r.name || 'Deterministic Rule'})</div>
-        <div style="margin-bottom:4px;">${r.interpretation || r.condition}</div>
-        <div style="background:#fffbeb; padding:6px 8px; border-radius:4px; font-weight:600; color:#9a3412;">👉 Precaution: ${r.precaution}</div>
-      `).join("");
+
+    if (status === "Evidence Conflict") {
+      statusBg = "#fff1f2";
+      statusColor = "#e11d48";
+      statusBorder = "#fecdd3";
+    } else if (status === "High Environmental Risk") {
+      statusBg = "#fee2e2";
+      statusColor = "#dc2626";
+      statusBorder = "#fca5a5";
+    } else if (status === "No Rule Triggered") {
+      statusBg = "#ecfdf5";
+      statusColor = "#059669";
+      statusBorder = "#a7f3d0";
+    } else {
+      status = "Precaution Detected";
+      statusBg = "#fef3c7";
+      statusColor = "#d97706";
+      statusBorder = "#fde68a";
     }
-  } else {
-    if (expertStatus) {
-      expertStatus.textContent = "Baseline Stable";
-      expertStatus.style.background = "#ecfdf5";
-      expertStatus.style.color = "#059669";
-    }
-    if (expertText) {
-      expertText.innerHTML = `
-        <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">🛡️ Rule: EVR-007 (Normal Baseline)</div>
-        <div>All environmental and foliar signals are within standard agricultural threshold limits.</div>
+
+    const condition = r.condition || "Deterministic threshold comparison evaluated across physical sensor and vision inputs";
+    const reason = r.reason || r.rationale || "Visual symptoms and ambient environmental readings evaluated against deterministic thresholds.";
+    const impact = r.impact || r.interpretation || "Additional evidence should be reviewed before making operational crop interventions.";
+    const precaution = r.precaution || "Inspect field conditions and verify root zone parameters.";
+    const whatToCheck = r.what_to_check || "Confirm field root zone moisture, check canopy foliage, and repeat analysis if necessary.";
+
+    return {
+      ruleId: r.rule_id || "EVR-000",
+      name: r.name || "Deterministic Rule",
+      status,
+      statusBg,
+      statusColor,
+      statusBorder,
+      condition,
+      reason,
+      impact,
+      precaution,
+      whatToCheck
+    };
+  }
+
+  const primaryMeta = getExpertRuleMeta(activeRulesList[0]);
+
+  if (topRuleIdBadge) topRuleIdBadge.textContent = primaryMeta.ruleId;
+  if (topRuleStatusBadge) {
+    topRuleStatusBadge.textContent = primaryMeta.status;
+    topRuleStatusBadge.style.background = primaryMeta.statusBg;
+    topRuleStatusBadge.style.color = primaryMeta.statusColor;
+    topRuleStatusBadge.style.borderColor = primaryMeta.statusBorder;
+  }
+
+  if (ruleDetailsContainer) {
+    ruleDetailsContainer.innerHTML = activeRulesList.map(r => {
+      const meta = getExpertRuleMeta(r);
+      return `
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+            <div style="font-weight:800; font-size:13px; color:#0f172a; display:flex; align-items:center; gap:8px;">
+              <span style="font-family:monospace; background:#e2e8f0; color:#1e293b; padding:2px 8px; border-radius:4px; font-size:11.5px; font-weight:700;">${meta.ruleId}</span>
+              <span>${meta.name}</span>
+            </div>
+            <span style="background:${meta.statusBg}; color:${meta.statusColor}; border:1px solid ${meta.statusBorder}; font-size:10.5px; font-weight:700; padding:2px 10px; border-radius:999px;">${meta.status}</span>
+          </div>
+
+          <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:6px; padding:8px 12px; margin-bottom:10px;">
+            <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">Triggered Condition (Deterministic Logic)</div>
+            <div style="font-family:monospace; font-size:11.5px; color:#0f172a; font-weight:600;">${meta.condition}</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px;">
+              <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px;">Reason</div>
+              <div style="font-size:12px; color:#334155; line-height:1.45;">${meta.reason}</div>
+            </div>
+
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px;">
+              <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px;">Impact / Meaning</div>
+              <div style="font-size:12px; color:#334155; line-height:1.45;">${meta.impact}</div>
+            </div>
+
+            <div style="background:#fffbeb; border:1px solid #fed7aa; border-radius:8px; padding:10px 12px;">
+              <div style="font-size:10px; font-weight:700; color:#9a3412; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px;">Precaution</div>
+              <div style="font-size:12px; color:#9a3412; font-weight:600; line-height:1.45;">👉 ${meta.precaution}</div>
+            </div>
+
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px;">
+              <div style="font-size:10px; font-weight:700; color:#065f46; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px;">What to Check Next</div>
+              <div style="font-size:12px; color:#166534; line-height:1.45;">📋 ${meta.whatToCheck}</div>
+            </div>
+          </div>
+        </div>
       `;
-    }
+    }).join("");
   }
 
-  // 7. What to Check Next Right Box
-  const precList = document.getElementById("fig7PrecautionsList");
-  if (precList) {
-    const listItems = (final.precautions && final.precautions.length > 0) ? final.precautions : [
-      "Confirm root zone soil moisture depth (15cm and 30cm)",
-      "Inspect affected foliage across middle and lower canopy",
-      "Monitor canopy leaf color and new vegetative shoots",
-      "Cross-reference with local 5-day weather and evapotranspiration forecast",
-      "Repeat multimodal check in 7–10 days"
-    ];
-    precList.innerHTML = listItems.map(item => `
-      <li style="display:flex; align-items:center; gap:6px;">
-        <span style="color:#059669; font-size:12px;">🟢</span>
-        <span>${item}</span>
-      </li>
-    `).join("");
-  }
-
-  // 8. Action Buttons
+  // 7. Action Buttons
   const reportBtn = document.getElementById("fig7ReportBtn");
   if (reportBtn && recUuid) {
     reportBtn.href = getApiUrl(`/api/v1/records/${recUuid}/report`);

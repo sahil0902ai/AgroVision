@@ -48,9 +48,13 @@ class TriggeredRule(BaseModel):
     rule_id: str
     name: str
     severity: str
+    rule_status: str | None = None
     condition: str
+    reason: str | None = None
     interpretation: str
+    impact: str | None = None
     precaution: str
+    what_to_check: str | None = None
     rationale: str
     threshold_status: str = "ILLUSTRATIVE / REQUIRES AGRONOMIC VALIDATION"
 
