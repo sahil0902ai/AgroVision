@@ -77,6 +77,13 @@ function renderOverviewDashboard() {
     });
   }
 
+  if (currentEnvCategoryFilter) {
+    records = records.filter(r => {
+      const sev = (r.stress_severity || "").trim().toLowerCase();
+      return sev === currentEnvCategoryFilter.toLowerCase();
+    });
+  }
+
   const totalAnalyses = records.length;
   let healthyCount = 0;
   let stressedCount = 0;
@@ -418,6 +425,8 @@ async function loadOverviewData() {
     rawAllRecords = Array.isArray(data) ? data : (data.records || []);
 
     renderOverviewDashboard();
+    fetchVisualDistribution();
+    fetchEnvironmentalDistribution();
   } catch (err) {
     console.error("Error loading farm overview data:", err);
   }
@@ -1239,10 +1248,255 @@ function renderCanvasDonutFallback(ctx, canvas, categories, hasData) {
   });
 }
 
+// =========================================================
+// ENVIRONMENTAL STRESS DISTRIBUTION (SNN) DONUT CHART
+// =========================================================
+
+let envDistChartInstance = null;
+let latestEnvDistData = null;
+
+async function fetchEnvironmentalDistribution() {
+  const loadingEl = document.getElementById("envDistLoading");
+  const emptyEl = document.getElementById("envDistEmpty");
+  const contentEl = document.getElementById("envDistContent");
+
+  if (loadingEl) loadingEl.style.display = "block";
+  if (emptyEl) emptyEl.style.display = "none";
+  if (contentEl) contentEl.style.opacity = "0.3";
+
+  try {
+    const res = await fetch(getApiUrl("/api/v1/analytics/environmental-distribution"));
+    if (!res.ok) throw new Error("Could not fetch environmental distribution");
+
+    const data = await res.json();
+    latestEnvDistData = data;
+
+    if (loadingEl) loadingEl.style.display = "none";
+
+    const centerCountEl = document.getElementById("envDonutTotalCount");
+    if (centerCountEl) {
+      centerCountEl.textContent = String(data.total_analyses || 0);
+    }
+
+    if (!data.has_data || data.total_analyses === 0) {
+      if (emptyEl) emptyEl.style.display = "block";
+      if (contentEl) contentEl.style.display = "none";
+      if (envDistChartInstance) {
+        envDistChartInstance.destroy();
+        envDistChartInstance = null;
+      }
+      return;
+    }
+
+    if (emptyEl) emptyEl.style.display = "none";
+    if (contentEl) {
+      contentEl.style.display = "grid";
+      contentEl.style.opacity = "1";
+    }
+
+    renderEnvDistDonut(data);
+    renderEnvDistLegend(data.categories);
+
+  } catch (err) {
+    console.error("Environmental distribution fetch error:", err);
+    if (loadingEl) loadingEl.style.display = "none";
+    if (emptyEl) emptyEl.style.display = "block";
+    if (contentEl) contentEl.style.display = "none";
+  }
+}
+
+function renderEnvDistDonut(data) {
+  const canvas = document.getElementById("envDistCanvas");
+  if (!canvas) return;
+
+  if (envDistChartInstance) {
+    envDistChartInstance.destroy();
+    envDistChartInstance = null;
+  }
+
+  const ctx = canvas.getContext("2d");
+  const categories = data.categories || [];
+
+  const labels = categories.map(c => c.name);
+  const counts = categories.map(c => c.count);
+  const colors = categories.map(c => c.color);
+
+  // Check if non-zero
+  const hasNonZero = counts.some(c => c > 0);
+  const chartData = hasNonZero ? counts : [1];
+  const chartColors = hasNonZero ? colors : ["#e2e8f0"];
+
+  if (typeof Chart !== "undefined") {
+    envDistChartInstance = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            data: chartData,
+            backgroundColor: chartColors,
+            hoverBackgroundColor: chartColors,
+            borderColor: "#ffffff",
+            borderWidth: 2,
+            hoverOffset: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "72%",
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: hasNonZero,
+            backgroundColor: "#0f172a",
+            titleFont: { size: 11.5, weight: "bold", family: "Inter, sans-serif" },
+            bodyFont: { size: 11, family: "Inter, sans-serif" },
+            padding: 8,
+            cornerRadius: 6,
+            callbacks: {
+              label: function(context) {
+                const idx = context.dataIndex;
+                const cat = categories[idx];
+                if (!cat) return "";
+                return ` ${cat.name}: ${cat.count} scans (${cat.percentage}%)`;
+              }
+            }
+          }
+        },
+        onClick: (event, elements) => {
+          if (elements && elements.length > 0) {
+            const idx = elements[0].index;
+            const cat = categories[idx];
+            if (cat) {
+              toggleEnvCategoryFilter(cat.name, cat.label || cat.name);
+            }
+          }
+        }
+      }
+    });
+  } else {
+    renderCanvasEnvDonutFallback(ctx, canvas, categories, hasNonZero);
+  }
+}
+
+function renderEnvDistLegend(categories) {
+  const legendContainer = document.getElementById("envDistLegend");
+  if (!legendContainer) return;
+
+  legendContainer.innerHTML = categories.map(cat => {
+    const isActive = currentEnvCategoryFilter && currentEnvCategoryFilter.toLowerCase() === cat.name.toLowerCase();
+    return `
+      <div
+        class="dist-legend-row ${isActive ? 'active-filter' : ''}"
+        onclick="toggleEnvCategoryFilter('${cat.name}', '${cat.label || cat.name}')"
+        title="Click to filter recent list by ${cat.name} Environmental Risk"
+      >
+        <div class="dist-legend-left">
+          <span class="dist-dot" style="background:${cat.color};"></span>
+          <span class="dist-legend-name">${cat.name}</span>
+        </div>
+        <div class="dist-legend-right">
+          <span class="dist-count-badge">${cat.count}</span>
+          <span class="dist-pct-tag">${cat.percentage}%</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function toggleEnvCategoryFilter(categoryKey, categoryLabel) {
+  if (currentEnvCategoryFilter && currentEnvCategoryFilter.toLowerCase() === categoryKey.toLowerCase()) {
+    currentEnvCategoryFilter = null;
+  } else {
+    currentEnvCategoryFilter = categoryKey;
+  }
+
+  // Update Active Filter Badge
+  const badge = document.getElementById("envDistActiveFilterBadge");
+  const badgeText = document.getElementById("activeEnvFilterBadgeText");
+  if (badge && badgeText) {
+    if (currentEnvCategoryFilter) {
+      badge.style.display = "inline-flex";
+      badgeText.textContent = `${categoryLabel || categoryKey}`;
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+  // Re-render legend highlight
+  if (latestEnvDistData && latestEnvDistData.categories) {
+    renderEnvDistLegend(latestEnvDistData.categories);
+  }
+
+  // Re-render dashboard table with active filter
+  renderOverviewDashboard();
+}
+
+function clearEnvCategoryFilter() {
+  currentEnvCategoryFilter = null;
+  const badge = document.getElementById("envDistActiveFilterBadge");
+  if (badge) badge.style.display = "none";
+
+  if (latestEnvDistData && latestEnvDistData.categories) {
+    renderEnvDistLegend(latestEnvDistData.categories);
+  }
+
+  renderOverviewDashboard();
+}
+
+function renderCanvasEnvDonutFallback(ctx, canvas, categories, hasData) {
+  const size = 140;
+  canvas.width = size * window.devicePixelRatio;
+  canvas.height = size * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  ctx.clearRect(0, 0, size, size);
+
+  const cx = size / 2;
+  const cy = size / 2;
+  const outerRadius = size / 2 - 4;
+  const innerRadius = outerRadius * 0.72;
+
+  if (!hasData) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+    ctx.arc(cx, cy, innerRadius, Math.PI * 2, 0, true);
+    ctx.fillStyle = "#e2e8f0";
+    ctx.fill();
+    return;
+  }
+
+  let total = categories.reduce((sum, c) => sum + c.count, 0) || 1;
+  let startAngle = -Math.PI / 2;
+
+  categories.forEach(cat => {
+    if (cat.count === 0) return;
+    const sliceAngle = (cat.count / total) * Math.PI * 2;
+    const endAngle = startAngle + sliceAngle;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerRadius, startAngle, endAngle);
+    ctx.arc(cx, cy, innerRadius, endAngle, startAngle, true);
+    ctx.closePath();
+    ctx.fillStyle = cat.color;
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    startAngle = endAngle;
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   loadOverviewData();
   fetchAnalysisTrend("30d");
   fetchVisualDistribution();
+  fetchEnvironmentalDistribution();
 
   const refreshBtn = document.getElementById("overviewWeatherRefreshBtn");
   if (refreshBtn) {

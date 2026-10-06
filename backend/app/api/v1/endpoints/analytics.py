@@ -275,3 +275,61 @@ def get_visual_stress_distribution(
         "message": "Success" if total_analyses > 0 else "No visual scan data recorded yet",
         "categories": categories_result
     }
+
+
+@router.get("/analytics/environmental-distribution")
+def get_environmental_stress_distribution(
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieves aggregate SNN environmental stress distribution (Low, Moderate, High)
+    from historical database records.
+    Never fabricates random data.
+    """
+    total = db.query(func.count(AnalysisRecordDB.id)).scalar() or 0
+    
+    low_count = db.query(func.count(AnalysisRecordDB.id)).filter(
+        AnalysisRecordDB.stress_severity.ilike("Low")
+    ).scalar() or 0
+    
+    mod_count = db.query(func.count(AnalysisRecordDB.id)).filter(
+        AnalysisRecordDB.stress_severity.ilike("Moderate")
+    ).scalar() or 0
+    
+    high_count = db.query(func.count(AnalysisRecordDB.id)).filter(
+        AnalysisRecordDB.stress_severity.ilike("High")
+    ).scalar() or 0
+
+    categories = [
+        {
+            "key": "low",
+            "name": "Low",
+            "label": "Low Risk",
+            "count": low_count,
+            "percentage": round((low_count / total) * 100, 1) if total > 0 else 0.0,
+            "color": "#059669"
+        },
+        {
+            "key": "moderate",
+            "name": "Moderate",
+            "label": "Moderate Risk",
+            "count": mod_count,
+            "percentage": round((mod_count / total) * 100, 1) if total > 0 else 0.0,
+            "color": "#d97706"
+        },
+        {
+            "key": "high",
+            "name": "High",
+            "label": "High Risk",
+            "count": high_count,
+            "percentage": round((high_count / total) * 100, 1) if total > 0 else 0.0,
+            "color": "#dc2626"
+        }
+    ]
+
+    return {
+        "total_analyses": total,
+        "has_data": total > 0,
+        "message": "Success" if total > 0 else "No environmental analyses yet.",
+        "categories": categories
+    }
