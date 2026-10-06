@@ -2164,3 +2164,38 @@ details.model-details summary:hover {
   }
 }
 
+/* =========================================================
+   Interactive Analysis Views Layout (CNN, SNN, Combined)
+   ========================================================= */
+#viewCNN, #viewSNN, #viewCombined {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+#viewCombined {
+  flex-direction: column;
+  gap: 16px;
+}
+
+#viewCombined > * {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.evidence-3col-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 860px) {
+  .evidence-3col-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+

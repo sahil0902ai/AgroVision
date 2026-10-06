@@ -93,7 +93,12 @@ function switchView(viewName) {
   for (const [key, el] of Object.entries(views)) {
     if (el) {
       if (key === viewName) {
-        el.style.display = key === "input" ? "grid" : "block";
+        if (key === "input") {
+          el.style.display = "grid";
+        } else {
+          el.style.display = "flex";
+          el.style.flexDirection = "column";
+        }
       } else {
         el.style.display = "none";
       }
