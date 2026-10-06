@@ -91,7 +91,13 @@ function switchView(viewName) {
   };
 
   for (const [key, el] of Object.entries(views)) {
-    if (el) el.style.display = key === viewName ? (key === "combined" ? "flex" : "grid") : "none";
+    if (el) {
+      if (key === viewName) {
+        el.style.display = key === "input" ? "grid" : "block";
+      } else {
+        el.style.display = "none";
+      }
+    }
   }
 
   for (const [key, btn] of Object.entries(buttons)) {
