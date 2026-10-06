@@ -489,15 +489,25 @@
             </details>
           </div>
 
-          <!-- 5. WHAT TO CHECK NEXT (ACTIONABLE ADVISORY) -->
-          <div class="card-pbi">
-            <div class="card-pbi-title">📋 4. Recommended Field Checkpoints</div>
-            <ul id="precautionsChecklist" style="margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px; font-size:12.5px; color:#334155;">
-              <li style="display:flex; align-items:center; gap:8px;"><span style="color:#059669; font-size:14px;">🟢</span> Confirm soil moisture at 15cm and 30cm root depths</li>
-              <li style="display:flex; align-items:center; gap:8px;"><span style="color:#059669; font-size:14px;">🟢</span> Inspect middle and lower canopy foliage for spreading discoloration</li>
-              <li style="display:flex; align-items:center; gap:8px;"><span style="color:#059669; font-size:14px;">🟢</span> Cross-reference with 5-day weather and evapotranspiration forecast</li>
-              <li style="display:flex; align-items:center; gap:8px;"><span style="color:#059669; font-size:14px;">🟢</span> Repeat multimodal check in 7–10 days</li>
-            </ul>
+          <!-- 5. WHAT TO CHECK NEXT (Farmer-Friendly Action Checklist) -->
+          <div class="what-to-check-panel" id="detailWhatToCheckPanel" style="margin-bottom:20px;">
+            <div class="what-to-check-header">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:32px; height:32px; border-radius:8px; background:#ecfdf5; border:1px solid #a7f3d0; display:flex; align-items:center; justify-content:center; font-size:16px;">
+                  ✅
+                </div>
+                <div>
+                  <h4 style="margin:0; font-size:14px; font-weight:800; color:#0d3b2e;">What to Check Next</h4>
+                  <div style="font-size:11px; color:#64748b;">Actionable field checklist generated from visual diagnosis, sensor telemetry &amp; backend rules</div>
+                </div>
+              </div>
+              <span class="what-to-check-count" id="detailWhatToCheckCount">0 / 6 Completed</span>
+            </div>
+
+            <!-- Dynamic Checklist Items Container -->
+            <div class="what-to-check-list" id="detailWhatToCheckList">
+              <!-- Populated dynamically from record context -->
+            </div>
           </div>
 
           <!-- 6. DISCLAIMER -->

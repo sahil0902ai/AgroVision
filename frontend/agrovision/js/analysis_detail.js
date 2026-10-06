@@ -475,14 +475,277 @@ function renderRecordDetail(r) {
     }).join("");
   }
 
-  // Checkpoints Checklist
-  const checkList = document.getElementById("precautionsChecklist");
-  if (checkList && expertObj.final_assessment && Array.isArray(expertObj.final_assessment.precautions)) {
-    checkList.innerHTML = expertObj.final_assessment.precautions.map(p => `
-      <li style="display:flex; align-items:center; gap:8px;">
-        <span style="color:#059669; font-size:14px;">🟢</span>
-        <span>${p}</span>
-      </li>
-    `).join("");
+  // Render What to Check Next Interactive Checklist
+  const detailCheckContext = {
+    visualClass: topClass,
+    visualConfidence: topPct,
+    environmentalSeverity: sev,
+    relationship: relStr,
+    temperature: r.temperature || 31,
+    humidity: r.humidity || 72,
+    rainfall: r.rainfall_mm || 0,
+    soilMoisture: soilNum,
+    aqi: r.aqi || 64,
+    ozone: ozoneNum,
+    triggeredRules: triggeredRules,
+    weatherForecast: weatherContext?.forecast
+  };
+
+  renderDetailWhatToCheckNext(detailCheckContext);
+}
+
+// =========================================================
+// WHAT TO CHECK NEXT (DETAIL VIEW CHECKLIST)
+// =========================================================
+
+let detailWhatToCheckItems = [];
+
+function generateDetailWhatToCheckItems(ctx) {
+  const items = [];
+  const vClass = (ctx.visualClass || "Healthy").toLowerCase();
+  const envSev = (ctx.environmentalSeverity || "Low").toLowerCase();
+  const rules = ctx.triggeredRules || [];
+  const sm = Number(ctx.soilMoisture) || 68;
+  const temp = Number(ctx.temperature) || 31;
+  const rain = Number(ctx.rainfall) || 0;
+  const aqi = Number(ctx.aqi) || 64;
+  const ozone = Number(ctx.ozone) || 41;
+  const isConflict = ctx.relationship === "CONFLICTING" || rules.some(r => (r.rule_id || "").toUpperCase() === "EVR-004");
+  const isWaterlogging = rules.some(r => (r.rule_id || "").toUpperCase() === "EVR-001") || (rain >= 20 && sm >= 55);
+  const isDesiccation = rules.some(r => (r.rule_id || "").toUpperCase() === "EVR-002") || (temp >= 38 && sm <= 25);
+  const isPollution = rules.some(r => (r.rule_id || "").toUpperCase() === "EVR-003") || vClass.includes("pollution") || aqi >= 100 || ozone >= 50;
+
+  // 1. Soil Nutrition / Fertility Check (Verb: Confirm)
+  if (vClass.includes("nutrient") || rules.some(r => (r.rule_id || "").toUpperCase() === "EVR-006")) {
+    items.push({
+      verb: "Confirm",
+      category: "Soil & Foliar Nutrition",
+      text: "Confirm soil nutrient status (available N, P, K, and micro-nutrients like Zinc/Magnesium) using a soil test kit before applying foliar or soil amendments.",
+      checked: false
+    });
+  } else if (sm < 40 || vClass.includes("water")) {
+    items.push({
+      verb: "Confirm",
+      category: "Nutrient Uptake",
+      text: "Confirm root zone moisture status before adding fertilizers, as dry soil restricts plant nutrient absorption.",
+      checked: false
+    });
+  } else {
+    items.push({
+      verb: "Confirm",
+      category: "Soil Nutrition",
+      text: "Confirm soil nutrient levels align with current crop growth stage without adding unneeded fertilizers.",
+      checked: false
+    });
+  }
+
+  // 2. Foliar & Canopy Inspection (Verb: Inspect)
+  if (vClass.includes("water") || isDesiccation) {
+    items.push({
+      verb: "Inspect",
+      category: "Canopy Turgor",
+      text: "Inspect affected leaves in early morning (6:00 AM – 8:00 AM) to verify if morning leaf turgor recovers before daytime wilting.",
+      checked: false
+    });
+  } else if (vClass.includes("heat") || temp >= 35) {
+    items.push({
+      verb: "Inspect",
+      category: "Canopy Scorch",
+      text: "Inspect affected leaves along top canopy borders for marginal scorching and upward cupping caused by solar heat.",
+      checked: false
+    });
+  } else if (vClass.includes("nutrient")) {
+    items.push({
+      verb: "Inspect",
+      category: "Leaf Symptoms",
+      text: "Inspect affected leaves across lower versus upper canopy to distinguish mobile nitrogen deficiency from immobile micro-nutrient chlorosis.",
+      checked: false
+    });
+  } else if (isPollution) {
+    items.push({
+      verb: "Inspect",
+      category: "Leaf Surface",
+      text: "Inspect affected leaves for particulate or dust accumulation on upper surfaces blocking stomatal pores.",
+      checked: false
+    });
+  } else {
+    items.push({
+      verb: "Inspect",
+      category: "Foliage Scouting",
+      text: "Inspect upper and lower leaf surfaces periodically for early signs of sucking pests or subtle discoloration.",
+      checked: false
+    });
+  }
+
+  // 3. Growth & Squares / Fruiting Bodies (Verb: Check)
+  if (vClass.includes("heat") || temp >= 35 || isDesiccation) {
+    items.push({
+      verb: "Check",
+      category: "Growth & Squares",
+      text: "Check new plant growth, terminal shoots, and flower squares for thermal drying or premature square drop.",
+      checked: false
+    });
+  } else if (vClass.includes("water") || sm < 45) {
+    items.push({
+      verb: "Check",
+      category: "Vegetative Growth",
+      text: "Check new plant growth and internode length between upper nodes to gauge growth slowdown from moisture deficit.",
+      checked: false
+    });
+  } else if (isWaterlogging) {
+    items.push({
+      verb: "Check",
+      category: "Terminal Growth",
+      text: "Check new plant growth and terminal shoots for pale yellowing caused by temporary root oxygen deprivation.",
+      checked: false
+    });
+  } else {
+    items.push({
+      verb: "Check",
+      category: "Growth Benchmarks",
+      text: "Check new plant growth and square retention against expected seasonal stage targets.",
+      checked: false
+    });
+  }
+
+  // 4. Soil Moisture & Root Zone (Verb: Review)
+  if (sm < 45 || vClass.includes("water") || isDesiccation) {
+    items.push({
+      verb: "Review",
+      category: "Root Zone Moisture",
+      text: "Review soil moisture at root zone depth (15–30 cm) using a probe or hand-squeeze test before watering.",
+      checked: false
+    });
+  } else if (isWaterlogging || sm >= 75) {
+    items.push({
+      verb: "Review",
+      category: "Field Drainage",
+      text: "Review field drainage furrows and soil saturation to ensure no standing water persists around crop root zones.",
+      checked: false
+    });
+  } else {
+    items.push({
+      verb: "Review",
+      category: "Soil Moisture",
+      text: "Review soil moisture levels every 3 to 4 days to maintain root zone moisture within the optimal 55%–70% range.",
+      checked: false
+    });
+  }
+
+  // 5. Environmental & Weather Conditions (Verb: Review / Monitor)
+  if (rain > 0 || (ctx.weatherForecast && ctx.weatherForecast.rainfall_forecast_mm > 0)) {
+    const rainVal = (rain || ctx.weatherForecast?.rainfall_forecast_mm || 0).toFixed(1);
+    items.push({
+      verb: "Review",
+      category: "Rainfall Outlook",
+      text: `Review recent rainfall (${rainVal} mm) and the upcoming 3-day weather forecast before scheduling field irrigation.`,
+      checked: false
+    });
+  } else if (temp >= 35 || isDesiccation) {
+    items.push({
+      verb: "Monitor",
+      category: "Peak Temperature",
+      text: "Monitor environmental conditions during peak afternoon heat (12:00 PM – 3:30 PM) for excessive crop canopy stress.",
+      checked: false
+    });
+  } else if (isPollution) {
+    items.push({
+      verb: "Monitor",
+      category: "Air Quality",
+      text: `Monitor environmental conditions and ambient air quality (${Math.round(aqi)} AQI) during stagnant wind periods.`,
+      checked: false
+    });
+  } else {
+    items.push({
+      verb: "Monitor",
+      category: "Environmental Conditions",
+      text: "Monitor environmental conditions and ambient temperature trends over the next 48 hours.",
+      checked: false
+    });
+  }
+
+  // 6. Follow-up Assessment (Verb: Repeat)
+  if (isConflict || envSev === "high" || !vClass.includes("healthy")) {
+    items.push({
+      verb: "Repeat",
+      category: "Follow-up",
+      text: "Repeat analysis when appropriate in 3 to 5 days after field adjustments to track crop recovery.",
+      checked: false
+    });
+  } else {
+    items.push({
+      verb: "Repeat",
+      category: "Routine Schedule",
+      text: "Repeat analysis when appropriate in 7 to 10 days for regular preventative monitoring.",
+      checked: false
+    });
+  }
+
+  return items;
+}
+
+function renderDetailWhatToCheckNext(ctx) {
+  const panel = document.getElementById("detailWhatToCheckPanel");
+  const listContainer = document.getElementById("detailWhatToCheckList");
+
+  if (!panel || !listContainer) return;
+
+  detailWhatToCheckItems = generateDetailWhatToCheckItems(ctx);
+  panel.style.display = "block";
+
+  renderDetailWhatToCheckList();
+}
+
+function renderDetailWhatToCheckList() {
+  const listContainer = document.getElementById("detailWhatToCheckList");
+  const countBadge = document.getElementById("detailWhatToCheckCount");
+  if (!listContainer) return;
+
+  const total = detailWhatToCheckItems.length;
+  const completed = detailWhatToCheckItems.filter(i => i.checked).length;
+
+  if (countBadge) {
+    countBadge.textContent = `${completed} / ${total} Completed`;
+    if (completed === total && total > 0) {
+      countBadge.style.background = "#dcfce7";
+      countBadge.style.color = "#15803d";
+      countBadge.style.borderColor = "#86efac";
+    } else {
+      countBadge.style.background = "#ecfdf5";
+      countBadge.style.color = "#059669";
+      countBadge.style.borderColor = "#a7f3d0";
+    }
+  }
+
+  listContainer.innerHTML = detailWhatToCheckItems.map((item, idx) => `
+    <div
+      class="check-item-card ${item.checked ? 'completed' : ''}"
+      data-index="${idx}"
+      onclick="toggleDetailCheckItem(${idx})"
+    >
+      <div class="check-checkbox-wrap">
+        <input
+          type="checkbox"
+          class="check-custom-checkbox"
+          ${item.checked ? 'checked' : ''}
+          aria-label="${item.verb} ${item.category}"
+          onclick="event.stopPropagation(); toggleDetailCheckItem(${idx})"
+        />
+      </div>
+      <div class="check-item-content">
+        <div class="check-item-top">
+          <span class="check-verb">${item.verb}</span>
+          <span class="check-category-pill">${item.category}</span>
+        </div>
+        <p class="check-item-text">${item.text}</p>
+      </div>
+    </div>
+  `).join("");
+}
+
+function toggleDetailCheckItem(idx) {
+  if (detailWhatToCheckItems[idx]) {
+    detailWhatToCheckItems[idx].checked = !detailWhatToCheckItems[idx].checked;
+    renderDetailWhatToCheckList();
   }
 }

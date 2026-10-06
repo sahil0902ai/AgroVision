@@ -4094,5 +4094,131 @@ details.model-details summary:hover {
   user-select: none;
 }
 
+/* =========================================================
+   AgroVision — Farmer Action Panel: "What to Check Next"
+   ========================================================= */
+
+.what-to-check-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.what-to-check-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.what-to-check-count {
+  font-size: 11px;
+  font-weight: 700;
+  background: #ecfdf5;
+  color: #059669;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #a7f3d0;
+  transition: all 0.2s ease;
+}
+
+.what-to-check-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.check-item-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  cursor: pointer;
+}
+
+.check-item-card:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(13, 59, 46, 0.03);
+}
+
+.check-item-card.completed {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.check-item-card.completed .check-item-text {
+  text-decoration: line-through;
+  color: #64748b;
+}
+
+.check-checkbox-wrap {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.check-custom-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid #94a3b8;
+  background: #ffffff;
+  cursor: pointer;
+  accent-color: #059669;
+}
+
+.check-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.check-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.check-category-pill {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.check-verb {
+  font-weight: 800;
+  color: #0d3b2e;
+  background: #ecfdf5;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid #a7f3d0;
+}
+
+.check-item-text {
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.5;
+  margin: 0;
+}
+
+
 
 
