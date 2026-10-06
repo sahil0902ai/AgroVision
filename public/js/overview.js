@@ -877,6 +877,9 @@ async function fetchOverviewWeather(lat, lon, forceRefresh = false) {
       oSub.textContent = `${(ozoneVal / 1000).toFixed(3)} ppm Ground O₃`;
     }
 
+    // 6. Render Weather Forecast Widget
+    renderForecastWidget(data);
+
     if (errorBox) errorBox.style.display = "none";
   } catch (err) {
     console.warn("Overview weather error:", err);
@@ -901,6 +904,106 @@ async function fetchOverviewWeather(lat, lon, forceRefresh = false) {
     if (refreshBtn) {
       refreshBtn.textContent = "🔄 Refresh";
       refreshBtn.disabled = false;
+    }
+  }
+}
+
+function toggleExtendedForecast() {
+  const drawer = document.getElementById("forecastExtendedDrawer");
+  const btnText = document.getElementById("toggleForecastBtnText");
+  if (!drawer) return;
+  const isHidden = drawer.style.display === "none" || drawer.style.display === "";
+  drawer.style.display = isHidden ? "block" : "none";
+  if (btnText) {
+    btnText.textContent = isHidden ? "Hide Extended Forecast" : "View 7 Days";
+  }
+}
+
+function renderForecastWidget(data) {
+  if (!data || !data.forecast) return;
+  const f = data.forecast;
+  const daily = f.daily_forecast || [];
+
+  const locEl = document.getElementById("forecastLocationName");
+  const issuedEl = document.getElementById("forecastIssuedAt");
+  if (locEl) locEl.textContent = data.location?.name || "Monitored Parcel";
+  if (issuedEl) {
+    const d = new Date(data.observed_at || Date.now());
+    issuedEl.textContent = `Issued: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · 5-Day Horizon`;
+  }
+
+  // Populate 3 primary cards: 0 (Today), 1 (Tomorrow), 2 (Day After)
+  for (let i = 0; i < 3; i++) {
+    const day = daily[i];
+    const lblEl = document.getElementById(`fDay${i}Label`);
+    const dtEl = document.getElementById(`fDay${i}Date`);
+    const iconEl = document.getElementById(`fDay${i}Icon`);
+    const tempEl = document.getElementById(`fDay${i}Temp`);
+    const rangeEl = document.getElementById(`fDay${i}Range`);
+    const condEl = document.getElementById(`fDay${i}Cond`);
+    const rainEl = document.getElementById(`fDay${i}Rain`);
+    const popEl = document.getElementById(`fDay${i}Pop`);
+    const popBarEl = document.getElementById(`fDay${i}PopBar`);
+    const badgeEl = document.getElementById(`fDay${i}Badge`);
+    const advEl = document.getElementById(`fDay${i}Advice`);
+
+    if (day) {
+      if (lblEl) lblEl.textContent = day.day_label || (i === 0 ? "Today" : (i === 1 ? "Tomorrow" : "Day After"));
+      if (dtEl) dtEl.textContent = day.formatted_date || day.date_iso;
+      if (iconEl) iconEl.textContent = day.icon || "☀️";
+      if (tempEl) tempEl.textContent = `${day.temp_max_c.toFixed(1)} °C`;
+      if (rangeEl) rangeEl.textContent = `H: ${day.temp_max_c.toFixed(0)}° / L: ${day.temp_min_c.toFixed(0)}°C`;
+      if (condEl) condEl.textContent = day.weather_description || day.weather_condition;
+      if (rainEl) rainEl.textContent = `${day.rainfall_total_mm.toFixed(1)} mm`;
+      
+      const popPct = Math.round((day.rain_probability_max || 0) * 100);
+      if (popEl) popEl.textContent = `${popPct}%`;
+      if (popBarEl) popBarEl.style.width = `${Math.min(100, Math.max(0, popPct))}%`;
+
+      if (badgeEl) {
+        badgeEl.className = `forecast-agri-badge ${day.agri_risk_level === "High" ? "agri-badge-high" : (day.agri_risk_level === "Moderate" ? "agri-badge-moderate" : "agri-badge-low")}`;
+      }
+      if (advEl) {
+        advEl.textContent = day.agri_advice || (day.agri_risk_level === "High" ? "Elevated abiotic risk" : "Favorable conditions");
+      }
+    }
+  }
+
+  // Populate Extended Table
+  const tbody = document.getElementById("forecastExtendedTbody");
+  if (tbody) {
+    if (daily.length > 0) {
+      tbody.innerHTML = daily.map((d) => {
+        const popPct = Math.round((d.rain_probability_max || 0) * 100);
+        const riskClass = d.agri_risk_level === "High" ? "agri-badge-high" : (d.agri_risk_level === "Moderate" ? "agri-badge-moderate" : "agri-badge-low");
+        return `
+          <tr>
+            <td><strong>${d.day_label}</strong></td>
+            <td style="color:#64748b;">${d.formatted_date}</td>
+            <td>
+              <span style="font-size:14px; margin-right:4px;">${d.icon}</span>
+              <span style="font-weight:600;">${d.weather_condition}</span>
+            </td>
+            <td><strong>${d.temp_max_c.toFixed(1)}°</strong> / ${d.temp_min_c.toFixed(1)}°C</td>
+            <td><span style="color:#0284c7; font-weight:700;">${d.rainfall_total_mm.toFixed(1)} mm</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span>${popPct}%</span>
+                <div style="width:40px; height:4px; background:#e2e8f0; border-radius:999px; overflow:hidden;">
+                  <div style="height:100%; width:${popPct}%; background:#0284c7;"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="forecast-agri-badge ${riskClass}" style="display:inline-flex; padding:2px 6px;">
+                ${d.agri_advice}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    } else {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:16px; color:#64748b;">No extended forecast records available from station.</td></tr>`;
     }
   }
 }

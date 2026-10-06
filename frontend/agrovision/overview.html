@@ -620,6 +620,160 @@
 
         </div>
 
+        <!-- ============ POWER BI WEATHER FORECAST WIDGET ============ -->
+        <div class="weather-forecast-card" id="overviewForecastCard">
+          <div class="forecast-card-header">
+            <div class="forecast-card-title-group">
+              <div class="forecast-card-icon">📅</div>
+              <div>
+                <h3 class="forecast-card-title">
+                  Weather Forecast
+                  <span class="weather-source-badge" id="forecastSourceBadge">AUTO • OpenWeather</span>
+                </h3>
+                <div class="forecast-card-subtitle">
+                  <span id="forecastLocationName" style="font-weight:700; color:#0f172a;">Field A — Wardha South Station</span>
+                  <span style="margin:0 4px; color:#cbd5e1;">•</span>
+                  <span id="forecastIssuedAt" style="color:#64748b;">Issued: Live Station Forecast</span>
+                  <span style="margin:0 4px; color:#cbd5e1;">•</span>
+                  <span style="color:#059669; font-weight:700;">Agricultural Outlook</span>
+                </div>
+              </div>
+            </div>
+            <div class="forecast-card-actions">
+              <button type="button" class="btn-view-extended" id="toggleForecastDaysBtn" onclick="toggleExtendedForecast()">
+                <span>📊</span>
+                <span id="toggleForecastBtnText">View 7 Days</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3-Day Primary Grid (Today, Tomorrow, Day After) -->
+          <div class="forecast-primary-grid" id="forecastPrimaryGrid">
+            
+            <!-- Day 1: Today -->
+            <div class="forecast-day-tile today-highlight" id="forecastDayTile0">
+              <div class="forecast-day-top">
+                <span class="forecast-day-label" id="fDay0Label">Today</span>
+                <span class="forecast-day-date" id="fDay0Date">--</span>
+              </div>
+              <div class="forecast-day-main">
+                <div class="forecast-weather-icon" id="fDay0Icon">☀️</div>
+                <div class="forecast-temp-box">
+                  <div class="forecast-temp-val" id="fDay0Temp">-- °C</div>
+                  <div class="forecast-temp-range" id="fDay0Range">-- / -- °C</div>
+                </div>
+              </div>
+              <div class="forecast-condition-text" id="fDay0Cond">Clear Sky</div>
+              <div class="forecast-metrics-row">
+                <div class="forecast-metric-mini">
+                  <span class="forecast-mini-lbl">Rainfall</span>
+                  <span class="forecast-mini-val" id="fDay0Rain">0.0 mm</span>
+                </div>
+                <div class="forecast-metric-mini">
+                  <span class="forecast-mini-lbl">Rain Probability</span>
+                  <span class="forecast-mini-val" id="fDay0Pop">0%</span>
+                  <div class="forecast-pop-bar-wrap">
+                    <div class="forecast-pop-bar-fill" id="fDay0PopBar" style="width:0%;"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="forecast-agri-badge agri-badge-low" id="fDay0Badge">
+                <span>🌱</span> <span id="fDay0Advice">Optimal scouting &amp; spray window</span>
+              </div>
+            </div>
+
+            <!-- Day 2: Tomorrow -->
+            <div class="forecast-day-tile" id="forecastDayTile1">
+              <div class="forecast-day-top">
+                <span class="forecast-day-label" id="fDay1Label">Tomorrow</span>
+                <span class="forecast-day-date" id="fDay1Date">--</span>
+              </div>
+              <div class="forecast-day-main">
+                <div class="forecast-weather-icon" id="fDay1Icon">⛅</div>
+                <div class="forecast-temp-box">
+                  <div class="forecast-temp-val" id="fDay1Temp">-- °C</div>
+                  <div class="forecast-temp-range" id="fDay1Range">-- / -- °C</div>
+                </div>
+              </div>
+              <div class="forecast-condition-text" id="fDay1Cond">Partly Cloudy</div>
+              <div class="forecast-metrics-row">
+                <div class="forecast-metric-mini">
+                  <span class="forecast-mini-lbl">Rainfall</span>
+                  <span class="forecast-mini-val" id="fDay1Rain">0.0 mm</span>
+                </div>
+                <div class="forecast-metric-mini">
+                  <span class="forecast-mini-lbl">Rain Probability</span>
+                  <span class="forecast-mini-val" id="fDay1Pop">0%</span>
+                  <div class="forecast-pop-bar-wrap">
+                    <div class="forecast-pop-bar-fill" id="fDay1PopBar" style="width:0%;"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="forecast-agri-badge agri-badge-low" id="fDay1Badge">
+                <span>🌱</span> <span id="fDay1Advice">Favorable canopy conditions</span>
+              </div>
+            </div>
+
+            <!-- Day 3: Day After -->
+            <div class="forecast-day-tile" id="forecastDayTile2">
+              <div class="forecast-day-top">
+                <span class="forecast-day-label" id="fDay2Label">Day After</span>
+                <span class="forecast-day-date" id="fDay2Date">--</span>
+              </div>
+              <div class="forecast-day-main">
+                <div class="forecast-weather-icon" id="fDay2Icon">🌤️</div>
+                <div class="forecast-temp-box">
+                  <div class="forecast-temp-val" id="fDay2Temp">-- °C</div>
+                  <div class="forecast-temp-range" id="fDay2Range">-- / -- °C</div>
+                </div>
+              </div>
+              <div class="forecast-condition-text" id="fDay2Cond">Stable</div>
+              <div class="forecast-metrics-row">
+                <div class="forecast-metric-mini">
+                  <span class="forecast-mini-lbl">Rainfall</span>
+                  <span class="forecast-mini-val" id="fDay2Rain">0.0 mm</span>
+                </div>
+                <div class="forecast-metric-mini">
+                  <span class="forecast-mini-lbl">Rain Probability</span>
+                  <span class="forecast-mini-val" id="fDay2Pop">0%</span>
+                  <div class="forecast-pop-bar-wrap">
+                    <div class="forecast-pop-bar-fill" id="fDay2PopBar" style="width:0%;"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="forecast-agri-badge agri-badge-low" id="fDay2Badge">
+                <span>🌱</span> <span id="fDay2Advice">Low abiotic stress risk</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Extended 5-7 Days Collapsible Drawer -->
+          <div class="forecast-extended-drawer" id="forecastExtendedDrawer" style="display:none;">
+            <div style="font-size:11px; font-weight:700; color:#334155; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+              <span>📅 Multi-Day Agronomic Forecast Horizon (OpenWeather 5-Day Model)</span>
+              <span style="font-size:10px; color:#64748b;">Daily Microclimate Summary</span>
+            </div>
+            <table class="forecast-extended-table">
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th>Date</th>
+                  <th>Condition</th>
+                  <th>Temp Range</th>
+                  <th>Rainfall</th>
+                  <th>Precip. Chance</th>
+                  <th>Agricultural Risk Guidance</th>
+                </tr>
+              </thead>
+              <tbody id="forecastExtendedTbody">
+                <!-- Populated dynamically from actual API daily_forecast -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
         <!-- 2. Power BI Top KPI Cards Row -->
         <div class="kpi-grid-4">
           

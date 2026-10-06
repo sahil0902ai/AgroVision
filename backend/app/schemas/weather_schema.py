@@ -30,6 +30,22 @@ class ForecastItem(BaseModel):
     weather_description: str = "clear sky"
 
 
+class DailyForecastItem(BaseModel):
+    date_iso: str = Field(..., description="Date in YYYY-MM-DD format")
+    day_label: str = Field(..., description="Today, Tomorrow, Day After, or weekday name")
+    formatted_date: str = Field(..., description="Short date display e.g. Oct 6")
+    temp_min_c: float = Field(..., description="Minimum daily temperature in °C")
+    temp_max_c: float = Field(..., description="Maximum daily temperature in °C")
+    temp_avg_c: float = Field(..., description="Average daily temperature in °C")
+    rainfall_total_mm: float = Field(0.0, description="Total daily precipitation in mm")
+    rain_probability_max: float = Field(0.0, description="Peak probability of precipitation (0.0 - 1.0)")
+    weather_condition: str = Field("Clear", description="Dominant weather condition")
+    weather_description: str = Field("clear sky", description="Dominant weather condition description")
+    icon: str = Field("☀️", description="Agricultural weather emoji/icon")
+    agri_risk_level: str = Field("Low", description="Agricultural abiotic risk level: Low, Moderate, High")
+    agri_advice: str = Field("Favorable conditions", description="Short agronomic field advice")
+
+
 class ForecastWeather(BaseModel):
     next_24h_rainfall_mm: float = Field(0.0, description="Expected total precipitation over next 24 hours")
     next_48h_rainfall_mm: float = Field(0.0, description="Expected total precipitation over next 48 hours")
@@ -37,6 +53,7 @@ class ForecastWeather(BaseModel):
     rainfall_forecast_mm: float = Field(0.0, description="Forecast rainfall amount")
     summary: str = Field("Stable weather forecast.", description="Human-readable forecast summary")
     forecast_items: List[ForecastItem] = Field(default_factory=list)
+    daily_forecast: List[DailyForecastItem] = Field(default_factory=list)
 
 
 class AirQualityInfo(BaseModel):

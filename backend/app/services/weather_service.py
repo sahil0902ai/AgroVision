@@ -10,6 +10,7 @@ from ..schemas.weather_schema import (
     AirQualityInfo,
     CanonicalWeatherResponse,
     CurrentWeather,
+    DailyForecastItem,
     ForecastItem,
     ForecastWeather,
     LocationInfo,
@@ -239,12 +240,15 @@ class WeatherService:
             pressure_hpa=pressure,
         )
 
-        # Forecast Processing (next 24h = 8 steps, next 48h = 16 steps of 3h intervals)
+        # Forecast Processing (3h intervals + Daily Aggregation)
         forecast_list = fore.get("list", [])
         next_24h_rain = 0.0
         next_48h_rain = 0.0
         max_pop = 0.0
         forecast_items: List[ForecastItem] = []
+        
+        # Group by Date (YYYY-MM-DD)
+        daily_groups: Dict[str, List[Dict[str, Any]]] = {}
 
         for idx, item in enumerate(forecast_list):
             item_rain = float(item.get("rain", {}).get("3h", 0.0))
@@ -256,12 +260,19 @@ class WeatherService:
             if idx < 16 and item_pop > max_pop:
                 max_pop = item_pop
 
+            dt_txt = item.get("dt_txt", "")
+            date_key = dt_txt[:10] if len(dt_txt) >= 10 else ""
+            if date_key:
+                if date_key not in daily_groups:
+                    daily_groups[date_key] = []
+                daily_groups[date_key].append(item)
+
             if idx < 8:  # store next 24h timeline
                 item_main = item.get("main", {})
                 item_w = item.get("weather", [{}])[0]
                 forecast_items.append(
                     ForecastItem(
-                        timestamp_iso=item.get("dt_txt", ""),
+                        timestamp_iso=dt_txt,
                         temperature_c=round(float(item_main.get("temp", temp_c)), 1),
                         humidity_percent=round(float(item_main.get("humidity", hum_pct)), 1),
                         rainfall_mm=round(item_rain, 1),
@@ -270,6 +281,95 @@ class WeatherService:
                         weather_description=item_w.get("description", "clear sky"),
                     )
                 )
+
+        # Build Daily Forecast Items (Today, Tomorrow, Day After, and extended days)
+        daily_forecast: List[DailyForecastItem] = []
+        sorted_dates = sorted(daily_groups.keys())
+
+        for d_idx, d_key in enumerate(sorted_dates):
+            items_for_day = daily_groups[d_key]
+            temps = [float(it.get("main", {}).get("temp", temp_c)) for it in items_for_day]
+            rain_sum = sum(float(it.get("rain", {}).get("3h", 0.0)) for it in items_for_day)
+            pops = [float(it.get("pop", 0.0)) for it in items_for_day]
+            max_day_pop = max(pops) if pops else 0.0
+
+            # Determine dominant condition
+            conditions = [it.get("weather", [{}])[0].get("main", "Clear") for it in items_for_day if it.get("weather")]
+            descriptions = [it.get("weather", [{}])[0].get("description", "clear sky") for it in items_for_day if it.get("weather")]
+            
+            dom_cond = "Clear"
+            dom_desc = "clear sky"
+            if any("Thunderstorm" in c for c in conditions):
+                dom_cond = "Thunderstorm"
+                dom_desc = "thunderstorm activity"
+            elif any("Rain" in c or "Drizzle" in c for c in conditions):
+                dom_cond = "Rain"
+                dom_desc = "light or moderate rain"
+            elif any("Clouds" in c for c in conditions):
+                dom_cond = "Clouds"
+                dom_desc = "partly cloudy"
+            elif conditions:
+                dom_cond = conditions[0]
+                dom_desc = descriptions[0] if descriptions else "clear sky"
+
+            # Emoji Icon
+            if "Thunderstorm" in dom_cond:
+                icon = "⛈️"
+            elif "Rain" in dom_cond or "Drizzle" in dom_cond:
+                icon = "🌧️"
+            elif "Clouds" in dom_cond:
+                icon = "⛅"
+            elif "Snow" in dom_cond:
+                icon = "❄️"
+            else:
+                icon = "☀️"
+
+            # Day Label & Formatted Date
+            try:
+                dt_obj = datetime.strptime(d_key, "%Y-%m-%d")
+                formatted_dt = dt_obj.strftime("%b %d")
+                weekday_name = dt_obj.strftime("%A")
+            except Exception:
+                formatted_dt = d_key
+                weekday_name = f"Day {d_idx+1}"
+
+            if d_idx == 0:
+                day_label = "Today"
+            elif d_idx == 1:
+                day_label = "Tomorrow"
+            elif d_idx == 2:
+                day_label = "Day After"
+            else:
+                day_label = weekday_name
+
+            # Agricultural Risk Level & Advice
+            if rain_sum >= 20.0 or (temps and max(temps) >= 41.0):
+                risk_lvl = "High"
+                advice = "High abiotic risk: delay foliar spraying & check drainage" if rain_sum >= 20.0 else "Extreme heat stress: schedule early morning irrigation"
+            elif rain_sum >= 5.0 or max_day_pop >= 0.50 or (temps and max(temps) >= 36.0):
+                risk_lvl = "Moderate"
+                advice = "Moderate showers possible; monitor soil moisture" if max_day_pop >= 0.50 else "Warm temperatures; ensure steady soil hydration"
+            else:
+                risk_lvl = "Low"
+                advice = "Favorable canopy development and pest scouting window"
+
+            daily_forecast.append(
+                DailyForecastItem(
+                    date_iso=d_key,
+                    day_label=day_label,
+                    formatted_date=formatted_dt,
+                    temp_min_c=round(min(temps), 1) if temps else round(temp_c, 1),
+                    temp_max_c=round(max(temps), 1) if temps else round(temp_c, 1),
+                    temp_avg_c=round(sum(temps) / len(temps), 1) if temps else round(temp_c, 1),
+                    rainfall_total_mm=round(rain_sum, 1),
+                    rain_probability_max=round(max_day_pop, 2),
+                    weather_condition=dom_cond,
+                    weather_description=dom_desc,
+                    icon=icon,
+                    agri_risk_level=risk_lvl,
+                    agri_advice=advice,
+                )
+            )
 
         if next_24h_rain >= 15.0:
             fore_summary = f"Heavy rainfall expected ({next_24h_rain:.1f} mm in 24h, {max_pop*100:.0f}% chance). High waterlogging risk."
@@ -287,6 +387,7 @@ class WeatherService:
             rainfall_forecast_mm=round(next_24h_rain, 1),
             summary=fore_summary,
             forecast_items=forecast_items,
+            daily_forecast=daily_forecast,
         )
 
         # Air Pollution Normalization
