@@ -631,8 +631,357 @@ function renderForecastWidget(data) {
   }
 }
 
+// =========================================================
+// ANALYSIS TREND (POWER BI-STYLE HISTORICAL LINE CHART)
+// =========================================================
+
+let currentTrendPeriod = "30d";
+let trendStartDate = null;
+let trendEndDate = null;
+let trendChartInstance = null;
+let trendHiddenSeries = { healthy: false, stressed: false };
+let latestTrendData = null;
+
+async function fetchAnalysisTrend(period = "30d", startDate = null, endDate = null) {
+  currentTrendPeriod = period;
+  const loadingEl = document.getElementById("trendLoadingState");
+  const emptyEl = document.getElementById("trendEmptyState");
+  const canvasWrapEl = document.getElementById("trendCanvasWrap");
+
+  if (loadingEl) loadingEl.style.display = "flex";
+  if (emptyEl) emptyEl.style.display = "none";
+  if (canvasWrapEl) canvasWrapEl.style.opacity = "0.3";
+
+  try {
+    let url = getApiUrl(`/api/v1/analytics/trend?period=${encodeURIComponent(period)}`);
+    if (period === "custom" && startDate) {
+      url += `&start_date=${encodeURIComponent(startDate)}`;
+      if (endDate) url += `&end_date=${encodeURIComponent(endDate)}`;
+    }
+
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: Trend data could not be fetched.`);
+    }
+
+    const data = await res.json();
+    latestTrendData = data;
+
+    // Update Top Summary Badges & Totals
+    const healthyBadge = document.getElementById("trendLegendHealthy");
+    const stressedBadge = document.getElementById("trendLegendStressed");
+    const totalSessions = document.getElementById("trendTotalSessions");
+    const healthRatio = document.getElementById("trendHealthRatio");
+
+    if (healthyBadge) healthyBadge.textContent = String(data.summary?.healthy_total || 0);
+    if (stressedBadge) stressedBadge.textContent = String(data.summary?.stressed_total || 0);
+    if (totalSessions) totalSessions.textContent = String(data.summary?.total || 0);
+    if (healthRatio) {
+      const tot = data.summary?.total || 0;
+      const hCount = data.summary?.healthy_total || 0;
+      healthRatio.textContent = tot > 0 ? `${Math.round((hCount / tot) * 100)}%` : "--%";
+    }
+
+    if (loadingEl) loadingEl.style.display = "none";
+
+    // Handle Insufficient History / Zero Data State
+    if (!data.has_sufficient_data || (data.total_records === 0)) {
+      if (emptyEl) emptyEl.style.display = "flex";
+      if (canvasWrapEl) canvasWrapEl.style.display = "none";
+      if (trendChartInstance) {
+        trendChartInstance.destroy();
+        trendChartInstance = null;
+      }
+      return;
+    }
+
+    // Has real database records
+    if (emptyEl) emptyEl.style.display = "none";
+    if (canvasWrapEl) {
+      canvasWrapEl.style.display = "block";
+      canvasWrapEl.style.opacity = "1";
+    }
+
+    renderAnalysisTrendChart(data);
+
+  } catch (err) {
+    console.error("Analysis Trend fetch error:", err);
+    if (loadingEl) loadingEl.style.display = "none";
+    if (emptyEl) emptyEl.style.display = "flex";
+    if (canvasWrapEl) canvasWrapEl.style.display = "none";
+  }
+}
+
+function setTrendPeriod(period) {
+  const pillsContainer = document.getElementById("trendFilterPills");
+  if (pillsContainer) {
+    const buttons = pillsContainer.querySelectorAll(".trend-pill-btn");
+    buttons.forEach(btn => {
+      if (btn.getAttribute("data-period") === period) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+  }
+
+  const customDatesWrap = document.getElementById("trendCustomDates");
+  if (period === "custom") {
+    if (customDatesWrap) {
+      customDatesWrap.style.display = "flex";
+      const startInput = document.getElementById("trendStartDate");
+      const endInput = document.getElementById("trendEndDate");
+      if (startInput && !startInput.value) {
+        const d30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        startInput.value = d30.toISOString().split("T")[0];
+      }
+      if (endInput && !endInput.value) {
+        endInput.value = new Date().toISOString().split("T")[0];
+      }
+    }
+  } else {
+    if (customDatesWrap) customDatesWrap.style.display = "none";
+    fetchAnalysisTrend(period);
+  }
+}
+
+function applyCustomTrendRange() {
+  const startInput = document.getElementById("trendStartDate");
+  const endInput = document.getElementById("trendEndDate");
+  const startVal = startInput?.value;
+  const endVal = endInput?.value;
+
+  if (!startVal) {
+    alert("Please select a valid start date.");
+    return;
+  }
+  fetchAnalysisTrend("custom", startVal, endVal);
+}
+
+function toggleTrendSeries(seriesKey) {
+  if (seriesKey === "healthy") {
+    trendHiddenSeries.healthy = !trendHiddenSeries.healthy;
+    const item = document.getElementById("legendItemHealthy");
+    if (item) item.classList.toggle("hidden-series", trendHiddenSeries.healthy);
+  } else if (seriesKey === "stressed") {
+    trendHiddenSeries.stressed = !trendHiddenSeries.stressed;
+    const item = document.getElementById("legendItemStressed");
+    if (item) item.classList.toggle("hidden-series", trendHiddenSeries.stressed);
+  }
+
+  if (trendChartInstance) {
+    const healthyDataset = trendChartInstance.data.datasets.find(ds => ds.label === "Healthy");
+    const stressedDataset = trendChartInstance.data.datasets.find(ds => ds.label === "Stressed");
+    if (healthyDataset) healthyDataset.hidden = trendHiddenSeries.healthy;
+    if (stressedDataset) stressedDataset.hidden = trendHiddenSeries.stressed;
+    trendChartInstance.update();
+  }
+}
+
+function renderAnalysisTrendChart(data) {
+  const canvas = document.getElementById("analysisTrendCanvas");
+  if (!canvas) return;
+
+  if (trendChartInstance) {
+    trendChartInstance.destroy();
+    trendChartInstance = null;
+  }
+
+  const ctx = canvas.getContext("2d");
+
+  // Check if Chart.js is loaded
+  if (typeof Chart !== "undefined") {
+    // Gradient backgrounds for smooth line fills
+    const healthyGradient = ctx.createLinearGradient(0, 0, 0, 240);
+    healthyGradient.addColorStop(0, "rgba(5, 150, 105, 0.22)");
+    healthyGradient.addColorStop(1, "rgba(5, 150, 105, 0.0)");
+
+    const stressedGradient = ctx.createLinearGradient(0, 0, 0, 240);
+    stressedGradient.addColorStop(0, "rgba(234, 88, 12, 0.22)");
+    stressedGradient.addColorStop(1, "rgba(234, 88, 12, 0.0)");
+
+    trendChartInstance = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: data.series.dates,
+        datasets: [
+          {
+            label: "Healthy",
+            data: data.series.healthy,
+            borderColor: "#059669",
+            backgroundColor: healthyGradient,
+            fill: true,
+            tension: 0.35,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: "#059669",
+            pointBorderColor: "#ffffff",
+            pointBorderWidth: 2,
+            borderWidth: 2.5,
+            hidden: trendHiddenSeries.healthy
+          },
+          {
+            label: "Stressed",
+            data: data.series.stressed,
+            borderColor: "#ea580c",
+            backgroundColor: stressedGradient,
+            fill: true,
+            tension: 0.35,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: "#ea580c",
+            pointBorderColor: "#ffffff",
+            pointBorderWidth: 2,
+            borderWidth: 2.5,
+            hidden: trendHiddenSeries.stressed
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            display: false // Using custom Power BI analytical legend
+          },
+          tooltip: {
+            backgroundColor: "#0f172a",
+            titleFont: { size: 12, weight: "bold", family: "Inter, sans-serif" },
+            bodyFont: { size: 11.5, family: "Inter, sans-serif" },
+            padding: 10,
+            cornerRadius: 8,
+            boxPadding: 4,
+            callbacks: {
+              title: function(items) {
+                if (!items.length) return "";
+                const idx = items[0].dataIndex;
+                const dp = data.data_points[idx];
+                return dp ? `${dp.day_name}, ${dp.label} (${dp.date})` : items[0].label;
+              },
+              label: function(context) {
+                const val = context.parsed.y || 0;
+                return ` ${context.dataset.label}: ${val} scans`;
+              },
+              footer: function(items) {
+                let total = 0;
+                items.forEach(i => { total += (i.parsed.y || 0); });
+                return total > 0 ? `Total: ${total} verified sessions` : "";
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: "#64748b",
+              font: { size: 11, family: "Inter, sans-serif" },
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 12
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: "#f1f5f9",
+              borderDash: [3, 3]
+            },
+            ticks: {
+              color: "#64748b",
+              font: { size: 11, family: "Inter, sans-serif" },
+              precision: 0,
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+  } else {
+    // Lightweight canvas fallback if Chart.js is offline/unavailable
+    renderCanvasTrendFallback(ctx, canvas, data);
+  }
+}
+
+function renderCanvasTrendFallback(ctx, canvas, data) {
+  const w = canvas.parentElement.clientWidth || 600;
+  const h = 240;
+  canvas.width = w * window.devicePixelRatio;
+  canvas.height = h * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.font = "11px Inter, sans-serif";
+
+  const padding = { top: 20, right: 20, bottom: 30, left: 40 };
+  const chartW = w - padding.left - padding.right;
+  const chartH = h - padding.top - padding.bottom;
+
+  const maxVal = Math.max(1, ...data.series.healthy, ...data.series.stressed);
+  const n = data.series.dates.length;
+
+  // Draw grid lines
+  ctx.strokeStyle = "#f1f5f9";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  for (let i = 0; i <= 4; i++) {
+    const y = padding.top + (chartH / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(w - padding.right, y);
+    ctx.stroke();
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText(String(Math.round(maxVal * (1 - i / 4))), 8, y + 4);
+  }
+  ctx.setLineDash([]);
+
+  // Draw Series Line Helper
+  function drawLine(points, color) {
+    if (points.length < 2) return;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    points.forEach((val, i) => {
+      const x = padding.left + (i / (n - 1 || 1)) * chartW;
+      const y = padding.top + (1 - val / maxVal) * chartH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Draw dots
+    ctx.fillStyle = color;
+    points.forEach((val, i) => {
+      const x = padding.left + (i / (n - 1 || 1)) * chartW;
+      const y = padding.top + (1 - val / maxVal) * chartH;
+      ctx.beginPath();
+      ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  if (!trendHiddenSeries.healthy) drawLine(data.series.healthy, "#059669");
+  if (!trendHiddenSeries.stressed) drawLine(data.series.stressed, "#ea580c");
+
+  // Draw X labels
+  ctx.fillStyle = "#64748b";
+  const step = Math.max(1, Math.floor(n / 6));
+  for (let i = 0; i < n; i += step) {
+    const x = padding.left + (i / (n - 1 || 1)) * chartW;
+    ctx.fillText(data.series.dates[i], x - 12, h - 8);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   loadOverviewData();
+  fetchAnalysisTrend("30d");
 
   const refreshBtn = document.getElementById("overviewWeatherRefreshBtn");
   if (refreshBtn) {

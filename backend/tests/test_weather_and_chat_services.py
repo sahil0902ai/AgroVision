@@ -206,7 +206,6 @@ class TestHttpIntegration(unittest.TestCase):
             rec_uuid = data["record_uuid"]
             self.assertTrue(rec_uuid.startswith("AV-"))
 
-            # Now verify retrieval of record from GET /api/v1/records/{uuid}
             detail_req = urllib.request.Request(f"{BASE_URL}/api/v1/records/{rec_uuid}")
             with urllib.request.urlopen(detail_req) as d_resp:
                 rec_data = json.loads(d_resp.read().decode())
@@ -215,6 +214,35 @@ class TestHttpIntegration(unittest.TestCase):
                 self.assertIsNotNone(rec_data["weather_context_json"])
                 w_obj = json.loads(rec_data["weather_context_json"])
                 self.assertEqual(w_obj["location"]["name"], "Wardha")
+
+    def test_get_analytics_trend_30d(self):
+        req = urllib.request.Request(f"{BASE_URL}/api/v1/analytics/trend?period=30d")
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read().decode())
+            self.assertEqual(data["period"], "30d")
+            self.assertIn("has_sufficient_data", data)
+            self.assertIn("series", data)
+            self.assertIn("healthy", data["series"])
+            self.assertIn("stressed", data["series"])
+            self.assertIn("dates", data["series"])
+            self.assertIn("summary", data)
+
+    def test_get_analytics_trend_7d(self):
+        req = urllib.request.Request(f"{BASE_URL}/api/v1/analytics/trend?period=7d")
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read().decode())
+            self.assertEqual(data["period"], "7d")
+            self.assertIn("has_sufficient_data", data)
+            self.assertIn("data_points", data)
+
+    def test_get_analytics_trend_empty_custom_range(self):
+        req = urllib.request.Request(f"{BASE_URL}/api/v1/analytics/trend?period=custom&start_date=2020-01-01&end_date=2020-01-05")
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read().decode())
+            self.assertEqual(data["period"], "custom")
+            self.assertFalse(data["has_sufficient_data"])
+            self.assertEqual(data["message"], "Not enough data for trend analysis")
+            self.assertEqual(data["total_records"], 0)
 
 
 if __name__ == "__main__":
