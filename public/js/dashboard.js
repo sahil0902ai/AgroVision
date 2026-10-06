@@ -82,7 +82,48 @@ function resetEnvSliders() {
   updateEnvDisplay();
 }
 
-// View Switcher (Figures 4, 5, 6, 7)
+// Power BI-inspired Step Progress Manager
+function updateStepperProgress() {
+  const b1 = document.getElementById("stepBadge1");
+  const b2 = document.getElementById("stepBadge2");
+  const b3 = document.getElementById("stepBadge3");
+  const b4 = document.getElementById("stepBadge4");
+  
+  const btn1 = document.getElementById("stepBtnInput");
+  const btn2 = document.getElementById("stepBtnCNN");
+  const btn3 = document.getElementById("stepBtnSNN");
+  const btn4 = document.getElementById("stepBtnCombined");
+
+  if (latestCNNResult) {
+    if (b1) b1.textContent = "✓";
+    if (b2) b2.textContent = "✓";
+    if (btn1) btn1.classList.add("completed");
+    if (btn2) btn2.classList.add("completed");
+  } else {
+    if (b1) b1.textContent = "1";
+    if (b2) b2.textContent = "2";
+    if (btn1) btn1.classList.remove("completed");
+    if (btn2) btn2.classList.remove("completed");
+  }
+
+  if (latestSNNResult) {
+    if (b3) b3.textContent = "✓";
+    if (btn3) btn3.classList.add("completed");
+  } else {
+    if (b3) b3.textContent = "3";
+    if (btn3) btn3.classList.remove("completed");
+  }
+
+  if (latestCombinedData) {
+    if (b4) b4.textContent = "✓";
+    if (btn4) btn4.classList.add("completed");
+  } else {
+    if (b4) b4.textContent = "4";
+    if (btn4) btn4.classList.remove("completed");
+  }
+}
+
+// View Switcher (Steps 1, 2, 3, 4)
 function switchView(viewName) {
   const views = {
     input: document.getElementById("viewInput"),
@@ -122,6 +163,9 @@ function switchView(viewName) {
       }
     }
   }
+
+  updateStepperProgress();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // File Selection Handler
@@ -201,6 +245,7 @@ function resetAnalysisState() {
   latestSNNResult = null;
   latestSNNPayload = null;
   latestCombinedData = null;
+  updateStepperProgress();
   switchView('input');
 }
 
