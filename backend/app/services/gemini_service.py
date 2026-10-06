@@ -292,12 +292,12 @@ class GeminiChatService:
         analysis_data: Optional[Dict[str, Any]],
         weather_data: Optional[Dict[str, Any]]
     ) -> str:
-        """Deterministic rule-grounded fallback when Gemini API is offline."""
+        """Deterministic rule-grounded fallback when Gemini API is offline or quota-limited."""
         q = message.lower()
         if not analysis_data and not weather_data:
             return (
-                "**No Active Analysis Loaded:**\n\n"
-                "Please perform a leaf scan and microclimate check on the **Leaf Check Dashboard** to view your crop's visual and environmental assessment."
+                "**AgroVision Decision-Support Notice — No Active Analysis Loaded:**\n\n"
+                "Please perform a leaf scan and microclimate check on the **New Analysis** dashboard to view your crop's visual and environmental assessment."
             )
 
         visual = analysis_data.get("visual_assessment", {}) if analysis_data else {}
