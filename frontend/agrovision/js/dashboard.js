@@ -42,42 +42,74 @@ if (currentUser) {
   }
 }
 
-// Formatters & Handlers for Environmental Sliders
+// Formatters & Handlers for Environmental Sliders & Numeric Inputs
 function handleSliderChange(type) {
   const slider = document.getElementById(`slider${type}`);
-  const display = document.getElementById(`env${type}`);
-  if (slider && display) {
+  const numInput = document.getElementById(`numInput${type}`);
+  if (slider && numInput) {
     if (type === "Temp" || type === "Rainfall") {
-      display.textContent = parseFloat(slider.value).toFixed(1);
+      numInput.value = parseFloat(slider.value).toFixed(1);
     } else {
-      display.textContent = Math.round(parseFloat(slider.value));
+      numInput.value = Math.round(parseFloat(slider.value));
+    }
+  }
+  
+  // Update badge if modified manually while in auto mode
+  if (type !== "Soil") {
+    const pill = document.getElementById(`sourcePill${type}`);
+    if (pill && envSourceMode === "auto") {
+      pill.textContent = "MANUAL INPUT";
+      pill.className = "env-source-badge badge-override";
+    }
+  }
+}
+
+function handleNumInputChange(type) {
+  const slider = document.getElementById(`slider${type}`);
+  const numInput = document.getElementById(`numInput${type}`);
+  if (slider && numInput) {
+    let val = parseFloat(numInput.value);
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 100;
+    if (!isNaN(val)) {
+      if (val < min) val = min;
+      if (val > max) val = max;
+      slider.value = val;
+    }
+  }
+
+  // Update badge if modified manually while in auto mode
+  if (type !== "Soil") {
+    const pill = document.getElementById(`sourcePill${type}`);
+    if (pill && envSourceMode === "auto") {
+      pill.textContent = "MANUAL INPUT";
+      pill.className = "env-source-badge badge-override";
     }
   }
 }
 
 function updateEnvDisplay() {
-  const sTemp = document.getElementById("sliderTemp");
-  const sHum = document.getElementById("sliderHumidity");
-  const sRain = document.getElementById("sliderRainfall");
-  const sSoil = document.getElementById("sliderSoil");
-  const sAqi = document.getElementById("sliderAqi");
-  const sOzone = document.getElementById("sliderOzone");
-
-  if (sTemp && document.getElementById("envTemp")) document.getElementById("envTemp").textContent = parseFloat(sTemp.value).toFixed(1);
-  if (sHum && document.getElementById("envHumidity")) document.getElementById("envHumidity").textContent = Math.round(parseFloat(sHum.value));
-  if (sRain && document.getElementById("envRainfall")) document.getElementById("envRainfall").textContent = parseFloat(sRain.value).toFixed(1);
-  if (sSoil && document.getElementById("envSoil")) document.getElementById("envSoil").textContent = Math.round(parseFloat(sSoil.value));
-  if (sAqi && document.getElementById("envAqi")) document.getElementById("envAqi").textContent = Math.round(parseFloat(sAqi.value));
-  if (sOzone && document.getElementById("envOzone")) document.getElementById("envOzone").textContent = Math.round(parseFloat(sOzone.value));
+  const types = ["Temp", "Humidity", "Rainfall", "Soil", "Aqi", "Ozone"];
+  types.forEach(type => {
+    const slider = document.getElementById(`slider${type}`);
+    const numInput = document.getElementById(`numInput${type}`);
+    if (slider && numInput) {
+      if (type === "Temp" || type === "Rainfall") {
+        numInput.value = parseFloat(slider.value).toFixed(1);
+      } else {
+        numInput.value = Math.round(parseFloat(slider.value));
+      }
+    }
+  });
 }
 
 function resetEnvSliders() {
   const defaults = {
-    sliderTemp: "31",
+    sliderTemp: "31.0",
     sliderHumidity: "72",
-    sliderRainfall: "18",
+    sliderRainfall: "5.0",
     sliderSoil: "68",
-    sliderAqi: "84",
+    sliderAqi: "64",
     sliderOzone: "41"
   };
   for (const [id, val] of Object.entries(defaults)) {
@@ -591,13 +623,13 @@ function applyWeatherToSliders(w) {
   const sAqi = document.getElementById("sliderAqi");
   const sOzone = document.getElementById("sliderOzone");
 
-  if (sTemp) sTemp.value = w.current.temperature_c.toFixed(1);
-  if (sHum) sHum.value = Math.round(w.current.humidity_percent);
-  if (sRain) sRain.value = w.current.rainfall_mm.toFixed(1);
-  if (sAqi) sAqi.value = Math.round(w.air_quality?.aqi || 84);
+  if (sTemp) sTemp.value = Math.min(50, Math.max(0, w.current.temperature_c)).toFixed(1);
+  if (sHum) sHum.value = Math.min(100, Math.max(0, Math.round(w.current.humidity_percent)));
+  if (sRain) sRain.value = Math.min(200, Math.max(0, w.current.rainfall_mm)).toFixed(1);
+  if (sAqi) sAqi.value = Math.min(500, Math.max(0, Math.round(w.air_quality?.aqi || 64)));
   if (sOzone) {
     const o3Ppb = w.air_quality?.ozone_ppb || Math.round((w.air_quality?.ozone || 0.041) * 1000);
-    sOzone.value = o3Ppb;
+    sOzone.value = Math.min(200, Math.max(0, o3Ppb));
   }
 
   updateSourceBadges("auto");
@@ -606,17 +638,15 @@ function applyWeatherToSliders(w) {
 
 function setEnvSourceMode(mode) {
   envSourceMode = mode;
-  const btnAuto = document.getElementById("sourceAutoBtn") || document.getElementById("btnSourceAuto");
-  const btnManual = document.getElementById("sourceManualBtn") || document.getElementById("btnSourceManual");
+  const btnAuto = document.getElementById("sourceAutoBtn");
+  const btnManual = document.getElementById("sourceManualBtn");
 
   if (mode === "auto") {
     if (btnAuto) {
-      btnAuto.style.background = "#059669";
-      btnAuto.style.color = "#ffffff";
+      btnAuto.className = "btn-env-mode active-auto";
     }
     if (btnManual) {
-      btnManual.style.background = "transparent";
-      btnManual.style.color = "#64748b";
+      btnManual.className = "btn-env-mode inactive";
     }
     if (currentWeatherContext) {
       applyWeatherToSliders(currentWeatherContext);
@@ -626,12 +656,10 @@ function setEnvSourceMode(mode) {
     updateSourceBadges("auto");
   } else {
     if (btnManual) {
-      btnManual.style.background = "#059669";
-      btnManual.style.color = "#ffffff";
+      btnManual.className = "btn-env-mode active-manual";
     }
     if (btnAuto) {
-      btnAuto.style.background = "transparent";
-      btnAuto.style.color = "#64748b";
+      btnAuto.className = "btn-env-mode inactive";
     }
     updateSourceBadges("manual");
   }
@@ -646,34 +674,51 @@ function updateSourceBadges(mode) {
   const pillOzone = document.getElementById("sourcePillOzone");
   const pillSoil = document.getElementById("sourcePillSoil");
 
-  const autoText = "AUTO • OpenWeather";
-  const manualText = "MANUAL ENTRY";
+  const autoText = "AUTO · Weather API";
+  const manualText = "MANUAL INPUT";
 
-  if (pillTemp) { pillTemp.textContent = isAuto ? autoText : manualText; pillTemp.style.color = isAuto ? "#059669" : "#64748b"; }
-  if (pillHum) { pillHum.textContent = isAuto ? autoText : manualText; pillHum.style.color = isAuto ? "#059669" : "#64748b"; }
-  if (pillRain) { pillRain.textContent = isAuto ? autoText : manualText; pillRain.style.color = isAuto ? "#059669" : "#64748b"; }
-  if (pillAqi) { pillAqi.textContent = isAuto ? autoText : manualText; pillAqi.style.color = isAuto ? "#059669" : "#64748b"; }
-  if (pillOzone) { pillOzone.textContent = isAuto ? autoText : manualText; pillOzone.style.color = isAuto ? "#059669" : "#64748b"; }
-  if (pillSoil) { pillSoil.textContent = "MANUAL SENSOR"; pillSoil.style.color = "#15803d"; }
+  if (pillTemp) { 
+    pillTemp.textContent = isAuto ? autoText : manualText; 
+    pillTemp.className = isAuto ? "env-source-badge badge-auto" : "env-source-badge badge-manual"; 
+  }
+  if (pillHum) { 
+    pillHum.textContent = isAuto ? autoText : manualText; 
+    pillHum.className = isAuto ? "env-source-badge badge-auto" : "env-source-badge badge-manual"; 
+  }
+  if (pillRain) { 
+    pillRain.textContent = isAuto ? autoText : manualText; 
+    pillRain.className = isAuto ? "env-source-badge badge-auto" : "env-source-badge badge-manual"; 
+  }
+  if (pillAqi) { 
+    pillAqi.textContent = isAuto ? autoText : manualText; 
+    pillAqi.className = isAuto ? "env-source-badge badge-auto" : "env-source-badge badge-manual"; 
+  }
+  if (pillOzone) { 
+    pillOzone.textContent = isAuto ? autoText : manualText; 
+    pillOzone.className = isAuto ? "env-source-badge badge-auto" : "env-source-badge badge-manual"; 
+  }
+  if (pillSoil) { 
+    pillSoil.textContent = "MANUAL INPUT"; 
+    pillSoil.className = "env-source-badge badge-manual"; 
+  }
 }
 
 // Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
-  // Bind input and change events to all 6 sliders for real-time reactivity
-  const sliderMap = [
-    { id: "sliderTemp", type: "Temp" },
-    { id: "sliderHumidity", type: "Humidity" },
-    { id: "sliderRainfall", type: "Rainfall" },
-    { id: "sliderSoil", type: "Soil" },
-    { id: "sliderAqi", type: "Aqi" },
-    { id: "sliderOzone", type: "Ozone" }
-  ];
+  // Bind input and change events to both sliders and numeric inputs for real-time reactivity
+  const variableTypes = ["Temp", "Humidity", "Rainfall", "Soil", "Aqi", "Ozone"];
 
-  sliderMap.forEach(({ id, type }) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener("input", () => handleSliderChange(type));
-      el.addEventListener("change", () => handleSliderChange(type));
+  variableTypes.forEach((type) => {
+    const slider = document.getElementById(`slider${type}`);
+    const numInput = document.getElementById(`numInput${type}`);
+
+    if (slider) {
+      slider.addEventListener("input", () => handleSliderChange(type));
+      slider.addEventListener("change", () => handleSliderChange(type));
+    }
+    if (numInput) {
+      numInput.addEventListener("input", () => handleNumInputChange(type));
+      numInput.addEventListener("change", () => handleNumInputChange(type));
     }
   });
 

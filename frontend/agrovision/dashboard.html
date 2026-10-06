@@ -452,86 +452,172 @@
 
         </div>
 
-        <!-- RIGHT: Environmental Conditions -->
+        <!-- RIGHT: Environmental Conditions (Power BI Analytical Control Surface) -->
         <div class="panel" style="display:flex; flex-direction:column; height:100%;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-            <div style="display:flex; align-items:center; gap:8px;">
+          
+          <!-- Panel Header & Mode Switcher -->
+          <div class="env-panel-header">
+            <div class="env-panel-title-wrap">
               <span style="font-size:16px;">⛅</span>
-              <h3 style="font-size:14px; color:#0d3b2e; font-weight:800; margin:0;">Environmental Conditions</h3>
+              <h3 class="env-panel-title">Environmental Conditions</h3>
             </div>
-            <div style="display:flex; background:#f1f5f9; padding:2px; border-radius:8px; border:1px solid #e2e8f0;">
-              <button type="button" id="sourceAutoBtn" onclick="setEnvSourceMode('auto')" style="padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; border:none; cursor:pointer; background:#059669; color:#ffffff;">⚡ Auto Weather</button>
-              <button type="button" id="sourceManualBtn" onclick="setEnvSourceMode('manual')" style="padding:4px 10px; font-size:11px; font-weight:600; border-radius:6px; border:none; cursor:pointer; background:transparent; color:#64748b;">✍️ Manual Entry</button>
+            <div class="env-mode-toggle">
+              <button type="button" id="sourceAutoBtn" class="btn-env-mode active-auto" onclick="setEnvSourceMode('auto')" title="Stream live microclimate data from Weather API">
+                ⚡ Auto Weather
+              </button>
+              <button type="button" id="sourceManualBtn" class="btn-env-mode inactive" onclick="setEnvSourceMode('manual')" title="Switch to manual field observation entry">
+                ✍️ Manual Entry
+              </button>
             </div>
           </div>
 
-          <!-- 6 Geometric Slider Rows -->
-          <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
-            <!-- Temperature -->
-            <div class="env-slider-row">
-              <span class="env-slider-icon">🌡️</span>
-              <div style="display:flex; flex-direction:column; width:130px;">
-                <span class="env-slider-label">Temperature (°C)</span>
-                <span class="env-source-pill" id="sourcePillTemp" style="font-size:9px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
+          <!-- 6 Horizontal Analytical Sliders List -->
+          <div class="env-sliders-list">
+            
+            <!-- 1. Temperature (°C) -->
+            <div class="env-analytics-card" id="cardEnvTemp">
+              <div class="env-card-top-row">
+                <div class="env-card-label-group">
+                  <span class="env-card-icon">🌡️</span>
+                  <span class="env-card-label">Temperature (°C)</span>
+                </div>
+                <span class="env-source-badge badge-auto" id="sourcePillTemp">AUTO · Weather API</span>
               </div>
-              <input type="range" class="env-slider-input" id="sliderTemp" min="0" max="55" step="0.1" value="31" oninput="handleSliderChange('Temp')" style="accent-color:#ef4444;" />
-              <span class="env-slider-val" id="envTemp">31.0</span>
+              <div class="env-card-body-row">
+                <div class="env-slider-track-wrap">
+                  <div class="env-min-max-row">
+                    <span>0 °C</span>
+                    <span>50 °C</span>
+                  </div>
+                  <input type="range" class="env-slider-input slider-temp" id="sliderTemp" min="0" max="50" step="0.1" value="31.0" oninput="handleSliderChange('Temp')" />
+                </div>
+                <div class="env-val-box">
+                  <input type="number" class="env-num-input" id="numInputTemp" min="0" max="50" step="0.1" value="31.0" oninput="handleNumInputChange('Temp')" />
+                  <span class="env-unit-label">°C</span>
+                </div>
+              </div>
             </div>
 
-            <!-- Humidity -->
-            <div class="env-slider-row">
-              <span class="env-slider-icon">💧</span>
-              <div style="display:flex; flex-direction:column; width:130px;">
-                <span class="env-slider-label">Humidity (%)</span>
-                <span class="env-source-pill" id="sourcePillHumidity" style="font-size:9px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
+            <!-- 2. Humidity (%) -->
+            <div class="env-analytics-card" id="cardEnvHumidity">
+              <div class="env-card-top-row">
+                <div class="env-card-label-group">
+                  <span class="env-card-icon">💧</span>
+                  <span class="env-card-label">Humidity (%)</span>
+                </div>
+                <span class="env-source-badge badge-auto" id="sourcePillHumidity">AUTO · Weather API</span>
               </div>
-              <input type="range" class="env-slider-input" id="sliderHumidity" min="0" max="100" step="1" value="72" oninput="handleSliderChange('Humidity')" style="accent-color:#3b82f6;" />
-              <span class="env-slider-val" id="envHumidity">72</span>
+              <div class="env-card-body-row">
+                <div class="env-slider-track-wrap">
+                  <div class="env-min-max-row">
+                    <span>0 %</span>
+                    <span>100 %</span>
+                  </div>
+                  <input type="range" class="env-slider-input slider-humidity" id="sliderHumidity" min="0" max="100" step="1" value="72" oninput="handleSliderChange('Humidity')" />
+                </div>
+                <div class="env-val-box">
+                  <input type="number" class="env-num-input" id="numInputHumidity" min="0" max="100" step="1" value="72" oninput="handleNumInputChange('Humidity')" />
+                  <span class="env-unit-label">%</span>
+                </div>
+              </div>
             </div>
 
-            <!-- Rainfall -->
-            <div class="env-slider-row">
-              <span class="env-slider-icon">🌧️</span>
-              <div style="display:flex; flex-direction:column; width:130px;">
-                <span class="env-slider-label">Rainfall (mm)</span>
-                <span class="env-source-pill" id="sourcePillRainfall" style="font-size:9px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
+            <!-- 3. Rainfall (mm) -->
+            <div class="env-analytics-card" id="cardEnvRainfall">
+              <div class="env-card-top-row">
+                <div class="env-card-label-group">
+                  <span class="env-card-icon">🌧️</span>
+                  <span class="env-card-label">Rainfall (mm)</span>
+                </div>
+                <span class="env-source-badge badge-auto" id="sourcePillRainfall">AUTO · Weather API</span>
               </div>
-              <input type="range" class="env-slider-input" id="sliderRainfall" min="0" max="250" step="0.5" value="18" oninput="handleSliderChange('Rainfall')" style="accent-color:#0284c7;" />
-              <span class="env-slider-val" id="envRainfall">18.0</span>
+              <div class="env-card-body-row">
+                <div class="env-slider-track-wrap">
+                  <div class="env-min-max-row">
+                    <span>0 mm</span>
+                    <span>200 mm</span>
+                  </div>
+                  <input type="range" class="env-slider-input slider-rainfall" id="sliderRainfall" min="0" max="200" step="0.5" value="5.0" oninput="handleSliderChange('Rainfall')" />
+                </div>
+                <div class="env-val-box">
+                  <input type="number" class="env-num-input" id="numInputRainfall" min="0" max="200" step="0.5" value="5.0" oninput="handleNumInputChange('Rainfall')" />
+                  <span class="env-unit-label">mm</span>
+                </div>
+              </div>
             </div>
 
-            <!-- Soil Moisture (Manual Input highlighted) -->
-            <div class="env-slider-row" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:5px 8px;">
-              <span class="env-slider-icon">🌱</span>
-              <div style="display:flex; flex-direction:column; width:130px;">
-                <span class="env-slider-label" style="color:#065f46; font-weight:700;">Soil Moisture (%)</span>
-                <span class="env-source-pill" id="sourcePillSoil" style="font-size:9px; color:#15803d; font-weight:700;">MANUAL SENSOR</span>
+            <!-- 4. Soil Moisture (%) -->
+            <div class="env-analytics-card card-manual-highlight" id="cardEnvSoil">
+              <div class="env-card-top-row">
+                <div class="env-card-label-group">
+                  <span class="env-card-icon">🌱</span>
+                  <span class="env-card-label" style="color:#065f46;">Soil Moisture (%)</span>
+                </div>
+                <span class="env-source-badge badge-manual" id="sourcePillSoil">MANUAL INPUT</span>
               </div>
-              <input type="range" class="env-slider-input" id="sliderSoil" min="0" max="100" step="1" value="68" oninput="handleSliderChange('Soil')" style="accent-color:#10b981;" />
-              <span class="env-slider-val" id="envSoil" style="color:#065f46; font-weight:800;">68</span>
+              <div class="env-card-body-row">
+                <div class="env-slider-track-wrap">
+                  <div class="env-min-max-row">
+                    <span>0 %</span>
+                    <span>100 %</span>
+                  </div>
+                  <input type="range" class="env-slider-input slider-soil" id="sliderSoil" min="0" max="100" step="1" value="68" oninput="handleSliderChange('Soil')" />
+                </div>
+                <div class="env-val-box" style="border-color:#a7f3d0; background:#f0fdf4;">
+                  <input type="number" class="env-num-input" id="numInputSoil" min="0" max="100" step="1" value="68" oninput="handleNumInputChange('Soil')" style="color:#065f46;" />
+                  <span class="env-unit-label" style="color:#059669;">%</span>
+                </div>
+              </div>
             </div>
 
-            <!-- AQI -->
-            <div class="env-slider-row">
-              <span class="env-slider-icon">🫧</span>
-              <div style="display:flex; flex-direction:column; width:130px;">
-                <span class="env-slider-label">Air Quality (AQI)</span>
-                <span class="env-source-pill" id="sourcePillAqi" style="font-size:9px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
+            <!-- 5. Air Quality (AQI) -->
+            <div class="env-analytics-card" id="cardEnvAqi">
+              <div class="env-card-top-row">
+                <div class="env-card-label-group">
+                  <span class="env-card-icon">🫧</span>
+                  <span class="env-card-label">AQI</span>
+                </div>
+                <span class="env-source-badge badge-auto" id="sourcePillAqi">AUTO · Weather API</span>
               </div>
-              <input type="range" class="env-slider-input" id="sliderAqi" min="0" max="500" step="1" value="84" oninput="handleSliderChange('Aqi')" style="accent-color:#f97316;" />
-              <span class="env-slider-val" id="envAqi">84</span>
+              <div class="env-card-body-row">
+                <div class="env-slider-track-wrap">
+                  <div class="env-min-max-row">
+                    <span>0</span>
+                    <span>500</span>
+                  </div>
+                  <input type="range" class="env-slider-input slider-aqi" id="sliderAqi" min="0" max="500" step="1" value="64" oninput="handleSliderChange('Aqi')" />
+                </div>
+                <div class="env-val-box">
+                  <input type="number" class="env-num-input" id="numInputAqi" min="0" max="500" step="1" value="64" oninput="handleNumInputChange('Aqi')" />
+                  <span class="env-unit-label">AQI</span>
+                </div>
+              </div>
             </div>
 
-            <!-- Ozone -->
-            <div class="env-slider-row">
-              <span class="env-slider-icon">☀️</span>
-              <div style="display:flex; flex-direction:column; width:130px;">
-                <span class="env-slider-label">Ozone (ppb)</span>
-                <span class="env-source-pill" id="sourcePillOzone" style="font-size:9px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
+            <!-- 6. Ozone (ppb) -->
+            <div class="env-analytics-card" id="cardEnvOzone">
+              <div class="env-card-top-row">
+                <div class="env-card-label-group">
+                  <span class="env-card-icon">☀️</span>
+                  <span class="env-card-label">Ozone (ppb)</span>
+                </div>
+                <span class="env-source-badge badge-auto" id="sourcePillOzone">AUTO · Weather API</span>
               </div>
-              <input type="range" class="env-slider-input" id="sliderOzone" min="0" max="200" step="1" value="41" oninput="handleSliderChange('Ozone')" style="accent-color:#eab308;" />
-              <span class="env-slider-val" id="envOzone">41</span>
+              <div class="env-card-body-row">
+                <div class="env-slider-track-wrap">
+                  <div class="env-min-max-row">
+                    <span>0 ppb</span>
+                    <span>200 ppb</span>
+                  </div>
+                  <input type="range" class="env-slider-input slider-ozone" id="sliderOzone" min="0" max="200" step="1" value="41" oninput="handleSliderChange('Ozone')" />
+                </div>
+                <div class="env-val-box">
+                  <input type="number" class="env-num-input" id="numInputOzone" min="0" max="200" step="1" value="41" oninput="handleNumInputChange('Ozone')" />
+                  <span class="env-unit-label">ppb</span>
+                </div>
+              </div>
             </div>
+
           </div>
 
           <!-- Main Actions Bar -->
