@@ -1186,3 +1186,27 @@ function saveCurrentAnalysis() {
   const uuid = latestCombinedData?.record_uuid || "SAVED-LOCAL";
   alert(`Analysis session verified and committed to persistent database ledger.\nRecord ID: ${uuid}`);
 }
+
+// Listen for global field switch from Analytics Header
+window.addEventListener("agrovision:fieldChanged", (e) => {
+  const f = e.detail;
+  if (f) {
+    currentFieldName = f.name;
+    currentFieldLat = f.lat;
+    currentFieldLon = f.lon;
+    fetchLiveWeather(currentFieldLat, currentFieldLon, false);
+  }
+});
+
+// Auto-initialize with active field on load
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof getActiveFarmerField === "function") {
+    const active = getActiveFarmerField();
+    if (active) {
+      currentFieldName = active.name;
+      currentFieldLat = active.lat;
+      currentFieldLon = active.lon;
+    }
+  }
+  fetchLiveWeather(currentFieldLat, currentFieldLon, false);
+});

@@ -334,14 +334,12 @@ async function fetchOverviewWeather(lat, lon, forceRefresh = false) {
 document.addEventListener("DOMContentLoaded", () => {
   loadOverviewData();
 
-  const fieldSel = document.getElementById("fieldSelect");
-  if (fieldSel) {
-    fieldSel.addEventListener("change", (e) => {
-      const coord = OVERVIEW_FIELD_COORDINATES[e.target.selectedIndex] || OVERVIEW_FIELD_COORDINATES[0];
-      currentOverviewLat = coord.lat;
-      currentOverviewLon = coord.lon;
-      fetchOverviewWeather(coord.lat, coord.lon, true);
-    });
+  if (typeof getActiveFarmerField === "function") {
+    const active = getActiveFarmerField();
+    if (active) {
+      currentOverviewLat = active.lat;
+      currentOverviewLon = active.lon;
+    }
   }
 
   const refreshBtn = document.getElementById("overviewWeatherRefreshBtn");
@@ -352,5 +350,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   fetchOverviewWeather(currentOverviewLat, currentOverviewLon, false);
+});
+
+// Global field listener from Analytics Header
+window.addEventListener("agrovision:fieldChanged", (e) => {
+  const f = e.detail;
+  if (f) {
+    currentOverviewLat = f.lat;
+    currentOverviewLon = f.lon;
+    fetchOverviewWeather(currentOverviewLat, currentOverviewLon, false);
+  }
 });
 

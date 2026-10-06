@@ -220,28 +220,124 @@
 
     <!-- ============ MAIN CONTENT ============ -->
     <main class="dash-main">
-      <div class="overview-container">
-
-        <!-- 1. Header & Global Filters -->
-        <div class="dash-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
-          <div>
-            <h1 id="welcomeMsg" style="font-size:1.65rem; margin-bottom:4px; font-weight:700; color:#0d3b2e;">Welcome back</h1>
-            <p style="margin:0; font-size:13px; color:#5b6b63;">Observation: <span id="todayDate">Today</span> · Farm Overview &amp; Health Monitoring</p>
-          </div>
-          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:12px; font-weight:700; color:#475569;">Field:</span>
-              <select id="fieldSelect" style="padding:7px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; font-weight:600; background:#ffffff; color:#1e293b; outline:none; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
-                <option value="My Field A - North Parcel">Field A — North Parcel (Zone 1)</option>
-                <option value="My Field B - South Parcel">Field B — South Parcel (Zone 2)</option>
-                <option value="My Field C - East Plot">Field C — East Plot (Zone 3)</option>
-              </select>
-            </div>
-            <a href="dashboard.html" class="btn btn-primary" style="padding:8px 16px; font-size:12px; border-radius:8px; text-decoration:none;">
-              + New Analysis
-            </a>
+      
+      <!-- ============ ANALYTICS DASHBOARD HEADER ============ -->
+      <header class="analytics-header">
+        
+        <!-- Left: Title & Contextual Subtitle -->
+        <div class="header-left-group">
+          <div class="header-title-box">
+            <h1 class="header-title" id="welcomeMsg">Farm Overview</h1>
+            <p class="header-subtitle">Real-time microclimate intelligence &amp; crop stress diagnostics</p>
           </div>
         </div>
+
+        <!-- Center/Left: Global Search -->
+        <div class="header-search-wrap">
+          <span class="header-search-icon">🔍</span>
+          <input
+            type="search"
+            class="header-search-input"
+            id="globalSearchInput"
+            placeholder="Search fields, analyses, reports…"
+            aria-label="Search fields, analyses, reports"
+            onkeydown="handleGlobalSearch(event)"
+          />
+        </div>
+
+        <!-- Right: Date, Field Selector, Notifications, User Profile -->
+        <div class="header-right-group">
+          
+          <!-- Date Badge -->
+          <div class="header-date-badge">
+            <span style="font-size:13px;">📅</span>
+            <span id="globalHeaderDate">Today</span>
+          </div>
+
+          <!-- Real Field Selector -->
+          <div class="header-field-select-wrap">
+            <select class="header-field-select" id="fieldSelect" aria-label="Select Farm Field">
+              <option value="zone-1">Field A — North Parcel (Zone 1)</option>
+              <option value="zone-2">Field B — South Parcel (Zone 2)</option>
+              <option value="zone-3">Field C — East Plot (Zone 3)</option>
+            </select>
+            <span class="header-field-chevron">▼</span>
+          </div>
+
+          <!-- System Notifications -->
+          <div class="header-notif-wrap">
+            <button class="header-notif-btn" id="notifDropdownBtn" onclick="toggleNotifDropdown(event)" aria-label="System Notifications">
+              🔔
+              <span class="header-notif-dot"></span>
+            </button>
+            <div class="header-dropdown-menu" id="notifDropdownMenu">
+              <div style="font-size:12px; font-weight:800; color:#0d3b2e; border-bottom:1px solid #f1f5f9; padding-bottom:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                <span>System &amp; Field Alerts</span>
+                <span style="font-size:10px; color:#059669; font-weight:700; background:#ecfdf5; padding:1px 6px; border-radius:4px;">Live</span>
+              </div>
+              <div class="notif-item">
+                <span style="font-size:14px;">🌤️</span>
+                <div>
+                  <strong style="color:#0f172a; font-size:11.5px; display:block;">OpenWeather Telemetry Sync</strong>
+                  <span style="color:#64748b; font-size:11px;">Active live streaming for selected microclimate parcel.</span>
+                </div>
+              </div>
+              <div class="notif-item">
+                <span style="font-size:14px;">⚖️</span>
+                <div>
+                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Expert Veto Engine Ready</strong>
+                  <span style="color:#64748b; font-size:11px;">Rules EVR-001 through EVR-005 loaded and operational.</span>
+                </div>
+              </div>
+              <div class="notif-item">
+                <span style="font-size:14px;">🧠</span>
+                <div>
+                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Multimodal AI Models</strong>
+                  <span style="color:#64748b; font-size:11px;">CNN visual detector &amp; SNN spiking networks initialized.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Authenticated User Profile -->
+          <div class="user-profile-wrap">
+            <div class="user-profile-widget" id="userProfileWidget" onclick="toggleProfileDropdown(event)" aria-label="User Profile Menu">
+              <div class="user-avatar-circle" id="headerUserAvatar">F</div>
+              <div class="user-profile-info">
+                <span class="user-profile-name" id="headerUserName">Farmer</span>
+                <span class="user-profile-role">Farmer</span>
+              </div>
+              <span class="user-profile-chevron">▾</span>
+            </div>
+
+            <!-- Profile Dropdown Menu -->
+            <div class="header-dropdown-menu" id="profileDropdownMenu" style="width:230px;">
+              <div style="padding:4px 6px 10px; border-bottom:1px solid #f1f5f9; margin-bottom:6px;">
+                <div style="font-size:12.5px; font-weight:700; color:#0f172a;" id="profileMenuUserName">Farmer</div>
+                <div style="font-size:11px; color:#64748b; text-overflow:ellipsis; overflow:hidden;" id="headerUserEmail">farmer@agrovision.org</div>
+                <div style="margin-top:6px;"><span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Verified Operator</span></div>
+              </div>
+              <a href="#myFieldsSection" class="profile-menu-link">
+                <span>🌾</span> <span>My Monitored Fields</span>
+              </a>
+              <a href="history.html#reportsSection" class="profile-menu-link">
+                <span>📄</span> <span>Agronomic Reports</span>
+              </a>
+              <a href="javascript:void(0)" onclick="openSettingsModal()" class="profile-menu-link">
+                <span>⚙️</span> <span>Farm Preferences</span>
+              </a>
+              <div style="border-top:1px solid #f1f5f9; margin-top:6px; padding-top:6px;">
+                <a href="javascript:void(0)" onclick="logout()" class="profile-menu-link" style="color:#ef4444;">
+                  <span>↩</span> <span>Log Out</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <div class="overview-container">
 
         <!-- Real-Time OpenWeather Live Station Banner -->
         <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:14px; padding:14px 18px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
@@ -510,6 +606,7 @@
   <script src="js/config.js"></script>
   <script src="js/auth.js?v=11"></script>
   <script src="js/sidebar.js"></script>
+  <script src="js/header.js"></script>
   <script src="js/overview.js?v=11"></script>
 </body>
 </html>
