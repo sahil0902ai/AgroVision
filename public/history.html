@@ -6,18 +6,48 @@
 <title>Analysis History &amp; Reports — AgroVision</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=8">
+<link rel="stylesheet" href="css/style.css?v=11">
 <style>
+  .history-container {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .history-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .kpi-mini-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+  .kpi-mini-lbl {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.05em;
+  }
+  .kpi-mini-val {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0d3b2e;
+    margin-top: 2px;
+  }
   .filter-bar {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
     align-items: center;
     background: #ffffff;
-    padding: 16px 20px;
+    padding: 14px 18px;
     border-radius: 12px;
     border: 1px solid #e2e8f0;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
   .filter-group {
     display: flex;
@@ -25,25 +55,27 @@
     gap: 4px;
   }
   .filter-group label {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     text-transform: uppercase;
     color: #64748b;
     letter-spacing: 0.04em;
   }
   .filter-select, .filter-input {
-    padding: 8px 12px;
+    padding: 7px 12px;
     border: 1px solid #cbd5e1;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 12.5px;
     color: #1e293b;
     background: #f8fafc;
     outline: none;
     font-family: inherit;
+    transition: all 0.15s ease;
   }
   .filter-select:focus, .filter-input:focus {
     border-color: #059669;
     background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1);
   }
   .records-table-container {
     background: #ffffff;
@@ -55,21 +87,21 @@
   .records-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 12.5px;
     text-align: left;
   }
   .records-table th {
     background: #f8fafc;
-    padding: 12px 16px;
+    padding: 11px 16px;
     font-weight: 700;
     color: #475569;
-    font-size: 11px;
+    font-size: 10.5px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border-bottom: 1px solid #e2e8f0;
   }
   .records-table td {
-    padding: 14px 16px;
+    padding: 12px 16px;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
   }
@@ -77,35 +109,25 @@
     background: #f8fafc;
   }
   .leaf-thumb {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     border-radius: 8px;
     object-fit: cover;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cbd5e1;
   }
-  .badge-tag {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-  }
-  .badge-high { background: #fee2e2; color: #dc2626; }
-  .badge-mod { background: #fef3c7; color: #d97706; }
-  .badge-low { background: #ecfdf5; color: #059669; }
   .action-link-btn {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 6px 12px;
+    padding: 5px 12px;
     background: #ecfdf5;
     color: #059669;
     border: 1px solid #a7f3d0;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 600;
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
   }
   .action-link-btn:hover {
     background: #059669;
@@ -115,9 +137,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 20px;
+    padding: 12px 18px;
     border-top: 1px solid #e2e8f0;
     background: #ffffff;
+  }
+  @media (max-width: 900px) {
+    .history-kpi-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .history-kpi-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 </head>
@@ -156,162 +188,182 @@
 
     <!-- ============ MAIN CONTENT ============ -->
     <main class="dash-main">
+      <div class="history-container">
 
-      <!-- Header -->
-      <div class="dash-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
-        <div>
-          <h1 id="welcomeMsg" style="font-size:1.65rem; margin-bottom:4px; font-weight:700; color:#0d3b2e;">Welcome back</h1>
-          <p style="margin:0; font-size:13px; color:#5b6b63;">Observation: <span id="todayDate">Today</span> · Historical Analysis &amp; Field Records Archive</p>
-        </div>
-        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:12px; font-weight:700; color:#475569;">Field:</span>
-            <select id="fieldSelect" style="padding:7px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; font-weight:600; background:#ffffff; color:#1e293b; outline:none; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
-              <option value="My Field A - North Parcel">Field A — North Parcel (Zone 1)</option>
-              <option value="My Field B - South Parcel">Field B — South Parcel (Zone 2)</option>
-              <option value="My Field C - East Plot">Field C — East Plot (Zone 3)</option>
-            </select>
-          </div>
-          <a href="dashboard.html" class="btn btn-primary" style="padding:8px 16px; font-size:12px; border-radius:8px; text-decoration:none;">
-            + New Analysis
-          </a>
-        </div>
-      </div>
-
-      <!-- Main History Card -->
-      <div class="panel" style="margin-bottom:28px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <!-- 1. Header & Field Selector -->
+        <div class="dash-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
           <div>
-            <h3 style="font-size:1.15rem; color:#0d3b2e; font-weight:700;">ANALYSIS HISTORY</h3>
-            <p class="panel-sub" style="margin:2px 0 0;">Inspect verified multi-modal sessions and deterministic expert veto records.</p>
+            <h1 id="welcomeMsg" style="font-size:1.65rem; margin-bottom:4px; font-weight:700; color:#0d3b2e;">Welcome back</h1>
+            <p style="margin:0; font-size:13px; color:#5b6b63;">Observation: <span id="todayDate">Today</span> · Historical Analysis &amp; Field Records Archive</p>
           </div>
-          <button class="btn btn-action-outline" onclick="exportCSV()">
-            📥 Export CSV
-          </button>
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:12px; font-weight:700; color:#475569;">Field:</span>
+              <select id="fieldSelect" style="padding:7px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; font-weight:600; background:#ffffff; color:#1e293b; outline:none; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                <option value="My Field A - North Parcel">Field A — North Parcel (Zone 1)</option>
+                <option value="My Field B - South Parcel">Field B — South Parcel (Zone 2)</option>
+                <option value="My Field C - East Plot">Field C — East Plot (Zone 3)</option>
+              </select>
+            </div>
+            <a href="dashboard.html" class="btn btn-primary" style="padding:8px 16px; font-size:12px; border-radius:8px; text-decoration:none;">
+              + New Analysis
+            </a>
+          </div>
         </div>
 
-        <!-- Filters -->
-        <div class="filter-bar">
-          <div class="filter-group" style="flex:1; min-width:180px;">
-            <label>Search UUID or Metric</label>
-            <input type="text" id="searchInput" class="filter-input" placeholder="e.g. leaf_rec or Water Stress" oninput="debounceFilter()" />
+        <!-- 2. Power BI Mini KPI Summary Strip -->
+        <div class="history-kpi-grid">
+          <div class="kpi-mini-card">
+            <div class="kpi-mini-lbl">Archive Count</div>
+            <div class="kpi-mini-val" id="histKpiTotal">…</div>
           </div>
-          <div class="filter-group">
-            <label>Environmental Severity</label>
-            <select id="severityFilter" class="filter-select" onchange="applyFilter()">
-              <option value="">All Severities</option>
-              <option value="High">High Risk</option>
-              <option value="Moderate">Moderate Risk</option>
-              <option value="Low">Low Risk</option>
-            </select>
+          <div class="kpi-mini-card">
+            <div class="kpi-mini-lbl">High Risk Scans</div>
+            <div class="kpi-mini-val" id="histKpiHigh" style="color:#dc2626;">…</div>
           </div>
-          <div class="filter-group">
-            <label>Growth Stage</label>
-            <select id="stageFilter" class="filter-select" onchange="applyFilter()">
-              <option value="">All Stages</option>
-              <option value="Boll_Development">Boll Development</option>
-              <option value="Flowering">Flowering</option>
-              <option value="Maturity">Maturity</option>
-              <option value="Sowing">Sowing</option>
-              <option value="Vegetative">Vegetative</option>
-            </select>
+          <div class="kpi-mini-card">
+            <div class="kpi-mini-lbl">Moderate Risk</div>
+            <div class="kpi-mini-val" id="histKpiMod" style="color:#d97706;">…</div>
           </div>
-          <div class="filter-group" style="align-self:flex-end;">
-            <button class="btn" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; font-size:12px; padding:8px 14px; border-radius:8px; cursor:pointer;" onclick="resetFilters()">
-              Reset
+          <div class="kpi-mini-card">
+            <div class="kpi-mini-lbl">Low Risk / Healthy</div>
+            <div class="kpi-mini-val" id="histKpiLow" style="color:#059669;">…</div>
+          </div>
+        </div>
+
+        <!-- 3. Analytical Filter Toolbar -->
+        <div class="panel" style="margin-bottom:24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+            <div>
+              <h3 style="font-size:1.15rem; color:#0d3b2e; font-weight:700;">ANALYSIS HISTORY ARCHIVE</h3>
+              <p class="panel-sub" style="margin:2px 0 0;">Filter and inspect multi-modal sessions and deterministic expert veto evaluations.</p>
+            </div>
+            <button class="btn btn-action-outline" onclick="exportCSV()" style="font-size:12px; padding:7px 14px;">
+              📥 Export Filtered CSV
             </button>
           </div>
-        </div>
 
-        <!-- Records Table -->
-        <div class="records-table-container">
-          <table class="records-table">
-            <thead>
-              <tr>
-                <th>Date &amp; Time</th>
-                <th>Leaf Image</th>
-                <th>Visual Result</th>
-                <th>Confidence</th>
-                <th>Env. Stress</th>
-                <th>Expert Check</th>
-                <th style="text-align:right;">Action</th>
-              </tr>
-            </thead>
-            <tbody id="recordsTbody">
-              <tr>
-                <td colspan="7" style="text-align:center; padding:40px; color:#64748b;">
-                  <div style="font-size:24px; margin-bottom:8px;">⏳</div>
-                  Loading historical analysis records…
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <!-- Filters -->
+          <div class="filter-bar">
+            <div class="filter-group" style="flex:1; min-width:180px;">
+              <label>Search UUID or Metric</label>
+              <input type="text" id="searchInput" class="filter-input" placeholder="e.g. AV- or Water Stress" oninput="debounceFilter()" />
+            </div>
+            <div class="filter-group">
+              <label>Environmental Severity</label>
+              <select id="severityFilter" class="filter-select" onchange="applyFilter()">
+                <option value="">All Severities</option>
+                <option value="High">High Risk</option>
+                <option value="Moderate">Moderate Risk</option>
+                <option value="Low">Low Risk</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Growth Stage</label>
+              <select id="stageFilter" class="filter-select" onchange="applyFilter()">
+                <option value="">All Stages</option>
+                <option value="Boll_Development">Boll Development</option>
+                <option value="Flowering">Flowering</option>
+                <option value="Maturity">Maturity</option>
+                <option value="Sowing">Sowing</option>
+                <option value="Vegetative">Vegetative</option>
+              </select>
+            </div>
+            <div class="filter-group" style="align-self:flex-end;">
+              <button class="btn" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; font-size:12px; padding:7px 14px; border-radius:8px; cursor:pointer;" onclick="resetFilters()">
+                Reset
+              </button>
+            </div>
+          </div>
 
-          <div class="pagination-bar">
-            <span style="font-size:12px; color:#64748b;" id="countLabel">Showing records</span>
-            <div style="display:flex; gap:8px;">
-              <button id="prevBtn" class="btn" style="padding:5px 12px; font-size:12px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;" onclick="changePage(-1)" disabled>Previous</button>
-              <button id="nextBtn" class="btn" style="padding:5px 12px; font-size:12px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;" onclick="changePage(1)" disabled>Next</button>
+          <!-- 4. Records Table -->
+          <div class="records-table-container">
+            <table class="records-table">
+              <thead>
+                <tr>
+                  <th>Date &amp; Time</th>
+                  <th>Leaf Image</th>
+                  <th>Visual Result</th>
+                  <th>Confidence</th>
+                  <th>Env. Stress</th>
+                  <th>Expert Check</th>
+                  <th style="text-align:right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="recordsTbody">
+                <tr>
+                  <td colspan="7" style="text-align:center; padding:40px; color:#64748b;">
+                    <div style="font-size:24px; margin-bottom:8px;">⏳</div>
+                    Loading historical analysis records…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="pagination-bar">
+              <span style="font-size:12px; color:#64748b;" id="countLabel">Showing records</span>
+              <div style="display:flex; gap:8px;">
+                <button id="prevBtn" class="btn" style="padding:5px 12px; font-size:12px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;" onclick="changePage(-1)" disabled>Previous</button>
+                <button id="nextBtn" class="btn" style="padding:5px 12px; font-size:12px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;" onclick="changePage(1)" disabled>Next</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Reports & Export Section (Requirement 34) -->
-      <div id="reportsSection" class="panel">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:16px;">
-          <div>
-            <h3 style="font-size:1.15rem; color:#0d3b2e; font-weight:700;">PROFESSIONAL AGRONOMIC REPORTS</h3>
+        <!-- 5. Reports & Export Section -->
+        <div id="reportsSection" class="panel">
+          <div style="margin-bottom:16px;">
+            <h3 style="font-size:1.15rem; color:#0d3b2e; font-weight:700;">PROFESSIONAL AGRONOMIC REPORTS &amp; EXPORTS</h3>
             <p class="panel-sub" style="margin:2px 0 0;">Generate verified documentation and export research datasets for extension officers and agronomists.</p>
           </div>
-        </div>
 
-        <div style="display:grid; grid-template-columns:1.2fr 0.8fr; gap:18px; align-items:stretch;">
-          <!-- Latest Analysis Report Tile -->
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px 20px; display:flex; flex-direction:column; justify-content:space-between;">
-            <div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#059669; letter-spacing:0.04em;">Latest Field Analysis</span>
-                <span style="font-size:11px; color:#64748b;" id="reportRecordDate">Verified Database Session</span>
+          <div style="display:grid; grid-template-columns:1.2fr 0.8fr; gap:18px; align-items:stretch;">
+            <!-- Latest Analysis Report Tile -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px 20px; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#059669; letter-spacing:0.04em;">Latest Field Analysis</span>
+                  <span style="font-size:11px; color:#64748b;" id="reportRecordDate">Verified Database Session</span>
+                </div>
+                <div style="font-size:1.15rem; font-weight:800; color:#0d3b2e; margin-bottom:4px;" id="reportRecordTitle">Cotton Crop Stress Assessment</div>
+                <p style="font-size:12px; color:#475569; margin:0 0 14px; line-height:1.5;">
+                  Comprehensive PDF report including CNN foliar saliency, SNN neuromorphic temporal spike metrics, and triggered expert veto rules.
+                </p>
               </div>
-              <div style="font-size:1.15rem; font-weight:800; color:#0d3b2e; margin-bottom:4px;" id="reportRecordTitle">Cotton Crop Stress Assessment</div>
-              <p style="font-size:12px; color:#475569; margin:0 0 14px; line-height:1.5;">
-                Comprehensive PDF including CNN foliar saliency heatmaps, SNN neuromorphic temporal spike metrics, and triggered expert veto rules.
-              </p>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button onclick="openLatestReport()" class="btn btn-primary" style="padding:9px 18px; font-size:12px; border-radius:8px;">
+                  📄 View / Print PDF Report →
+                </button>
+              </div>
             </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <button onclick="openLatestReport()" class="btn btn-primary" style="padding:9px 18px; font-size:12px; border-radius:8px;">
-                📄 View / Print PDF Report →
-              </button>
-            </div>
-          </div>
 
-          <!-- Data Export Tile -->
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px 20px; display:flex; flex-direction:column; justify-content:space-between;">
-            <div>
-              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#0284c7; letter-spacing:0.04em; margin-bottom:8px;">Telemetry &amp; Dataset Export</div>
-              <div style="font-size:1.15rem; font-weight:800; color:#0d3b2e; margin-bottom:4px;">Research Data Export</div>
-              <p style="font-size:12px; color:#475569; margin:0 0 14px; line-height:1.5;">
-                Export verified 33-feature environmental telemetry, visual probabilities, and session timestamps as standard CSV.
-              </p>
-            </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <button onclick="exportCSV()" class="btn btn-action-outline" style="padding:9px 16px; font-size:12px; border-radius:8px;">
-                📥 Download CSV Dataset
-              </button>
-              <button onclick="window.print()" class="btn btn-action-outline" style="padding:9px 16px; font-size:12px; border-radius:8px;">
-                🖨️ Print Archive View
-              </button>
+            <!-- Data Export Tile -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px 20px; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#0284c7; letter-spacing:0.04em; margin-bottom:8px;">Telemetry &amp; Dataset Export</div>
+                <div style="font-size:1.15rem; font-weight:800; color:#0d3b2e; margin-bottom:4px;">Research Data Export</div>
+                <p style="font-size:12px; color:#475569; margin:0 0 14px; line-height:1.5;">
+                  Export verified 33-feature environmental telemetry, visual probabilities, and session timestamps as standard CSV.
+                </p>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button onclick="exportCSV()" class="btn btn-action-outline" style="padding:9px 16px; font-size:12px; border-radius:8px;">
+                  📥 Download CSV Dataset
+                </button>
+                <button onclick="window.print()" class="btn btn-action-outline" style="padding:9px 16px; font-size:12px; border-radius:8px;">
+                  🖨️ Print Archive View
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
+      </div>
     </main>
   </div>
 
   <script src="js/config.js"></script>
-  <script src="js/auth.js?v=8"></script>
-  <script src="js/history.js?v=8"></script>
+  <script src="js/auth.js?v=11"></script>
+  <script src="js/history.js?v=11"></script>
 </body>
 </html>

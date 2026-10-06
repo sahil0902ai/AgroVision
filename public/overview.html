@@ -6,41 +6,133 @@
 <title>Farm Overview — AgroVision</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=10">
+<link rel="stylesheet" href="css/style.css?v=11">
 <style>
   .overview-container {
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
   }
-  .overview-grid {
+  .kpi-grid-4 {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 22px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
     margin-bottom: 22px;
   }
-  .overview-stat-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-  .overview-stat-card {
+  .kpi-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 14px;
-    padding: 18px 20px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
-  .overview-stat-lbl {
+  .kpi-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 59, 46, 0.05);
+  }
+  .kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .kpi-lbl {
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     color: #64748b;
+    letter-spacing: 0.05em;
   }
-  .overview-stat-val {
-    font-size: 1.5rem;
+  .kpi-icon {
+    font-size: 16px;
+  }
+  .kpi-val {
+    font-size: 1.45rem;
     font-weight: 800;
     color: #0d3b2e;
+    line-height: 1.2;
+    margin-top: 2px;
+  }
+  .kpi-sub {
+    font-size: 11px;
+    color: #64748b;
     margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .overview-main-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+  .overview-table-wrap {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 14px;
+  }
+  .overview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .overview-table th {
+    background: #f8fafc;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .overview-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .overview-table tr:hover {
+    background: #f8fafc;
+  }
+  .parcel-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+  .parcel-card:hover {
+    background: #ffffff;
+    border-color: #059669;
+    box-shadow: 0 2px 6px rgba(13, 59, 46, 0.04);
+  }
+  .parcel-card.active {
+    background: #ffffff;
+    border: 1.5px solid #059669;
+  }
+  @media (max-width: 1024px) {
+    .kpi-grid-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .overview-main-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .kpi-grid-4 {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 </head>
@@ -81,7 +173,7 @@
     <main class="dash-main">
       <div class="overview-container">
 
-        <!-- Top Header -->
+        <!-- 1. Header & Global Filters -->
         <div class="dash-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
           <div>
             <h1 id="welcomeMsg" style="font-size:1.65rem; margin-bottom:4px; font-weight:700; color:#0d3b2e;">Welcome back</h1>
@@ -102,74 +194,219 @@
           </div>
         </div>
 
-        <!-- Metric Cards -->
-        <div class="overview-stat-row">
-          <div class="overview-stat-card">
-            <div class="overview-stat-lbl">Active Parcels</div>
-            <div class="overview-stat-val">3 Zones</div>
+        <!-- 2. Power BI Top KPI Cards Row -->
+        <div class="kpi-grid-4">
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-lbl">Active Parcels</span>
+              <span class="kpi-icon">🌾</span>
+            </div>
+            <div class="kpi-val">3 Zones</div>
+            <div class="kpi-sub"><span style="color:#059669; font-weight:700;">12.5 Ha</span> under surveillance</div>
           </div>
-          <div class="overview-stat-card">
-            <div class="overview-stat-lbl">Recorded Scans</div>
-            <div class="overview-stat-val" id="statTotalScans">…</div>
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-lbl">Recorded Scans</span>
+              <span class="kpi-icon">📋</span>
+            </div>
+            <div class="kpi-val" id="statTotalScans">…</div>
+            <div class="kpi-sub">Total verified sessions</div>
           </div>
-          <div class="overview-stat-card">
-            <div class="overview-stat-lbl">Latest Field Status</div>
-            <div class="overview-stat-val" id="statLatestStatus" style="font-size:1.25rem; color:#059669;">Active</div>
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-lbl">Latest Field Status</span>
+              <span class="kpi-icon">🌿</span>
+            </div>
+            <div class="kpi-val" id="statLatestStatus" style="font-size:1.25rem; color:#059669;">Active</div>
+            <div class="kpi-sub" id="statLatestSub">Multimodal health check</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-lbl">Soil &amp; Weather Index</span>
+              <span class="kpi-icon">⛅</span>
+            </div>
+            <div class="kpi-val" id="statMicroclimateIndex" style="font-size:1.25rem; color:#0284c7;">Stable</div>
+            <div class="kpi-sub" id="statMicroclimateSub">68% Moisture · 31°C</div>
           </div>
         </div>
 
-        <!-- Main Content 2-Column Grid -->
-        <div class="overview-grid">
+        <!-- 3. Primary Analytical Grid (2 Columns: 2fr / 1fr) -->
+        <div class="overview-main-grid">
           
-          <!-- LEFT: Latest Analysis & Crop Status -->
-          <div class="panel">
-            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">Recent Field Analysis</h3>
+          <!-- LEFT COLUMN (2fr): Recent Analysis, Telemetry Matrix, Data Table -->
+          <div style="display:flex; flex-direction:column; gap:20px;">
             
-            <div id="latestAnalysisCard" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:16px;">
-              <div style="font-size:12px; color:#64748b; margin-bottom:4px;" id="latestAnalysisDate">Loading latest record…</div>
-              <div style="font-size:1.2rem; font-weight:800; color:#0d3b2e;" id="latestAnalysisClass">Leaf Analysis</div>
-              <p style="font-size:13px; color:#334155; margin:6px 0 12px; line-height:1.5;" id="latestAnalysisSummary">
-                Checking local database telemetry…
-              </p>
-              <a href="history.html" class="btn btn-outline" style="font-size:12px; padding:6px 14px; border-radius:6px; text-decoration:none;">
-                View All History →
-              </a>
-            </div>
-
-            <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:10px;">Recent Expert Checks</h3>
-            <div id="recentAlertsList" style="display:flex; flex-direction:column; gap:8px;">
-              <div style="padding:10px 14px; background:#ffffff; border:1px solid #e2e8f0; border-left:4px solid #059669; border-radius:6px; font-size:12px; color:#334155;">
-                <strong>Baseline Stability:</strong> Environmental parameters are within normal agronomic thresholds.
+            <!-- Latest Verified Analysis Card -->
+            <div class="panel">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div>
+                  <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700;">Latest Field Analysis Session</h3>
+                  <p class="panel-sub" style="margin:2px 0 0;" id="latestAnalysisDate">Loading latest record telemetry…</p>
+                </div>
+                <span id="latestAlignmentBadge" class="source-badge source-badge-green">Verified Session</span>
+              </div>
+              
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; display:grid; grid-template-columns:100px 1fr; gap:16px; align-items:center;">
+                <img id="latestThumbImg" src="images/leaf_placeholder.jpg" alt="Leaf scan" style="width:100px; height:100px; border-radius:10px; object-fit:cover; border:1px solid #cbd5e1;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23e2e8f0\'/><text x=\'50%\' y=\'55%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%2364748b\' font-size=\'32\'>🌿</text></svg>'" />
+                <div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <div style="font-size:1.25rem; font-weight:800; color:#0d3b2e;" id="latestAnalysisClass">Nutrient Deficiency</div>
+                    <span id="latestSeverityBadge" style="background:#fef3c7; color:#d97706; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">Moderate Risk</span>
+                  </div>
+                  <p style="font-size:12px; color:#475569; margin:0 0 10px; line-height:1.45;" id="latestAnalysisSummary">
+                    Visual chlorosis patterns detected on cotton foliage with benign environmental baseline metrics.
+                  </p>
+                  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <a id="latestDetailLink" href="history.html" class="btn btn-primary" style="font-size:11px; padding:6px 14px; border-radius:6px; text-decoration:none;">
+                      Inspect Full Record →
+                    </a>
+                    <span style="font-size:11px; color:#64748b;" id="latestRecordUuid">UUID: …</span>
+                  </div>
+                </div>
               </div>
             </div>
+
+            <!-- Field Telemetry Status Matrix (6 Cards) -->
+            <div class="panel">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700;">Field Microclimate &amp; Soil Telemetry</h3>
+                <span style="font-size:11px; color:#64748b;">Live Station Telemetry</span>
+              </div>
+              <div class="compact-env-grid">
+                <div class="compact-env-tile">
+                  <div class="compact-env-icon">🌡️</div>
+                  <div class="compact-env-val" id="telemetryTemp">31.0°C</div>
+                  <div class="compact-env-lbl">Temperature (Optimal)</div>
+                </div>
+                <div class="compact-env-tile">
+                  <div class="compact-env-icon">💧</div>
+                  <div class="compact-env-val" id="telemetryHumidity">72%</div>
+                  <div class="compact-env-lbl">Humidity (Normal)</div>
+                </div>
+                <div class="compact-env-tile">
+                  <div class="compact-env-icon">🌧️</div>
+                  <div class="compact-env-val" id="telemetryRainfall">18.0 mm</div>
+                  <div class="compact-env-lbl">Precipitation</div>
+                </div>
+                <div class="compact-env-tile">
+                  <div class="compact-env-icon">🌱</div>
+                  <div class="compact-env-val" id="telemetrySoil">68%</div>
+                  <div class="compact-env-lbl">Soil Moisture (Good)</div>
+                </div>
+                <div class="compact-env-tile">
+                  <div class="compact-env-icon">🫧</div>
+                  <div class="compact-env-val" id="telemetryAqi">84</div>
+                  <div class="compact-env-lbl">Air Quality Index</div>
+                </div>
+                <div class="compact-env-tile">
+                  <div class="compact-env-icon">☀️</div>
+                  <div class="compact-env-val" id="telemetryOzone">41 ppb</div>
+                  <div class="compact-env-lbl">Ground Ozone</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Analysis History Table (Top 5) -->
+            <div class="panel">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700;">Recent Analysis Archive</h3>
+                  <p class="panel-sub" style="margin:2px 0 0;">Latest 5 multi-modal field scans recorded to database.</p>
+                </div>
+                <a href="history.html" style="font-size:12px; color:#059669; font-weight:600; text-decoration:none;">
+                  View All Archive →
+                </a>
+              </div>
+
+              <div class="overview-table-wrap">
+                <table class="overview-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Leaf Scan</th>
+                      <th>Visual Result</th>
+                      <th>Env Risk</th>
+                      <th>Expert Rule</th>
+                      <th style="text-align:right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overviewRecentTbody">
+                    <tr>
+                      <td colspan="6" style="text-align:center; padding:24px; color:#64748b;">
+                        Loading recent session history…
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
           </div>
 
-          <!-- RIGHT: Quick Actions & Environmental Summary -->
-          <div style="display:flex; flex-direction:column; gap:16px;">
+          <!-- RIGHT COLUMN (1fr): Active Precautions, Field Parcels, Quick Actions -->
+          <div style="display:flex; flex-direction:column; gap:20px;">
+            
+            <!-- Agronomic Precautions & Advisory Alert -->
             <div class="panel">
-              <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">Field Telemetry Status</h3>
-              <div class="compact-env-grid">
-                <div class="compact-env-tile"><div class="compact-env-icon">🌡️</div><div class="compact-env-val">31°C</div><div class="compact-env-lbl">Temperature</div></div>
-                <div class="compact-env-tile"><div class="compact-env-icon">💧</div><div class="compact-env-val">72%</div><div class="compact-env-lbl">Humidity</div></div>
-                <div class="compact-env-tile"><div class="compact-env-icon">🌱</div><div class="compact-env-val">68%</div><div class="compact-env-lbl">Soil Moisture</div></div>
-                <div class="compact-env-tile"><div class="compact-env-icon">🫧</div><div class="compact-env-val">84</div><div class="compact-env-lbl">AQI</div></div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <span style="font-size:18px;">⚖️</span>
+                <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">Active Farm Advisory</h3>
+              </div>
+              <div id="overviewAdvisoryCard" style="background:#fffbeb; border:1px solid #fed7aa; border-radius:10px; padding:12px 14px; font-size:12px; color:#334155; line-height:1.5;">
+                <div style="font-weight:700; color:#9a3412; margin-bottom:4px;" id="advisoryTitle">🛡️ Standard Field Baseline</div>
+                <p id="advisoryText" style="margin:0; font-size:11.5px; color:#475569;">
+                  Environmental telemetry is within standard agronomic ranges. Continue regular soil moisture surveillance during current vegetative and flowering phases.
+                </p>
               </div>
             </div>
 
+            <!-- Monitored Field Parcels -->
             <div class="panel">
-              <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">Quick Actions</h3>
+              <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">Monitored Parcels</h3>
               <div style="display:flex; flex-direction:column; gap:8px;">
-                <a href="dashboard.html" class="btn btn-primary" style="justify-content:center; text-decoration:none; font-size:13px; padding:10px; border-radius:8px;">
+                <div class="parcel-card active" onclick="selectParcel('Zone 1')">
+                  <div>
+                    <div style="font-weight:700; font-size:12px; color:#0d3b2e;">Field A — North Parcel</div>
+                    <div style="font-size:10.5px; color:#64748b;">Zone 1 · 4.8 Ha · Flowering</div>
+                  </div>
+                  <span style="background:#ecfdf5; color:#059669; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">Active</span>
+                </div>
+                <div class="parcel-card" onclick="selectParcel('Zone 2')">
+                  <div>
+                    <div style="font-weight:700; font-size:12px; color:#0d3b2e;">Field B — South Parcel</div>
+                    <div style="font-size:10.5px; color:#64748b;">Zone 2 · 4.2 Ha · Boll Dev</div>
+                  </div>
+                  <span style="background:#ecfdf5; color:#059669; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">Active</span>
+                </div>
+                <div class="parcel-card" onclick="selectParcel('Zone 3')">
+                  <div>
+                    <div style="font-weight:700; font-size:12px; color:#0d3b2e;">Field C — East Plot</div>
+                    <div style="font-size:10.5px; color:#64748b;">Zone 3 · 3.5 Ha · Vegetative</div>
+                  </div>
+                  <span style="background:#ecfdf5; color:#059669; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">Active</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Action Tiles -->
+            <div class="panel">
+              <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin-bottom:12px;">Analytical Actions</h3>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <a href="dashboard.html" class="btn btn-primary" style="justify-content:center; text-decoration:none; font-size:12.5px; padding:10px; border-radius:8px;">
                   🌿 Launch New Leaf Check
                 </a>
-                <a href="assistant.html" class="btn btn-outline" style="justify-content:center; text-decoration:none; font-size:13px; padding:10px; border-radius:8px;">
+                <a href="assistant.html" class="btn btn-outline" style="justify-content:center; text-decoration:none; font-size:12.5px; padding:10px; border-radius:8px; border-color:#cbd5e1;">
                   🤖 Consult AI Assistant
                 </a>
-                <a href="history.html#reportsSection" class="btn btn-outline" style="justify-content:center; text-decoration:none; font-size:13px; padding:10px; border-radius:8px;">
-                  📄 Generate PDF Report
+                <button onclick="openLatestOverviewReport()" class="btn btn-outline" style="justify-content:center; text-decoration:none; font-size:12.5px; padding:10px; border-radius:8px; border-color:#cbd5e1; background:#ffffff;">
+                  📄 View Latest PDF Report
+                </button>
+                <a href="history.html#reportsSection" class="btn btn-outline" style="justify-content:center; text-decoration:none; font-size:12.5px; padding:10px; border-radius:8px; border-color:#cbd5e1; background:#ffffff;">
+                  📥 Export CSV Dataset
                 </a>
               </div>
             </div>
+
           </div>
 
         </div>
@@ -179,7 +416,7 @@
   </div>
 
   <script src="js/config.js"></script>
-  <script src="js/auth.js?v=10"></script>
-  <script src="js/overview.js?v=10"></script>
+  <script src="js/auth.js?v=11"></script>
+  <script src="js/overview.js?v=11"></script>
 </body>
 </html>

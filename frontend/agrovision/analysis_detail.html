@@ -6,50 +6,31 @@
 <title>Analysis Detail — AgroVision</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=3">
+<link rel="stylesheet" href="css/style.css?v=11">
 <style>
   .detail-container {
-    max-width: 960px;
+    max-width: 1060px;
     margin: 0 auto;
   }
-  .action-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .card {
+  .card-pbi {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 24px;
-    margin-bottom: 24px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02);
   }
-  .card-title {
-    font-size: 14px;
+  .card-pbi-title {
+    font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #065f46;
-    margin: 0 0 16px;
+    color: #0d3b2e;
+    margin: 0 0 14px;
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .badge-tag {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-  }
-  .badge-high { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
-  .badge-mod { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
-  .badge-low { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
   .image-compare-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -59,45 +40,55 @@
     text-align: center;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 12px;
+    border-radius: 12px;
+    padding: 14px;
   }
   .image-box img {
     max-width: 100%;
-    max-height: 240px;
+    max-height: 220px;
     object-fit: contain;
     border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   }
-  .meta-list {
+  .meta-grid-6 {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
   }
-  .meta-item {
+  .meta-tile {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 10px 14px;
   }
-  .meta-label {
-    font-size: 11px;
+  .meta-lbl {
+    font-size: 10.5px;
     color: #64748b;
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.04em;
   }
   .meta-val {
     font-size: 14px;
     color: #0f172a;
-    font-weight: 700;
-    margin-top: 2px;
+    font-weight: 800;
+    margin-top: 3px;
   }
-  .rule-card {
+  .rule-pbi-card {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #fed7aa;
     border-left: 4px solid #d97706;
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 14px 16px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+  }
+  @media (max-width: 768px) {
+    .image-compare-grid {
+      grid-template-columns: 1fr;
+    }
+    .meta-grid-6 {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 </style>
 </head>
@@ -139,84 +130,130 @@
       <div class="detail-container">
 
         <!-- Action Header -->
-        <div class="action-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
           <div>
-            <a href="history.html" style="font-size:13px; color:#059669; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px; margin-bottom:6px;">
-              ← Back to Analysis History
+            <a href="history.html" style="font-size:12.5px; color:#059669; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px; margin-bottom:6px;">
+              ← Back to Analysis Archive
             </a>
             <h1 style="margin:0; font-size:1.6rem; color:#0d3b2e;" id="pageTitle">Analysis Record Inspection</h1>
-            <p style="margin:2px 0 0; font-size:13px; color:#64748b;" id="pageSub">UUID: Loading…</p>
+            <p style="margin:2px 0 0; font-size:12.5px; color:#64748b;" id="pageSub">UUID: Loading…</p>
           </div>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a id="reportBtn" href="#" target="_blank" class="btn btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-              🖨️ View / Print Report
+            <a id="reportBtn" href="#" target="_blank" class="btn btn-primary" style="padding:9px 18px; font-size:12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+              🖨️ View / Print PDF Report
             </a>
-            <a href="dashboard.html" class="btn btn-action-outline" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-              + New Scan
+            <a href="dashboard.html" class="btn btn-action-outline" style="padding:9px 16px; font-size:12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+              + New Analysis
             </a>
           </div>
         </div>
 
         <div id="loadingState" style="text-align:center; padding:60px; color:#6b7280;">
           <div style="font-size:28px; margin-bottom:12px;">⏳</div>
-          <strong>Retrieving verified historical record…</strong>
+          <strong>Retrieving verified session record…</strong>
         </div>
 
         <div id="detailContent" style="display:none;">
 
-          <!-- 1. FINAL ASSESSMENT HERO -->
-          <div class="card" style="border:2px solid #059669; background:linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+          <!-- 1. FINAL MULTIMODAL ASSESSMENT HERO -->
+          <div class="card-pbi" style="border:1.5px solid #059669; background:linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
               <div>
-                <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#065f46; letter-spacing:0.04em;">Primary Decision Support Finding</div>
-                <h2 style="margin:4px 0 0; font-size:1.4rem; color:#064e3b;" id="heroClass">Water Stress</h2>
+                <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#065f46; letter-spacing:0.04em;">Primary Multimodal Decision Finding</div>
+                <h2 style="margin:4px 0 0; font-size:1.45rem; font-weight:800; color:#064e3b;" id="heroClass">Nutrient Deficiency</h2>
               </div>
-              <span id="heroSeverityBadge" class="badge-tag badge-high">High Risk</span>
+              <div style="display:flex; gap:8px;">
+                <span id="heroSeverityBadge" style="background:#fee2e2; color:#dc2626; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px;">High Risk</span>
+                <span id="heroAlignBadge" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">Aligned</span>
+              </div>
             </div>
-            <p style="margin:0 0 14px; font-size:14px; color:#1f2937; line-height:1.5;" id="heroSummary">
-              The visual analysis identified water stress symptoms, consistent with elevated environmental risk.
+            
+            <p style="margin:0 0 14px; font-size:13px; color:#1e293b; line-height:1.5;" id="heroSummary">
+              Visual chlorosis patterns detected with corresponding environmental baseline metrics.
             </p>
-            <div class="meta-list" id="heroMetaList"></div>
+
+            <!-- 3-Column Evidence Summary Tiles -->
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;" id="heroMetaList">
+              <!-- Dynamically rendered -->
+            </div>
           </div>
 
-          <!-- 2. LEAF IMAGES & CNN VISUAL OBSERVABLE -->
-          <div class="card">
-            <div class="card-title">🌿 1. Visual Leaf Evidence (CNN Model)</div>
+          <!-- 2. VISUAL LEAF EVIDENCE & CNN PROBABILITIES -->
+          <div class="card-pbi">
+            <div class="card-pbi-title">🌿 1. Visual Leaf Evidence &amp; Model Probabilities (CNN)</div>
+            
             <div class="image-compare-grid">
               <div class="image-box">
-                <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:8px;">Original Leaf Image</div>
-                <img id="leafImg" src="" alt="Uploaded leaf" />
+                <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:8px; text-transform:uppercase;">Observed Leaf Scan</div>
+                <img id="leafImg" src="" alt="Uploaded leaf" onerror="this.src='images/leaf_placeholder.jpg'" />
               </div>
               <div class="image-box" id="heatmapBox">
-                <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:8px;">Grad-CAM Heatmap Overlay</div>
+                <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:8px; text-transform:uppercase;">Grad-CAM Saliency Overlay</div>
                 <img id="heatmapImg" src="" alt="Grad-CAM heatmap" onerror="document.getElementById('heatmapBox').style.display='none'" />
               </div>
             </div>
 
-            <div style="margin-top:16px;">
-              <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:#475569; margin-bottom:8px;">Class Probability Distribution</div>
-              <div id="cnnProbsContainer"></div>
+            <div style="margin-top:18px;">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#475569; margin-bottom:8px; letter-spacing:0.04em;">
+                Class Probability Distribution
+              </div>
+              <div id="cnnProbsContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
             </div>
+
+            <!-- Expandable CNN Architecture Details -->
+            <details class="model-details" style="margin-top:14px;">
+              <summary>▶ Model Details (CNN)</summary>
+              <div class="model-meta-grid" style="margin-top:8px;">
+                <div><strong>Architecture:</strong> ResNet-18 Custom (110,853 parameters)</div>
+                <div><strong>Resolution:</strong> 224 × 224 RGB</div>
+                <div><strong>Preprocessing:</strong> ImageNet Mean/Std Normalization</div>
+                <div><strong>Benchmark:</strong> 86.05% Test Accuracy</div>
+              </div>
+            </details>
           </div>
 
           <!-- 3. SNN ENVIRONMENTAL ASSESSMENT & INPUTS -->
-          <div class="card">
-            <div class="card-title">🛰️ 2. Field Environmental Risk (SNN Spiking Model)</div>
-            <div class="meta-list" id="envInputsGrid"></div>
-            <div style="margin-top:14px; font-size:12px; color:#475569;" id="snnSpikesSummary">
+          <div class="card-pbi">
+            <div class="card-pbi-title">⛅ 2. Field Microclimate &amp; Soil Telemetry (SNN)</div>
+            
+            <div class="meta-grid-6" id="envInputsGrid"></div>
+
+            <div style="margin-top:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; font-size:12px; color:#475569;" id="snnSpikesSummary">
               Spiking Neural Network simulation across T=10 timesteps.
             </div>
+
+            <!-- Expandable SNN Architecture Details -->
+            <details class="model-details" style="margin-top:14px;">
+              <summary>▶ Model Details (SNN)</summary>
+              <div class="model-meta-grid" style="margin-top:8px;">
+                <div><strong>Architecture:</strong> 3-Layer LIF Spiking (33 inputs, T=10)</div>
+                <div><strong>Membrane Decay:</strong> β = 0.95</div>
+                <div><strong>Temporal Resolution:</strong> 10 timesteps</div>
+                <div><strong>Benchmark:</strong> 91.81% Test Accuracy</div>
+              </div>
+            </details>
           </div>
 
           <!-- 4. DETERMINISTIC EXPERT VETO RULES & PRECAUTIONS -->
-          <div class="card">
-            <div class="card-title">⚖️ 3. Expert Veto Rules &amp; Farm Precautions</div>
+          <div class="card-pbi">
+            <div class="card-pbi-title">⚖️ 3. Expert Veto Rules &amp; Agronomic Precautions</div>
             <div id="rulesContainer"></div>
           </div>
 
-          <!-- 5. DISCLAIMER -->
-          <div style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:10px; padding:12px 16px; font-size:11px; color:#64748b; margin-bottom:32px;">
-            <strong>Advisory Notice:</strong> Individual evaluation benchmarks: CNN Test Accuracy = 86.05%, SNN Test Accuracy = 91.81%. Expert-rule thresholds are illustrative decision-support guides and require agronomic validation before operational intervention.
+          <!-- 5. WHAT TO CHECK NEXT (ACTIONABLE ADVISORY) -->
+          <div class="card-pbi">
+            <div class="card-pbi-title">📋 4. Recommended Field Checkpoints</div>
+            <ul id="precautionsChecklist" style="margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px; font-size:12.5px; color:#334155;">
+              <li style="display:flex; align-items:center; gap:8px;"><span style="color:#059669; font-size:14px;">🟢</span> Confirm soil moisture at 15cm and 30cm root depths</li>
+              <li style="display:flex; align-items:center; gap:8px;"><span style="color:#059669; font-size:14px;">🟢</span> Inspect middle and lower canopy foliage for spreading discoloration</li>
+              <li style="display:flex; align-items:center; gap:8px;"><span style="color:#059669; font-size:14px;">🟢</span> Cross-reference with 5-day weather and evapotranspiration forecast</li>
+              <li style="display:flex; align-items:center; gap:8px;"><span style="color:#059669; font-size:14px;">🟢</span> Repeat multimodal check in 7–10 days</li>
+            </ul>
+          </div>
+
+          <!-- 6. DISCLAIMER -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; font-size:11px; color:#64748b; margin-bottom:32px;">
+            <strong>Advisory Notice:</strong> Model benchmarks: CNN Test Accuracy = 86.05%, SNN Test Accuracy = 91.81%. Expert-rule thresholds provide decision support and require agronomic validation before making major chemical or irrigation interventions.
           </div>
 
         </div>
@@ -226,7 +263,7 @@
   </div>
 
   <script src="js/config.js"></script>
-  <script src="js/auth.js?v=3"></script>
-  <script src="js/analysis_detail.js?v=3"></script>
+  <script src="js/auth.js?v=11"></script>
+  <script src="js/analysis_detail.js?v=11"></script>
 </body>
 </html>

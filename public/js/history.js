@@ -7,6 +7,7 @@ let currentSkip = 0;
 const PAGE_LIMIT = 15;
 let debounceTimeout = null;
 let latestRecordUuid = null;
+let allRecordsCache = [];
 
 function getApiUrl(endpoint) {
   if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
@@ -28,8 +29,43 @@ const todayDateEl = document.getElementById("todayDate");
 if (todayDateEl) todayDateEl.textContent = formattedDate;
 
 document.addEventListener("DOMContentLoaded", () => {
+  loadSummaryKpis();
   loadRecords();
 });
+
+async function loadSummaryKpis() {
+  try {
+    const res = await fetch(getApiUrl("/api/v1/records?limit=100"));
+    if (!res.ok) return;
+    const records = await res.json();
+    if (!Array.isArray(records)) return;
+
+    allRecordsCache = records;
+    const total = records.length;
+    let high = 0;
+    let mod = 0;
+    let low = 0;
+
+    records.forEach(r => {
+      const sev = (r.stress_severity || "").toLowerCase();
+      if (sev === "high") high++;
+      else if (sev === "moderate") mod++;
+      else low++;
+    });
+
+    const elTotal = document.getElementById("histKpiTotal");
+    const elHigh = document.getElementById("histKpiHigh");
+    const elMod = document.getElementById("histKpiMod");
+    const elLow = document.getElementById("histKpiLow");
+
+    if (elTotal) elTotal.textContent = `${total} Scans`;
+    if (elHigh) elHigh.textContent = `${high}`;
+    if (elMod) elMod.textContent = `${mod}`;
+    if (elLow) elLow.textContent = `${low}`;
+  } catch (err) {
+    console.error("Error loading history KPIs:", err);
+  }
+}
 
 function debounceFilter() {
   clearTimeout(debounceTimeout);
@@ -147,23 +183,20 @@ async function loadRecords() {
         }
       } catch (_) {}
 
-      // Color map for predicted class matching Figure 8
+      // Color map for predicted class
       const classColorMap = {
         "Water Stress": "#dc2626",
         "Heat Stress": "#dc2626",
         "Nutrient Deficiency": "#d97706",
         "Pollution": "#dc2626",
-        "Healthy": "#16a34a"
+        "Healthy": "#059669"
       };
       const classColor = classColorMap[topClass] || "#0d3b2e";
 
       const sev = r.stress_severity || "Moderate";
-      const sevIcons = {
-        "High": "🔴 High",
-        "Moderate": "🟡 Moderate",
-        "Low": "🟢 Low"
-      };
-      const sevDisplay = sevIcons[sev] || `${sev}`;
+      const sevDisplay = sev === "High" ? `<span style="background:#fee2e2; color:#dc2626; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;">🔴 High</span>`
+        : (sev === "Low" ? `<span style="background:#ecfdf5; color:#059669; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;">🟢 Low</span>`
+        : `<span style="background:#fef3c7; color:#d97706; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;">🟡 Moderate</span>`);
 
       const dateStr = r.created_at ? new Date(r.created_at).toLocaleString([], {
         year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -171,7 +204,7 @@ async function loadRecords() {
 
       const imgSrc = r.image_url || "images/leaf_placeholder.jpg";
 
-      const expertStatus = r.expert_veto_rule_triggered ? "⚠️ Precaution" : "✓ Normal";
+      const expertStatus = r.expert_veto_rule_triggered ? "⚠️ Alert" : "✓ Normal";
       const expertColor = r.expert_veto_rule_triggered ? "#d97706" : "#059669";
 
       return `
@@ -179,25 +212,25 @@ async function loadRecords() {
           <td style="color:#0f172a; font-weight:600; white-space:nowrap;">${dateStr}</td>
           <td>
             <a href="analysis_detail.html?uuid=${r.record_uuid}">
-              <img src="${imgSrc}" class="leaf-thumb" alt="Leaf thumbnail" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'44\\' height=\\'44\\'><rect width=\\'44\\' height=\\'44\\' fill=\\'%23e2e8f0\\'/><text x=\\'50%\\' y=\\'55%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%2364748b\\' font-size=\\'18\\'>🌿</text></svg>'" />
+              <img src="${imgSrc}" class="leaf-thumb" alt="Leaf thumbnail" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\\'http://www.w3.org/2000/svg\\\' width=\\\'42\\\' height=\\\'42\\\'><rect width=\\\'42\\\' height=\\\'42\\\' fill=\\\'%23e2e8f0\\\'/><text x=\\\'50%\\\' y=\\\'55%\\\' dominant-baseline=\\\'middle\\\' text-anchor=\\\'middle\\\' fill=\\\'%2364748b\\\' font-size=\\\'16\\\'>🌿</text></svg>'" />
             </a>
           </td>
           <td>
-            <strong style="color:${classColor}; font-size:13px;">${topClass}</strong>
+            <strong style="color:${classColor}; font-size:12.5px;">${topClass}</strong>
             <div style="font-size:10px; color:#94a3b8;">${r.record_uuid}</div>
           </td>
           <td>
             <span style="font-weight:700; color:#0f172a;">${topPct ? topPct.toFixed(0) + "%" : "—"}</span>
           </td>
           <td>
-            <span style="font-weight:600; font-size:12px;">${sevDisplay}</span>
+            ${sevDisplay}
           </td>
           <td>
             <span style="font-weight:700; font-size:11px; color:${expertColor};">${expertStatus}</span>
           </td>
           <td style="text-align:right; white-space:nowrap;">
             <a href="analysis_detail.html?uuid=${r.record_uuid}" class="action-link-btn" title="View complete structured analysis">
-              View ✓
+              Inspect →
             </a>
           </td>
         </tr>
