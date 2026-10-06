@@ -435,70 +435,154 @@ function renderFigure6(data, payload) {
   const pred = data.prediction || {};
   const stressLevel = pred.class || "Low";
   const spikeCounts = data.spike_counts || {};
+  const classScores = data.class_scores || {};
 
   const titleEl = document.getElementById("fig6ClassTitle");
+  const statusPill = document.getElementById("fig6StatusPill");
   const spikesSummary = document.getElementById("fig6SpikesSummary");
+  const spikesDetail = document.getElementById("fig6SpikesDetail");
   const factorsList = document.getElementById("fig6FactorsList");
   const banner = document.getElementById("fig6Banner");
+  const metaLatency = document.getElementById("fig6InferenceMeta");
 
+  // Semantic styling by stress level
   if (titleEl) {
-    titleEl.textContent = `${stressLevel} Stress`;
+    titleEl.textContent = stressLevel;
     if (stressLevel === "Low") {
       titleEl.style.color = "#059669";
       if (banner) { banner.style.background = "#f0fdf4"; banner.style.borderColor = "#bbf7d0"; }
+      if (statusPill) {
+        statusPill.textContent = "● Low Risk";
+        statusPill.style.background = "#ecfdf5";
+        statusPill.style.color = "#059669";
+        statusPill.style.borderColor = "#a7f3d0";
+      }
     } else if (stressLevel === "Moderate") {
       titleEl.style.color = "#d97706";
       if (banner) { banner.style.background = "#fffbeb"; banner.style.borderColor = "#fde68a"; }
+      if (statusPill) {
+        statusPill.textContent = "● Moderate Risk";
+        statusPill.style.background = "#fef3c7";
+        statusPill.style.color = "#d97706";
+        statusPill.style.borderColor = "#fde68a";
+      }
     } else {
       titleEl.style.color = "#dc2626";
       if (banner) { banner.style.background = "#fff1f2"; banner.style.borderColor = "#fecdd3"; }
+      if (statusPill) {
+        statusPill.textContent = "● High Risk";
+        statusPill.style.background = "#fee2e2";
+        statusPill.style.color = "#dc2626";
+        statusPill.style.borderColor = "#fca5a5";
+      }
     }
   }
 
+  // Real SNN Output Evidence (Spike Counts over T=10 timesteps)
+  const lowS = spikeCounts["Low"] !== undefined ? spikeCounts["Low"] : 0;
+  const modS = spikeCounts["Moderate"] !== undefined ? spikeCounts["Moderate"] : 0;
+  const highS = spikeCounts["High"] !== undefined ? spikeCounts["High"] : 0;
+
   if (spikesSummary) {
-    const lowS = spikeCounts["Low"] !== undefined ? spikeCounts["Low"] : 0;
-    const modS = spikeCounts["Moderate"] !== undefined ? spikeCounts["Moderate"] : 0;
-    const highS = spikeCounts["High"] !== undefined ? spikeCounts["High"] : 0;
-    spikesSummary.textContent = `▶ SNN Output Evidence — Low: ${lowS} | Moderate: ${modS} | High: ${highS} spikes`;
+    spikesSummary.textContent = `▶ Output Evidence (SNN Spikes) — Low: ${lowS} | Moderate: ${modS} | High: ${highS} spikes (T=10)`;
   }
 
-  // Environmental Factor rows with status pills
-  if (factorsList) {
-    const temp = payload.temperature;
-    const hum = payload.humidity;
-    const rain = payload.rainfall;
-    const soil = payload.soil_moisture <= 1 ? (payload.soil_moisture * 100) : payload.soil_moisture;
-    const aqi = payload.aqi;
-    const ozone = payload.ozone > 1 ? payload.ozone : (payload.ozone * 1000);
+  if (spikesDetail) {
+    const lowScore = classScores["Low"] !== undefined ? (classScores["Low"] * 100).toFixed(1) : "—";
+    const modScore = classScores["Moderate"] !== undefined ? (classScores["Moderate"] * 100).toFixed(1) : "—";
+    const highScore = classScores["High"] !== undefined ? (classScores["High"] * 100).toFixed(1) : "—";
 
-    const tempStatus = temp >= 20 && temp <= 35 ? { text: "Normal", bg: "#ecfdf5", color: "#059669" } : { text: "Elevated", bg: "#fef3c7", color: "#d97706" };
-    const humStatus = hum >= 50 && hum <= 80 ? { text: "Normal", bg: "#ecfdf5", color: "#059669" } : { text: "Moderate", bg: "#fef3c7", color: "#d97706" };
-    const rainStatus = rain < 10 ? { text: "Low", bg: "#f0f9ff", color: "#0284c7" } : (rain <= 40 ? { text: "Normal", bg: "#ecfdf5", color: "#059669" } : { text: "High", bg: "#fef3c7", color: "#d97706" });
-    const soilStatus = soil >= 40 && soil <= 80 ? { text: "Normal", bg: "#ecfdf5", color: "#059669" } : { text: "Deficit", bg: "#fee2e2", color: "#dc2626" };
-    const aqiStatus = aqi <= 50 ? { text: "Good", bg: "#ecfdf5", color: "#059669" } : (aqi <= 100 ? { text: "Moderate", bg: "#fef3c7", color: "#d97706" } : { text: "Poor", bg: "#fee2e2", color: "#dc2626" });
-    const ozoneStatus = ozone <= 50 ? { text: "Moderate", bg: "#fef3c7", color: "#d97706" } : { text: "Elevated", bg: "#fee2e2", color: "#dc2626" };
+    spikesDetail.innerHTML = `
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:10px;">
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; text-align:center;">
+          <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">Low Stress Neurons</div>
+          <div style="font-size:14px; font-weight:800; color:#059669; margin:2px 0;">${lowS} spikes</div>
+          <div style="font-size:10px; color:#64748b;">Activity: ${lowScore}%</div>
+        </div>
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; text-align:center;">
+          <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">Moderate Stress Neurons</div>
+          <div style="font-size:14px; font-weight:800; color:#d97706; margin:2px 0;">${modS} spikes</div>
+          <div style="font-size:10px; color:#64748b;">Activity: ${modScore}%</div>
+        </div>
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; text-align:center;">
+          <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">High Stress Neurons</div>
+          <div style="font-size:14px; font-weight:800; color:#dc2626; margin:2px 0;">${highS} spikes</div>
+          <div style="font-size:10px; color:#64748b;">Activity: ${highScore}%</div>
+        </div>
+      </div>
+      <p style="margin:0; font-size:11.5px; color:#475569; line-height:1.45;">
+        Leaky Integrate-and-Fire (LIF) neurons integrate 33 microclimate &amp; soil feature inputs across 10 temporal timesteps with membrane decay parameter β = 0.95.
+      </p>
+    `;
+  }
+
+  // Selected Environmental Inputs with Horizontal Analytical Bars
+  if (factorsList) {
+    const temp = Number(payload.temperature || 31.0);
+    const hum = Number(payload.humidity || 72.0);
+    const rain = Number(payload.rainfall || 18.0);
+    const soilRaw = Number(payload.soil_moisture || 0.68);
+    const soil = soilRaw <= 1.0 ? (soilRaw * 100) : soilRaw;
+    const aqi = Number(payload.aqi || 84.0);
+    const ozoneRaw = Number(payload.ozone || 0.041);
+    const ozone = ozoneRaw <= 1.0 ? (ozoneRaw * 1000) : ozoneRaw;
+
+    // Domain status categorizations & bar widths
+    const tempStatus = temp >= 20 && temp <= 34 ? { text: "Optimal", bg: "#ecfdf5", color: "#059669", bar: "#059669" }
+      : (temp <= 38 ? { text: "Moderate Alert", bg: "#fef3c7", color: "#d97706", bar: "#d97706" } : { text: "Thermal Stress", bg: "#fee2e2", color: "#dc2626", bar: "#dc2626" });
+    const tempWidth = Math.min(100, Math.max(5, (temp / 55.0) * 100)).toFixed(1);
+
+    const humStatus = hum >= 50 && hum <= 80 ? { text: "Normal", bg: "#ecfdf5", color: "#059669", bar: "#059669" }
+      : (hum < 50 ? { text: "Low RH", bg: "#fef3c7", color: "#d97706", bar: "#d97706" } : { text: "High RH", bg: "#fef3c7", color: "#d97706", bar: "#d97706" });
+    const humWidth = Math.min(100, Math.max(5, hum)).toFixed(1);
+
+    const soilStatus = soil >= 50 && soil <= 80 ? { text: "Optimal Moisture", bg: "#ecfdf5", color: "#059669", bar: "#059669" }
+      : (soil < 50 ? { text: "Moisture Deficit", bg: "#fee2e2", color: "#dc2626", bar: "#dc2626" } : { text: "Saturated", bg: "#fef3c7", color: "#d97706", bar: "#d97706" });
+    const soilWidth = Math.min(100, Math.max(5, soil)).toFixed(1);
+
+    const rainStatus = rain < 5 ? { text: "Dry", bg: "#f1f5f9", color: "#475569", bar: "#94a3b8" }
+      : (rain <= 40 ? { text: "Normal", bg: "#ecfdf5", color: "#059669", bar: "#059669" } : { text: "Heavy Rain", bg: "#fef3c7", color: "#d97706", bar: "#d97706" });
+    const rainWidth = Math.min(100, Math.max(5, (rain / 120.0) * 100)).toFixed(1);
+
+    const aqiStatus = aqi <= 50 ? { text: "Good", bg: "#ecfdf5", color: "#059669", bar: "#059669" }
+      : (aqi <= 100 ? { text: "Moderate", bg: "#fef3c7", color: "#d97706", bar: "#d97706" } : { text: "Unhealthy", bg: "#fee2e2", color: "#dc2626", bar: "#dc2626" });
+    const aqiWidth = Math.min(100, Math.max(5, (aqi / 250.0) * 100)).toFixed(1);
+
+    const ozoneStatus = ozone <= 45 ? { text: "Normal", bg: "#ecfdf5", color: "#059669", bar: "#059669" }
+      : (ozone <= 70 ? { text: "Moderate", bg: "#fef3c7", color: "#d97706", bar: "#d97706" } : { text: "Elevated", bg: "#fee2e2", color: "#dc2626", bar: "#dc2626" });
+    const ozoneWidth = Math.min(100, Math.max(5, (ozone / 120.0) * 100)).toFixed(1);
 
     const rows = [
-      { icon: "🌡️", name: "Temperature", val: `${temp.toFixed(0)}°C`, status: tempStatus },
-      { icon: "💧", name: "Humidity", val: `${hum.toFixed(0)}%`, status: humStatus },
-      { icon: "🌧️", name: "Rainfall (today)", val: `${rain.toFixed(0)} mm`, status: rainStatus },
-      { icon: "🌱", name: "Soil Moisture", val: `${soil.toFixed(0)}%`, status: soilStatus },
-      { icon: "🫧", name: "AQI", val: `${Math.round(aqi)}`, status: aqiStatus },
-      { icon: "☀️", name: "Ozone", val: `${Math.round(ozone)} ppb`, status: ozoneStatus }
+      { icon: "🌡️", name: "Temperature", val: `${temp.toFixed(1)} °C`, status: tempStatus, width: tempWidth },
+      { icon: "💧", name: "Humidity", val: `${hum.toFixed(0)} %`, status: humStatus, width: humWidth },
+      { icon: "🌱", name: "Soil Moisture", val: `${soil.toFixed(0)} %`, status: soilStatus, width: soilWidth },
+      { icon: "🌧️", name: "Rainfall (today)", val: `${rain.toFixed(1)} mm`, status: rainStatus, width: rainWidth },
+      { icon: "🫧", name: "AQI", val: `${Math.round(aqi)}`, status: aqiStatus, width: aqiWidth },
+      { icon: "☀️", name: "Ozone", val: `${Math.round(ozone)} ppb`, status: ozoneStatus, width: ozoneWidth }
     ];
 
     factorsList.innerHTML = rows.map(r => `
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:16px;">${r.icon}</span>
-          <span style="font-size:12px; font-weight:600; color:#334155;">${r.name}</span>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:15px;">${r.icon}</span>
+            <span style="font-size:12.5px; font-weight:700; color:#334155;">${r.name}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:13px; font-weight:800; color:#0f172a;">${r.val}</span>
+            <span style="background:${r.status.bg}; color:${r.status.color}; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">${r.status.text}</span>
+          </div>
         </div>
-        <div style="display:flex; align-items:center; gap:16px;">
-          <span style="font-size:12px; font-weight:800; color:#0f172a;">${r.val}</span>
-          <span style="background:${r.status.bg}; color:${r.status.color}; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; min-width:55px; text-align:center;">${r.status.text}</span>
+        <div style="width:100%; height:7px; background:#e2e8f0; border-radius:999px; overflow:hidden;">
+          <div style="width:${r.width}%; height:100%; background:${r.status.bar}; border-radius:999px; transition:width 0.4s ease;"></div>
         </div>
       </div>
     `).join("");
+  }
+
+  // Update inference metadata if available
+  if (metaLatency && data.inference_time_ms) {
+    metaLatency.innerHTML = `<strong>Inference Time:</strong> ${data.inference_time_ms.toFixed(1)}ms on CPU`;
   }
 }
 

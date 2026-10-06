@@ -311,9 +311,9 @@
       </div>
 
       <!-- ============================================================
-           VIEW 3: Environmental Check (SNN)
+           VIEW 3: Environmental Analysis Result (SNN)
            ============================================================ -->
-      <div id="viewSNN" class="panel" style="display:none; max-width:860px; margin:0 auto; background:#ffffff; border-radius:16px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+      <div id="viewSNN" class="panel" style="display:none; max-width:860px; margin:0 auto; background:#ffffff; border-radius:18px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
 
         <!-- Header with Multicolored Chart Icon and Completed Pill -->
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:18px;">
@@ -324,40 +324,55 @@
           <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Completed</span>
         </div>
 
-        <!-- Hero Environmental Stress Card -->
-        <div id="fig6Banner" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:16px 20px; display:flex; align-items:center; gap:16px; margin-bottom:20px;">
-          <div style="width:48px; height:48px; border-radius:12px; background:#dcfce7; display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0;">⛅</div>
-          <div>
-            <div style="font-size:11px; font-weight:600; color:#475569; text-transform:uppercase; letter-spacing:0.04em;">Predicted Environmental Stress</div>
-            <div id="fig6ClassTitle" style="font-size:1.6rem; font-weight:800; color:#059669; margin:2px 0;">Low Stress</div>
-            <div style="font-size:11px; color:#64748b; font-weight:500;">SNN Assessment</div>
+        <!-- Primary Output: Environmental Stress Hero Banner -->
+        <div id="fig6Banner" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:48px; height:48px; border-radius:12px; background:#ffffff; border:1px solid #bbf7d0; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;">⛅</div>
+            <div>
+              <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.05em;">Environmental Stress</div>
+              <div id="fig6ClassTitle" style="font-size:1.6rem; font-weight:800; color:#059669; margin:2px 0 0;">Low</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <span id="fig6StatusPill" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0; display:inline-block;">● Low Risk</span>
+            <div style="font-size:10.5px; color:#64748b; margin-top:4px;">SNN Spiking Model</div>
           </div>
         </div>
 
-        <!-- Key Environmental Factors List -->
-        <div style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; margin-bottom:10px; letter-spacing:0.04em;">
-          Key Environmental Factors
+        <!-- Selected Environmental Inputs & Horizontal Analytical Bars -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.05em;">
+            Environmental Factors &amp; Selected Inputs
+          </div>
+          <span style="font-size:11px; color:#64748b;">Physical Measurements</span>
         </div>
-        <div id="fig6FactorsList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
-          <!-- Filled dynamically: factor name | value | status badge -->
+        
+        <div id="fig6FactorsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+          <!-- Filled dynamically with horizontal analytical bars for Temperature, Humidity, Soil Moisture, Rainfall, AQI, Ozone -->
         </div>
 
-        <!-- Accordions -->
+        <!-- Expandables -->
         <div style="display:flex; flex-direction:column; gap:10px;">
+          
+          <!-- 1. Output Evidence -->
           <details class="model-details" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px;">
-            <summary style="font-size:12px; font-weight:700; color:#1e293b; cursor:pointer;" id="fig6SpikesSummary">▶ SNN Output Evidence — Low: 28 | Moderate: 5 | High: 2 spikes</summary>
-            <div id="fig6SpikesDetail" style="margin-top:8px; font-size:12px; color:#475569; line-height:1.5;">
-              Leaky Integrate-and-Fire neurons simulated across 10 temporal discrete timesteps.
+            <summary style="font-size:12px; font-weight:700; color:#1e293b; cursor:pointer;" id="fig6SpikesSummary">▶ Output Evidence (SNN Spikes)</summary>
+            <div id="fig6SpikesDetail" style="margin-top:8px; font-size:12px; color:#475569; line-height:1.55;">
+              <!-- Dynamic spike counts and temporal simulation info -->
             </div>
           </details>
 
+          <!-- 2. Model Details (SNN) -->
           <details class="model-details" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px;">
             <summary style="font-size:12px; font-weight:700; color:#1e293b; cursor:pointer;">▶ Model Details (SNN)</summary>
             <div class="model-meta-grid" style="margin-top:8px;">
-              <div><strong>Architecture:</strong> 3-Layer LIF Spiking (33 inputs, T=10)</div>
-              <div><strong>Membrane Decay:</strong> β = 0.95</div>
-              <div><strong>Feature Set:</strong> 33 Microclimate, Soil & Spectral Features</div>
-              <div><strong>Benchmark:</strong> 91.81% Test Accuracy</div>
+              <div><strong>Architecture:</strong> 3-Layer LIF Spiking (64 $\to$ 64 $\to$ 3)</div>
+              <div><strong>Input Topology:</strong> 33 Multimodal Microclimate, Soil &amp; Spectral Features</div>
+              <div><strong>Temporal Timesteps:</strong> $T = 10$ discrete steps</div>
+              <div><strong>Membrane Decay:</strong> $\beta = 0.95$</div>
+              <div><strong>Output Classes:</strong> Low, Moderate, High</div>
+              <div><strong>Benchmark:</strong> 91.81% Test Accuracy on abiotic stress classification</div>
+              <div id="fig6InferenceMeta"><strong>Inference Time:</strong> ~4ms on CPU</div>
             </div>
           </details>
         </div>
