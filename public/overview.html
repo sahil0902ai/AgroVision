@@ -521,47 +521,103 @@
           </button>
         </div>
 
-        <!-- Real-Time OpenWeather Live Station Banner -->
-        <div id="overviewWeatherCard" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:14px; padding:14px 18px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:18px;">🌤️</span>
+        <!-- ============ CURRENT FIELD WEATHER ANALYTICS CARD ============ -->
+        <div class="current-field-weather-card" id="overviewWeatherCard">
+          
+          <div class="weather-card-header">
+            <div class="weather-card-title-group">
+              <div class="weather-card-icon">🌤️</div>
               <div>
-                <strong style="color:#0f172a; font-size:13.5px;" id="overviewWeatherStation">Field A — Wardha South Station</strong>
-                <span style="font-size:11px; color:#64748b; margin-left:8px;" id="overviewWeatherObserved">Observed: Just now</span>
+                <h3 class="weather-card-title">
+                  Current Field Weather
+                  <span class="weather-source-badge" id="overviewWeatherSourceBadge">AUTO • OpenWeather</span>
+                </h3>
+                <div class="weather-card-subtitle">
+                  <strong id="overviewWeatherStation" style="color:#0f172a;">Field A — Wardha South Station</strong>
+                  <span id="overviewWeatherCoords" style="color:#64748b;">(20.975°N, 78.720°E)</span>
+                  <span style="margin: 0 4px; color:#cbd5e1;">•</span>
+                  <span id="overviewWeatherObserved" style="color:#64748b;">Updated: Just now</span>
+                  <span style="margin: 0 4px; color:#cbd5e1;">•</span>
+                  <span id="overviewWeatherConditionBadge" style="font-weight:700; color:#059669;">Clear Sky</span>
+                </div>
               </div>
             </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span id="overviewWeatherSourceBadge" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px;">● OpenWeather Live</span>
-              <button id="overviewWeatherRefreshBtn" style="background:#f1f5f9; border:1px solid #cbd5e1; font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px; cursor:pointer; color:#334155;">🔄 Refresh</button>
+            <div class="weather-card-actions">
+              <button type="button" class="weather-refresh-btn" id="overviewWeatherRefreshBtn" onclick="fetchOverviewWeather(currentOverviewLat, currentOverviewLon, true)" title="Fetch live station telemetry">
+                🔄 Refresh
+              </button>
             </div>
           </div>
-          <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:10px;" id="overviewWeatherGrid">
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
-              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Temperature</div>
-              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovTemp">-- °C</div>
+
+          <!-- Loading State Box -->
+          <div class="weather-loading-box" id="overviewWeatherLoading" style="display:none;">
+            <span>⌛</span>
+            <span>Retrieving real-time weather &amp; air quality telemetry from OpenWeather...</span>
+          </div>
+
+          <!-- Error State Box -->
+          <div class="weather-error-box" id="overviewWeatherError" style="display:none;">
+            <div class="weather-error-title">
+              <span>⚠️</span>
+              <span>Weather Retrieval Failed</span>
             </div>
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
-              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Humidity</div>
-              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovHum">-- %</div>
+            <div id="overviewWeatherErrorMsg">Unable to load live weather from OpenWeather API. Click Refresh to retry.</div>
+          </div>
+
+          <!-- 5 Actual Data Tiles: Temperature, Humidity, Rainfall, AQI, Ozone -->
+          <div class="weather-metrics-grid" id="overviewWeatherGrid">
+            
+            <!-- 1. Temperature -->
+            <div class="weather-metric-tile">
+              <div class="weather-metric-label">Temperature</div>
+              <div class="weather-metric-val" id="ovTemp">-- °C</div>
+              <div class="weather-metric-sub" id="ovTempSub">Observed Ambient</div>
             </div>
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
-              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Observed Rain</div>
-              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovRain">0.0 mm</div>
+
+            <!-- 2. Humidity -->
+            <div class="weather-metric-tile">
+              <div class="weather-metric-label">Humidity</div>
+              <div class="weather-metric-val" id="ovHum">-- %</div>
+              <div class="weather-metric-sub">Relative Humidity</div>
             </div>
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
-              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Wind Speed</div>
-              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovWind">-- m/s</div>
+
+            <!-- 3. Rainfall -->
+            <div class="weather-metric-tile">
+              <div class="weather-metric-label">Rainfall</div>
+              <div class="weather-metric-val" id="ovRain">-- mm</div>
+              <div class="weather-metric-sub" id="ovRainSub">Observed (1-3h)</div>
             </div>
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
-              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Air Quality</div>
-              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovAqi">-- AQI</div>
+
+            <!-- 4. AQI -->
+            <div class="weather-metric-tile">
+              <div class="weather-metric-label">Air Quality (AQI)</div>
+              <div class="weather-metric-val" id="ovAqi">-- AQI</div>
+              <div class="weather-metric-sub" id="ovAqiSub">Air Pollution Index</div>
             </div>
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
-              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">48h Rain Outlook</div>
-              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovForecastRain">0.0 mm</div>
+
+            <!-- 5. Ozone -->
+            <div class="weather-metric-tile">
+              <div class="weather-metric-label">Ozone (O₃)</div>
+              <div class="weather-metric-val" id="ovOzone">-- ppb</div>
+              <div class="weather-metric-sub" id="ovOzoneSub">Ground Level</div>
+            </div>
+
+          </div>
+
+          <!-- Data Sources Area -->
+          <div class="weather-data-sources-strip">
+            <div class="data-sources-title">
+              <span>📋</span>
+              <span>Data Sources:</span>
+            </div>
+            <div class="data-sources-list">
+              <span class="data-source-item"><strong>Weather Data</strong> <span class="data-source-arrow">→</span> Weather API</span>
+              <span class="data-source-item"><strong>Soil Moisture</strong> <span class="data-source-arrow">→</span> Manual Input</span>
+              <span class="data-source-item"><strong>Crop Context</strong> <span class="data-source-arrow">→</span> Field Profile</span>
+              <span class="data-source-item"><strong>Leaf Image</strong> <span class="data-source-arrow">→</span> Farmer Upload</span>
             </div>
           </div>
+
         </div>
 
         <!-- 2. Power BI Top KPI Cards Row -->

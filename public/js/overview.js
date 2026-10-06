@@ -789,42 +789,115 @@ let currentOverviewLon = 78.72;
 
 async function fetchOverviewWeather(lat, lon, forceRefresh = false) {
   const refreshBtn = document.getElementById("overviewWeatherRefreshBtn");
+  const loadingBox = document.getElementById("overviewWeatherLoading");
+  const errorBox = document.getElementById("overviewWeatherError");
+  const errorMsg = document.getElementById("overviewWeatherErrorMsg");
+  const gridEl = document.getElementById("overviewWeatherGrid");
+
   if (refreshBtn) {
     refreshBtn.textContent = "⌛ Refreshing…";
     refreshBtn.disabled = true;
   }
+  if (loadingBox) loadingBox.style.display = "flex";
+  if (errorBox) errorBox.style.display = "none";
+  if (gridEl) gridEl.style.opacity = "0.6";
 
   try {
     const url = getApiUrl(`/api/weather/current?lat=${lat}&lon=${lon}&force_refresh=${forceRefresh}`);
     const res = await fetch(url);
-    if (!res.ok) throw new Error("Could not fetch weather");
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.detail || `HTTP ${res.status}: Could not fetch weather telemetry`);
+    }
 
     const data = await res.json();
+    if (!data || !data.current) {
+      throw new Error("Invalid response format from Weather API service");
+    }
+
     const stEl = document.getElementById("overviewWeatherStation");
+    const coordsEl = document.getElementById("overviewWeatherCoords");
     const obsEl = document.getElementById("overviewWeatherObserved");
+    const condEl = document.getElementById("overviewWeatherConditionBadge");
+
+    const tEl = document.getElementById("ovTemp");
+    const tSub = document.getElementById("ovTempSub");
+    const hEl = document.getElementById("ovHum");
+    const rEl = document.getElementById("ovRain");
+    const rSub = document.getElementById("ovRainSub");
+    const aEl = document.getElementById("ovAqi");
+    const aSub = document.getElementById("ovAqiSub");
+    const oEl = document.getElementById("ovOzone");
+    const oSub = document.getElementById("ovOzoneSub");
+
+    if (stEl) stEl.textContent = data.location?.name || "Field Station";
+    if (coordsEl && data.location?.latitude !== undefined && data.location?.longitude !== undefined) {
+      coordsEl.textContent = `(${data.location.latitude.toFixed(3)}°N, ${data.location.longitude.toFixed(3)}°E)`;
+    }
+    if (obsEl) {
+      const d = new Date(data.observed_at || Date.now());
+      obsEl.textContent = `Updated: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Live Station`;
+    }
+    if (condEl) {
+      const cond = data.current.weather_condition || "Clear Sky";
+      condEl.textContent = cond;
+    }
+
+    // 1. Temperature
+    if (tEl) tEl.textContent = `${data.current.temperature_c.toFixed(1)} °C`;
+    if (tSub) tSub.textContent = data.current.weather_condition || "Observed Ambient";
+
+    // 2. Humidity
+    if (hEl) hEl.textContent = `${Math.round(data.current.humidity_percent)} %`;
+
+    // 3. Rainfall
+    if (rEl) rEl.textContent = `${data.current.rainfall_mm.toFixed(1)} mm`;
+    if (rSub) {
+      rSub.textContent = data.current.rainfall_mm > 0 ? "Precipitation Active" : "No Rain (Past 3h)";
+    }
+
+    // 4. AQI
+    const aqiVal = data.air_quality ? Math.round(data.air_quality.aqi) : null;
+    if (aEl) aEl.textContent = aqiVal !== null ? `${aqiVal} AQI` : "-- AQI";
+    if (aSub) {
+      if (aqiVal !== null) {
+        aSub.textContent = aqiVal <= 50 ? "Good Air Quality" : (aqiVal <= 100 ? "Moderate Air Quality" : "Unhealthy Air");
+      }
+    }
+
+    // 5. Ozone
+    let ozoneVal = null;
+    if (data.air_quality?.ozone_ppb !== undefined) {
+      ozoneVal = Math.round(data.air_quality.ozone_ppb);
+    } else if (data.air_quality?.ozone !== undefined) {
+      ozoneVal = data.air_quality.ozone <= 1.0 ? Math.round(data.air_quality.ozone * 1000) : Math.round(data.air_quality.ozone);
+    }
+    if (oEl) oEl.textContent = ozoneVal !== null ? `${ozoneVal} ppb` : "-- ppb";
+    if (oSub && ozoneVal !== null) {
+      oSub.textContent = `${(ozoneVal / 1000).toFixed(3)} ppm Ground O₃`;
+    }
+
+    if (errorBox) errorBox.style.display = "none";
+  } catch (err) {
+    console.warn("Overview weather error:", err);
+    if (errorBox) {
+      errorBox.style.display = "block";
+      if (errorMsg) errorMsg.textContent = `${err.message || "Weather telemetry unavailable"}. Check internet connection or API settings and click Refresh.`;
+    }
+    // Do NOT substitute fake weather - clear or mark indicators
     const tEl = document.getElementById("ovTemp");
     const hEl = document.getElementById("ovHum");
     const rEl = document.getElementById("ovRain");
-    const wEl = document.getElementById("ovWind");
     const aEl = document.getElementById("ovAqi");
-    const fEl = document.getElementById("ovForecastRain");
-
-    if (stEl) stEl.textContent = `${data.location?.name || "Wardha"} (${data.location?.latitude?.toFixed(3)}°N, ${data.location?.longitude?.toFixed(3)}°E)`;
-    if (obsEl) {
-      const d = new Date(data.observed_at || Date.now());
-      obsEl.textContent = `Observed: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Live Station`;
-    }
-
-    if (tEl && data.current) tEl.textContent = `${data.current.temperature_c.toFixed(1)} °C`;
-    if (hEl && data.current) hEl.textContent = `${Math.round(data.current.humidity_percent)} %`;
-    if (rEl && data.current) rEl.textContent = `${data.current.rainfall_mm.toFixed(1)} mm`;
-    if (wEl && data.current) wEl.textContent = `${data.current.wind_speed.toFixed(1)} m/s`;
-    if (aEl && data.air_quality) aEl.textContent = `${Math.round(data.air_quality.aqi)} AQI`;
-    if (fEl && data.forecast) fEl.textContent = `${data.forecast.rainfall_forecast_mm.toFixed(1)} mm`;
-
-  } catch (err) {
-    console.warn("Overview weather error:", err);
+    const oEl = document.getElementById("ovOzone");
+    if (tEl) tEl.textContent = "-- °C";
+    if (hEl) hEl.textContent = "-- %";
+    if (rEl) rEl.textContent = "-- mm";
+    if (aEl) aEl.textContent = "-- AQI";
+    if (oEl) oEl.textContent = "-- ppb";
   } finally {
+    if (loadingBox) loadingBox.style.display = "none";
+    if (gridEl) gridEl.style.opacity = "1";
     if (refreshBtn) {
       refreshBtn.textContent = "🔄 Refresh";
       refreshBtn.disabled = false;

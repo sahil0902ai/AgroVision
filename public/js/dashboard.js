@@ -216,18 +216,33 @@ const FIELD_COORDINATES = {
 };
 
 async function fetchFieldWeather(lat, lon, forceRefresh = false) {
-  const refreshBtn = document.getElementById("weatherRefreshBtn");
+  const refreshBtn = document.getElementById("refreshWeatherBtn") || document.getElementById("weatherRefreshBtn");
+  const loadingBox = document.getElementById("weatherLoadingBox");
+  const errorBox = document.getElementById("weatherErrorBox");
+  const errorMsg = document.getElementById("weatherErrorMessage");
+  const metricsGrid = document.getElementById("weatherMetricsGrid");
+
   if (refreshBtn) {
     refreshBtn.textContent = "⌛ Refreshing…";
     refreshBtn.disabled = true;
   }
+  if (loadingBox) loadingBox.style.display = "flex";
+  if (errorBox) errorBox.style.display = "none";
+  if (metricsGrid) metricsGrid.style.opacity = "0.6";
 
   try {
     const url = getApiUrl(`/api/weather/current?lat=${lat}&lon=${lon}&force_refresh=${forceRefresh}`);
     const res = await fetch(url);
-    if (!res.ok) throw new Error("Could not fetch real-time weather from OpenWeather.");
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.detail || `HTTP ${res.status}: Could not fetch real-time weather from OpenWeather.`);
+    }
 
     const data = await res.json();
+    if (!data || !data.current) {
+      throw new Error("Invalid telemetry payload returned by Weather API.");
+    }
+
     currentWeatherContext = data;
     renderWeatherHero(data);
 
@@ -237,89 +252,108 @@ async function fetchFieldWeather(lat, lon, forceRefresh = false) {
     }
   } catch (err) {
     console.warn("OpenWeather fetch error:", err);
-    const stationEl = document.getElementById("weatherStationName");
-    if (stationEl) stationEl.textContent = "Offline Fallback (Telemetry Active)";
+    if (errorBox) {
+      errorBox.style.display = "block";
+      if (errorMsg) {
+        errorMsg.textContent = `${err.message || "Weather telemetry unavailable"}. Please verify connection or API credentials and click Refresh.`;
+      }
+    }
+    // Do NOT substitute fake weather when API is unavailable
+    const tempEl = document.getElementById("wCardTemp");
+    const humEl = document.getElementById("wCardHumidity");
+    const rainEl = document.getElementById("wCardRain");
+    const aqiEl = document.getElementById("wCardAqi");
+    const ozoneEl = document.getElementById("wCardOzone");
+    if (tempEl) tempEl.textContent = "-- °C";
+    if (humEl) humEl.textContent = "-- %";
+    if (rainEl) rainEl.textContent = "-- mm";
+    if (aqiEl) aqiEl.textContent = "-- AQI";
+    if (ozoneEl) ozoneEl.textContent = "-- ppb";
   } finally {
+    if (loadingBox) loadingBox.style.display = "none";
+    if (metricsGrid) metricsGrid.style.opacity = "1";
     if (refreshBtn) {
-      refreshBtn.textContent = "🔄 Refresh Weather";
+      refreshBtn.textContent = "🔄 Refresh";
       refreshBtn.disabled = false;
     }
   }
 }
 
+function refreshWeather(forceRefresh = true) {
+  fetchFieldWeather(currentFieldLat, currentFieldLon, forceRefresh);
+}
+
 function renderWeatherHero(w) {
   if (!w || !w.current) return;
 
-  const stationEl = document.getElementById("weatherStationName");
-  const observedEl = document.getElementById("weatherObservedAt");
+  const stationEl = document.getElementById("weatherLocStation") || document.getElementById("weatherStationName");
+  const coordsEl = document.getElementById("weatherCoords");
+  const observedEl = document.getElementById("weatherObservedAt") || document.getElementById("weatherTimeStr");
   const srcBadge = document.getElementById("weatherSourceBadge");
-  const tempEl = document.getElementById("weatherTemp");
-  const humEl = document.getElementById("weatherHumidity");
-  const rainEl = document.getElementById("weatherRainfall");
-  const rainBadge = document.getElementById("weatherRainBadge");
-  const windEl = document.getElementById("weatherWind");
-  const cloudEl = document.getElementById("weatherCloud");
-  const aqiEl = document.getElementById("weatherAqi");
-  const ozoneEl = document.getElementById("weatherOzone");
-  const fSummary = document.getElementById("weatherForecastSummary");
-  const fRain = document.getElementById("weatherForecastRain");
-  const fPop = document.getElementById("weatherForecastPop");
-  const alertBanner = document.getElementById("weatherAlertBanner");
-  const alertText = document.getElementById("weatherAlertText");
+  const condBadge = document.getElementById("weatherConditionBadge");
+
+  const tempEl = document.getElementById("wCardTemp") || document.getElementById("weatherTemp");
+  const tempSub = document.getElementById("wCardCond");
+  const humEl = document.getElementById("wCardHumidity") || document.getElementById("weatherHumidity");
+  const rainEl = document.getElementById("wCardRain") || document.getElementById("weatherRainfall");
+  const rainSub = document.getElementById("wCardRainSub");
+  const aqiEl = document.getElementById("wCardAqi") || document.getElementById("weatherAqi");
+  const aqiSub = document.getElementById("wCardAqiCat");
+  const ozoneEl = document.getElementById("wCardOzone") || document.getElementById("weatherOzone");
+  const ozoneSub = document.getElementById("wCardOzoneSub");
 
   if (stationEl) {
-    stationEl.textContent = `${w.location?.name || "Wardha"} (${w.location?.latitude?.toFixed(3)}°N, ${w.location?.longitude?.toFixed(3)}°E)`;
+    stationEl.textContent = w.location?.name || "Field Station";
+  }
+  if (coordsEl && w.location?.latitude !== undefined && w.location?.longitude !== undefined) {
+    coordsEl.textContent = `(${w.location.latitude.toFixed(3)}°N, ${w.location.longitude.toFixed(3)}°E)`;
   }
   if (observedEl) {
     const d = new Date(w.observed_at || Date.now());
-    observedEl.textContent = `Observed: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Live Station`;
+    observedEl.textContent = `Updated: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Live Station`;
   }
   if (srcBadge) {
-    srcBadge.textContent = "● OpenWeather Live";
+    srcBadge.textContent = "AUTO • OpenWeather";
+  }
+  if (condBadge) {
+    condBadge.textContent = w.current.weather_condition || "Clear Sky";
   }
 
-  if (tempEl) tempEl.textContent = `${w.current.temperature_c.toFixed(1)}°C`;
-  if (humEl) humEl.textContent = `${Math.round(w.current.humidity_percent)}%`;
+  // 1. Temperature
+  if (tempEl) tempEl.textContent = `${w.current.temperature_c.toFixed(1)} °C`;
+  if (tempSub) tempSub.textContent = w.current.weather_condition || "Observed Ambient";
+
+  // 2. Humidity
+  if (humEl) humEl.textContent = `${Math.round(w.current.humidity_percent)} %`;
+
+  // 3. Rainfall
   if (rainEl) rainEl.textContent = `${w.current.rainfall_mm.toFixed(1)} mm`;
-
-  if (rainBadge) {
-    rainBadge.textContent = w.current.rainfall_mm > 0 ? "Observed Rain" : "No Precipitation";
-    rainBadge.style.background = w.current.rainfall_mm > 0 ? "#e0f2fe" : "#f1f5f9";
-    rainBadge.style.color = w.current.rainfall_mm > 0 ? "#0369a1" : "#475569";
+  if (rainSub) {
+    rainSub.textContent = w.current.rainfall_mm > 0 ? "Precipitation Active" : "No Rain (Past 3h)";
   }
 
-  if (windEl) windEl.textContent = `${w.current.wind_speed.toFixed(1)} m/s`;
-  if (cloudEl) cloudEl.textContent = `${w.current.cloud_cover}%`;
-
-  if (aqiEl) {
-    aqiEl.textContent = `${Math.round(w.air_quality?.aqi || 84)} AQI`;
-  }
-  if (ozoneEl) {
-    const o3Ppb = w.air_quality?.ozone_ppb || Math.round((w.air_quality?.ozone || 0.041) * 1000);
-    ozoneEl.textContent = `O₃: ${o3Ppb} ppb`;
+  // 4. AQI
+  const aqiNum = w.air_quality ? Math.round(w.air_quality.aqi) : null;
+  if (aqiEl) aqiEl.textContent = aqiNum !== null ? `${aqiNum} AQI` : "-- AQI";
+  if (aqiSub && aqiNum !== null) {
+    aqiSub.textContent = aqiNum <= 50 ? "Good Air" : (aqiNum <= 100 ? "Moderate Air" : "Unhealthy Air");
   }
 
-  if (fSummary) {
-    const cond = w.current.weather_condition || "Clear";
-    const pop = Math.round((w.forecast?.rain_probability || 0) * 100);
-    fSummary.textContent = `${cond} · Rain Prob: ${pop}% · 48h Outlook: ${w.forecast?.rainfall_forecast_mm?.toFixed(1) || "0.0"} mm`;
+  // 5. Ozone
+  let ozoneNum = null;
+  if (w.air_quality?.ozone_ppb !== undefined) {
+    ozoneNum = Math.round(w.air_quality.ozone_ppb);
+  } else if (w.air_quality?.ozone !== undefined) {
+    ozoneNum = w.air_quality.ozone <= 1.0 ? Math.round(w.air_quality.ozone * 1000) : Math.round(w.air_quality.ozone);
   }
-  if (fRain) {
-    fRain.textContent = `${w.forecast?.rainfall_forecast_mm?.toFixed(1) || "0.0"} mm`;
-  }
-  if (fPop) {
-    fPop.textContent = `${Math.round((w.forecast?.rain_probability || 0) * 100)}%`;
+  if (ozoneEl) ozoneEl.textContent = ozoneNum !== null ? `${ozoneNum} ppb` : "-- ppb";
+  if (ozoneSub && ozoneNum !== null) {
+    ozoneSub.textContent = `${(ozoneNum / 1000).toFixed(3)} ppm Ground O₃`;
   }
 
-  // Alerts
-  if (alertBanner && alertText) {
-    if (w.alerts && w.alerts.length > 0) {
-      alertText.textContent = `${w.alerts[0].event}: ${w.alerts[0].description}`;
-      alertBanner.style.display = "block";
-    } else {
-      alertBanner.style.display = "none";
-    }
-  }
+  // Clear any existing error state on successful render
+  const errorBox = document.getElementById("weatherErrorBox");
+  if (errorBox) errorBox.style.display = "none";
 }
 
 function applyWeatherToSliders(w) {
