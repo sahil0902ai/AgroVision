@@ -68,6 +68,67 @@
         </div>
       </div>
 
+      <!-- FIELD WEATHER HERO CARD (OpenWeather) -->
+      <div class="card-weather-hero" id="weatherHeroCard" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:18px 22px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; border-bottom:1px solid #f1f5f9; padding-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:8px; background:#ecfdf5; display:flex; align-items:center; justify-content:center; font-size:18px;">🌤️</div>
+            <div>
+              <div style="font-size:13px; font-weight:800; color:#0d3b2e; display:flex; align-items:center; gap:8px;">
+                FIELD WEATHER
+                <span style="font-size:11px; font-weight:700; color:#059669; background:#ecfdf5; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;" id="weatherSourceBadge">OpenWeather Live</span>
+              </div>
+              <div style="font-size:11px; color:#64748b;" id="weatherLocStation">Station: Sindi, IN (20.975°N, 78.720°E) · Updated: <span id="weatherTimeStr">Just now</span></div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button onclick="refreshWeather(true)" id="refreshWeatherBtn" class="btn" style="background:#f8fafc; border:1px solid #cbd5e1; color:#334155; padding:6px 12px; font-size:11.5px; border-radius:8px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px;">
+              🔄 Refresh Weather
+            </button>
+          </div>
+        </div>
+
+        <!-- Real Metrics Grid -->
+        <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:12px; margin-bottom:12px;" id="weatherMetricsGrid">
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; text-align:center;">
+            <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">Temperature</div>
+            <div style="font-size:17px; font-weight:800; color:#0f172a; margin-top:2px;" id="wCardTemp">26.5°C</div>
+            <div style="font-size:10px; color:#059669;" id="wCardCond">Clear</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; text-align:center;">
+            <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">Humidity</div>
+            <div style="font-size:17px; font-weight:800; color:#0f172a; margin-top:2px;" id="wCardHumidity">73%</div>
+            <div style="font-size:10px; color:#64748b;">Relative</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; text-align:center;">
+            <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">Observed Rain</div>
+            <div style="font-size:17px; font-weight:800; color:#0f172a; margin-top:2px;" id="wCardRain">0.0 mm</div>
+            <div style="font-size:10px; color:#64748b;">Past 1-3h</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; text-align:center;">
+            <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">Forecast Rain</div>
+            <div style="font-size:17px; font-weight:800; color:#0f172a; margin-top:2px;" id="wCardForeRain">0.1 mm</div>
+            <div style="font-size:10px; color:#0284c7;" id="wCardForeProb">20% chance</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; text-align:center;">
+            <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">Air Quality</div>
+            <div style="font-size:17px; font-weight:800; color:#0f172a; margin-top:2px;" id="wCardAqi">84</div>
+            <div style="font-size:10px; color:#ea580c;" id="wCardAqiCat">Moderate</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; text-align:center;">
+            <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">Ozone (O₃)</div>
+            <div style="font-size:17px; font-weight:800; color:#0f172a; margin-top:2px;" id="wCardOzone">34 ppb</div>
+            <div style="font-size:10px; color:#64748b;">0.034 ppm</div>
+          </div>
+        </div>
+
+        <!-- Forecast Summary Strip -->
+        <div style="background:#f1f5f9; border-radius:8px; padding:8px 14px; font-size:11.5px; color:#334155; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div><strong>Weather Outlook:</strong> <span id="wCardSummary">Dry conditions over next 24–48h with stable temperature.</span></div>
+          <div style="font-size:10.5px; color:#64748b; font-style:italic;">* Macroclimate context from OpenWeather — not direct in-soil sensor readings.</div>
+        </div>
+      </div>
+
       <!-- Flow Stepper / View Selector Bar -->
       <div class="view-stepper" id="flowStepper">
         <button class="view-step-btn active" id="stepBtnInput" onclick="switchView('input')">
@@ -135,49 +196,73 @@
           </details>
         </div>
 
-        <!-- RIGHT: 2. Environmental Conditions (Manual) -->
+        <!-- RIGHT: 2. Environmental Conditions (Automatic Weather / Manual Entry) -->
         <div class="panel">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h3 style="font-size:1.1rem; color:#0d3b2e; font-weight:700;">2. Field Conditions</h3>
-            <span class="source-badge source-badge-blue">Manual / Field Profile</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <h3 style="font-size:1.1rem; color:#0d3b2e; font-weight:700; margin:0;">2. Field Conditions</h3>
+            <div style="display:flex; background:#f1f5f9; padding:2px; border-radius:8px; border:1px solid #e2e8f0;">
+              <button type="button" id="sourceAutoBtn" onclick="setEnvSourceMode('auto')" style="padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; border:none; cursor:pointer; background:#059669; color:#ffffff;">⚡ Auto Weather</button>
+              <button type="button" id="sourceManualBtn" onclick="setEnvSourceMode('manual')" style="padding:4px 10px; font-size:11px; font-weight:600; border-radius:6px; border:none; cursor:pointer; background:transparent; color:#64748b;">✍️ Manual Entry</button>
+            </div>
           </div>
 
           <!-- 6 Aligned Geometric Slider Rows: icon | label | slider | value -->
-          <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
+          <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
             <div class="env-slider-row">
               <span class="env-slider-icon">🌡️</span>
-              <span class="env-slider-label">Temperature (°C)</span>
-              <input type="range" class="env-slider-input" id="sliderTemp" min="0" max="55" step="0.1" value="31" oninput="updateEnvDisplay()" style="accent-color:#ef4444;" />
+              <div style="display:flex; flex-direction:column; width:130px;">
+                <span class="env-slider-label">Temperature (°C)</span>
+                <span class="env-source-pill" id="sourcePillTemp" style="font-size:9.5px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
+              </div>
+              <input type="range" class="env-slider-input" id="sliderTemp" min="0" max="55" step="0.1" value="31" oninput="handleSliderChange('Temp')" style="accent-color:#ef4444;" />
               <span class="env-slider-val" id="envTemp">31</span>
             </div>
             <div class="env-slider-row">
               <span class="env-slider-icon">💧</span>
-              <span class="env-slider-label">Humidity (%)</span>
-              <input type="range" class="env-slider-input" id="sliderHumidity" min="0" max="100" step="0.5" value="72" oninput="updateEnvDisplay()" style="accent-color:#3b82f6;" />
+              <div style="display:flex; flex-direction:column; width:130px;">
+                <span class="env-slider-label">Humidity (%)</span>
+                <span class="env-source-pill" id="sourcePillHumidity" style="font-size:9.5px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
+              </div>
+              <input type="range" class="env-slider-input" id="sliderHumidity" min="0" max="100" step="0.5" value="72" oninput="handleSliderChange('Humidity')" style="accent-color:#3b82f6;" />
               <span class="env-slider-val" id="envHumidity">72</span>
             </div>
             <div class="env-slider-row">
               <span class="env-slider-icon">🌧️</span>
-              <span class="env-slider-label">Rainfall (mm)</span>
-              <input type="range" class="env-slider-input" id="sliderRainfall" min="0" max="250" step="0.5" value="18" oninput="updateEnvDisplay()" style="accent-color:#0284c7;" />
+              <div style="display:flex; flex-direction:column; width:130px;">
+                <span class="env-slider-label">Rainfall (mm)</span>
+                <span class="env-source-pill" id="sourcePillRainfall" style="font-size:9.5px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
+              </div>
+              <input type="range" class="env-slider-input" id="sliderRainfall" min="0" max="250" step="0.5" value="18" oninput="handleSliderChange('Rainfall')" style="accent-color:#0284c7;" />
               <span class="env-slider-val" id="envRainfall">18</span>
             </div>
-            <div class="env-slider-row">
+            <div class="env-slider-row" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:6px 10px;">
               <span class="env-slider-icon">🌱</span>
-              <span class="env-slider-label">Soil Moisture (%)</span>
-              <input type="range" class="env-slider-input" id="sliderSoil" min="0" max="100" step="1" value="68" oninput="updateEnvDisplay()" style="accent-color:#10b981;" />
-              <span class="env-slider-val" id="envSoil">68</span>
+              <div style="display:flex; flex-direction:column; width:130px;">
+                <span class="env-slider-label" style="color:#065f46; font-weight:700;">Soil Moisture (%)</span>
+                <span class="env-source-pill" style="font-size:9.5px; color:#15803d; font-weight:700;">MANUAL SENSOR</span>
+              </div>
+              <input type="range" class="env-slider-input" id="sliderSoil" min="0" max="100" step="1" value="68" oninput="handleSliderChange('Soil')" style="accent-color:#10b981;" />
+              <span class="env-slider-val" id="envSoil" style="color:#065f46; font-weight:800;">68</span>
+            </div>
+            <div style="font-size:10.5px; color:#64748b; margin-top:-4px; margin-bottom:2px; padding-left:26px; font-style:italic;">
+              * Soil moisture is a manual field input / sensor value, not derived from OpenWeather.
             </div>
             <div class="env-slider-row">
               <span class="env-slider-icon">🫧</span>
-              <span class="env-slider-label">AQI</span>
-              <input type="range" class="env-slider-input" id="sliderAqi" min="0" max="500" step="1" value="84" oninput="updateEnvDisplay()" style="accent-color:#f97316;" />
+              <div style="display:flex; flex-direction:column; width:130px;">
+                <span class="env-slider-label">Air Quality (AQI)</span>
+                <span class="env-source-pill" id="sourcePillAqi" style="font-size:9.5px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
+              </div>
+              <input type="range" class="env-slider-input" id="sliderAqi" min="0" max="500" step="1" value="84" oninput="handleSliderChange('Aqi')" style="accent-color:#f97316;" />
               <span class="env-slider-val" id="envAqi">84</span>
             </div>
             <div class="env-slider-row">
               <span class="env-slider-icon">☀️</span>
-              <span class="env-slider-label">Ozone (ppb)</span>
-              <input type="range" class="env-slider-input" id="sliderOzone" min="0" max="200" step="1" value="41" oninput="updateEnvDisplay()" style="accent-color:#eab308;" />
+              <div style="display:flex; flex-direction:column; width:130px;">
+                <span class="env-slider-label">Ozone (ppb)</span>
+                <span class="env-source-pill" id="sourcePillOzone" style="font-size:9.5px; color:#059669; font-weight:700;">AUTO • OpenWeather</span>
+              </div>
+              <input type="range" class="env-slider-input" id="sliderOzone" min="0" max="200" step="1" value="41" oninput="handleSliderChange('Ozone')" style="accent-color:#eab308;" />
               <span class="env-slider-val" id="envOzone">41</span>
             </div>
           </div>
@@ -440,9 +525,35 @@
           </div>
           <p id="fig7FinalDesc" style="margin:0 0 8px; font-size:12.5px; color:#334155; line-height:1.55;">
             Visual evidence indicates foliar symptoms associated with nutrient deficiency, while environmental conditions indicate low abiotic risk. The evidence streams are evaluated in synthesis.
-          </p>
-          <div style="background:#ffffff; border-left:3px solid #0284c7; padding:6px 10px; font-size:11px; color:#475569; border-radius:0 4px 4px 0;">
-            <strong>Decision Support Notice:</strong> This multimodal synthesis provides agricultural decision support to assist routine crop monitoring. It does not establish a confirmed biological cause, guaranteed disease diagnosis, or certain chemical treatment.
+        <!-- Macroclimate Weather Context (OpenWeather) -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 18px; margin-bottom:18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#0d3b2e;">
+              <span>🌤️</span>
+              <span>Macroclimate Weather &amp; Forecast Context (OpenWeather)</span>
+            </div>
+            <span style="font-size:10.5px; color:#059669; font-weight:700; background:#ecfdf5; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;" id="fig7WeatherBadge">OpenWeather Live</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; font-size:12px; margin-bottom:8px;" id="fig7WeatherGrid">
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px;">
+              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Observed Temp &amp; Rain</div>
+              <div style="font-size:13px; font-weight:800; color:#0f172a;" id="fig7WeatherTempRain">26.5°C · 0.0 mm</div>
+            </div>
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px;">
+              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">24h Forecast Rain</div>
+              <div style="font-size:13px; font-weight:800; color:#0f172a;" id="fig7WeatherForeRain">0.1 mm (20% chance)</div>
+            </div>
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px;">
+              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Air Quality &amp; O₃</div>
+              <div style="font-size:13px; font-weight:800; color:#0f172a;" id="fig7WeatherAqiOzone">AQI 84 · 0.034 ppm</div>
+            </div>
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px;">
+              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Weather Condition</div>
+              <div style="font-size:13px; font-weight:800; color:#059669;" id="fig7WeatherCond">Clear Sky</div>
+            </div>
+          </div>
+          <div style="font-size:11px; color:#64748b; font-style:italic;" id="fig7WeatherSummary">
+            * OpenWeather macroclimate snapshot recorded for this analysis session.
           </div>
         </div>
 

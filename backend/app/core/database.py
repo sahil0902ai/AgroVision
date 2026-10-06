@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
-from app.models.db_models import Base
+from ..models.db_models import Base
 
 DATABASE_URL = "sqlite:///./cotton_stress.db"
 
@@ -8,6 +8,7 @@ engine = create_engine(
     DATABASE_URL, connect_args={"check_same_thread": False}
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def init_db():
     Base.metadata.create_all(bind=engine)
@@ -18,10 +19,18 @@ def init_db():
             columns = [c["name"] for c in inspector.get_columns("analysis_records")]
             if "fusion_json" not in columns:
                 conn.execute(text("ALTER TABLE analysis_records ADD COLUMN fusion_json TEXT"))
-                conn.commit()
             if "expert_veto_json" not in columns:
                 conn.execute(text("ALTER TABLE analysis_records ADD COLUMN expert_veto_json TEXT"))
-                conn.commit()
+            if "field_name" not in columns:
+                conn.execute(text("ALTER TABLE analysis_records ADD COLUMN field_name VARCHAR DEFAULT 'Field A — North Parcel'"))
+            if "forecast_rainfall_mm" not in columns:
+                conn.execute(text("ALTER TABLE analysis_records ADD COLUMN forecast_rainfall_mm FLOAT DEFAULT 0.0"))
+            if "weather_source" not in columns:
+                conn.execute(text("ALTER TABLE analysis_records ADD COLUMN weather_source VARCHAR DEFAULT 'OpenWeather'"))
+            if "weather_context_json" not in columns:
+                conn.execute(text("ALTER TABLE analysis_records ADD COLUMN weather_context_json TEXT"))
+            conn.commit()
+
 
 def get_db():
     db = SessionLocal()
@@ -29,4 +38,3 @@ def get_db():
         yield db
     finally:
         db.close()
-

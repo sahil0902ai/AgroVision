@@ -65,6 +65,11 @@ function renderRecordDetail(r) {
 
   document.getElementById("pageSub").textContent = `Record UUID: ${r.record_uuid} · ${dateStr}`;
   document.getElementById("reportBtn").href = getApiUrl(`/api/v1/records/${r.record_uuid}/report`);
+  
+  const askAIBtn = document.getElementById("askAIBtn");
+  if (askAIBtn) {
+    askAIBtn.href = `assistant.html?record_id=${encodeURIComponent(r.record_uuid)}`;
+  }
 
   // Parse JSON payloads safely
   let cnnObj = {};
@@ -85,6 +90,12 @@ function renderRecordDetail(r) {
   let expertObj = {};
   try {
     if (r.expert_veto_json) expertObj = JSON.parse(r.expert_veto_json);
+  } catch (_) {}
+
+  let weatherContext = null;
+  try {
+    if (r.weather_context_json) weatherContext = JSON.parse(r.weather_context_json);
+    else if (r.weather_context) weatherContext = r.weather_context;
   } catch (_) {}
 
   let recsList = [];
@@ -253,6 +264,74 @@ function renderRecordDetail(r) {
       spikesText = `SNN Spiking Simulation (T=10 timesteps): ${parts.join(" · ")}.`;
     }
     snnSum.innerHTML = spikesText;
+  }
+
+  // Historical Macroclimate & Weather Context (OpenWeather)
+  const weatherCard = document.getElementById("detailWeatherCard");
+  if (weatherCard && weatherContext && weatherContext.current) {
+    weatherCard.style.display = "block";
+    const stEl = document.getElementById("detailWeatherStation");
+    const obsEl = document.getElementById("detailWeatherObserved");
+    const condEl = document.getElementById("detailWeatherCondition");
+    const gridEl = document.getElementById("detailWeatherGrid");
+    const fText = document.getElementById("detailWeatherForecastText");
+
+    const stName = weatherContext.location?.name || r.field_name || "Field Station";
+    const latStr = weatherContext.location?.latitude !== undefined ? `${weatherContext.location.latitude.toFixed(3)}°N` : "";
+    const lonStr = weatherContext.location?.longitude !== undefined ? `${weatherContext.location.longitude.toFixed(3)}°E` : "";
+    const locCoord = (latStr && lonStr) ? ` (${latStr}, ${lonStr})` : "";
+
+    if (stEl) stEl.textContent = `${stName}${locCoord}`;
+    if (obsEl) {
+      const d = new Date(weatherContext.observed_at || r.created_at || Date.now());
+      obsEl.textContent = `Recorded: ${d.toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+    }
+    if (condEl) condEl.textContent = `Condition: ${weatherContext.current.weather_condition || "Clear"}`;
+
+    if (gridEl) {
+      const wTemp = weatherContext.current.temperature_c !== undefined ? weatherContext.current.temperature_c.toFixed(1) : "—";
+      const wHum = weatherContext.current.humidity_percent !== undefined ? Math.round(weatherContext.current.humidity_percent) : "—";
+      const wRain = weatherContext.current.rainfall_mm !== undefined ? weatherContext.current.rainfall_mm.toFixed(1) : "0.0";
+      const wWind = weatherContext.current.wind_speed !== undefined ? weatherContext.current.wind_speed.toFixed(1) : "—";
+      const wAqi = weatherContext.air_quality?.aqi !== undefined ? Math.round(weatherContext.air_quality.aqi) : "—";
+      const wOzone = weatherContext.air_quality?.ozone_ppb !== undefined ? weatherContext.air_quality.ozone_ppb : (weatherContext.air_quality?.ozone ? Math.round(weatherContext.air_quality.ozone * 1000) : "—");
+
+      gridEl.innerHTML = `
+        <div class="meta-tile">
+          <div class="meta-lbl">Air Temperature</div>
+          <div class="meta-val">🌡️ ${wTemp} °C</div>
+        </div>
+        <div class="meta-tile">
+          <div class="meta-lbl">Relative Humidity</div>
+          <div class="meta-val">💧 ${wHum} %</div>
+        </div>
+        <div class="meta-tile">
+          <div class="meta-lbl">Observed Rain</div>
+          <div class="meta-val">🌧️ ${wRain} mm</div>
+        </div>
+        <div class="meta-tile">
+          <div class="meta-lbl">Wind Speed</div>
+          <div class="meta-val">💨 ${wWind} m/s</div>
+        </div>
+        <div class="meta-tile">
+          <div class="meta-lbl">Air Quality Index</div>
+          <div class="meta-val">🫧 ${wAqi} AQI</div>
+        </div>
+        <div class="meta-tile">
+          <div class="meta-lbl">Ozone Concentration</div>
+          <div class="meta-val">☀️ ${wOzone} ppb</div>
+        </div>
+      `;
+    }
+
+    if (fText) {
+      const fRain = weatherContext.forecast?.rainfall_forecast_mm !== undefined ? weatherContext.forecast.rainfall_forecast_mm.toFixed(1) : "0.0";
+      const fPop = Math.round((weatherContext.forecast?.rain_probability || 0) * 100);
+      const next24 = weatherContext.forecast?.next_24h || "Stable microclimate";
+      fText.innerHTML = `<strong>48-Hour Macro Forecast:</strong> Expected precipitation ${fRain} mm · Rain Probability: ${fPop}% · Next 24h: ${next24}.`;
+    }
+  } else if (weatherCard) {
+    weatherCard.style.display = "none";
   }
 
   // Triggered Expert Veto Rules (Transparent Analytical Rules)

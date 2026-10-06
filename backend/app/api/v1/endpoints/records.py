@@ -84,13 +84,16 @@ def export_records_csv(
     # Header
     writer.writerow([
         "Record UUID",
+        "Field Name",
         "Timestamp (UTC)",
         "Temperature (°C)",
         "Humidity (%)",
-        "Rainfall (mm)",
+        "Observed Rainfall (mm)",
+        "Forecast Rainfall (mm)",
         "Soil Moisture (m³/m³)",
         "AQI",
         "Ozone",
+        "Weather Source",
         "Growth Stage",
         "SNN Stress Severity",
         "SNN Confidence (%)",
@@ -127,13 +130,16 @@ def export_records_csv(
 
         writer.writerow([
             r.record_uuid,
+            getattr(r, "field_name", "Field A — North Parcel") or "Field A — North Parcel",
             r.created_at.isoformat() if r.created_at else "",
             f"{r.temperature:.1f}",
             f"{r.humidity:.1f}",
             f"{r.rainfall_mm:.1f}",
+            f"{getattr(r, 'forecast_rainfall_mm', 0.0):.1f}",
             f"{r.soil_moisture:.3f}",
             f"{r.aqi:.0f}",
             f"{r.ozone:.3f}",
+            getattr(r, "weather_source", "OpenWeather") or "OpenWeather",
             r.growth_stage,
             r.stress_severity,
             f"{r.confidence_score:.1f}",
@@ -235,6 +241,49 @@ def get_record_report_html(record_identifier: str, db: Session = Depends(get_db)
         f"<li style='margin-bottom:8px; line-height:1.45; color:#1f2937;'>{r}</li>"
         for r in recs_list
     ]) or "<li>Maintain scheduled irrigation and routine crop scouting.</li>"
+
+    # Parse Weather Snapshot safely
+    weather_dict = {}
+    try:
+        if getattr(record, "weather_context_json", None):
+            weather_dict = json.loads(record.weather_context_json)
+    except Exception:
+        pass
+
+    field_display = getattr(record, "field_name", "Field A — North Parcel") or "Field A — North Parcel"
+    weather_source_display = getattr(record, "weather_source", "OpenWeather") or "OpenWeather"
+    
+    weather_block_html = ""
+    if weather_dict:
+        w_curr = weather_dict.get("current", {})
+        w_fore = weather_dict.get("forecast", {})
+        w_air = weather_dict.get("air_quality", {})
+        w_loc = weather_dict.get("location", {})
+        
+        weather_block_html = f"""
+  <!-- Weather Context Section -->
+  <div class="section">
+    <div class="section-title">4. Macroclimate &amp; Weather Context ({weather_source_display})</div>
+    <div class="grid-2">
+      <div class="meta-box">
+        <div style="font-size:11px; color:#64748b; text-transform:uppercase; font-weight:700;">Observed Macro Conditions</div>
+        <div style="margin-top:4px;"><strong>Weather Station:</strong> {w_loc.get('name', 'Local Grid')}, {w_loc.get('country', 'IN')} ({w_loc.get('latitude', 0.0):.3f}°N, {w_loc.get('longitude', 0.0):.3f}°E)</div>
+        <div><strong>Condition:</strong> {w_curr.get('weather_condition', 'Clear')} ({w_curr.get('weather_description', 'clear sky')})</div>
+        <div><strong>Ambient Temperature:</strong> {w_curr.get('temperature_c', record.temperature):.1f} °C · <strong>Humidity:</strong> {w_curr.get('humidity_percent', record.humidity):.1f} %</div>
+        <div><strong>Precipitation:</strong> {w_curr.get('rainfall_mm', record.rainfall_mm):.1f} mm observed</div>
+      </div>
+      <div class="meta-box">
+        <div style="font-size:11px; color:#64748b; text-transform:uppercase; font-weight:700;">Forecast &amp; Atmospheric Context</div>
+        <div style="margin-top:4px;"><strong>24h Forecast Rain:</strong> {w_fore.get('next_24h_rainfall_mm', 0.0):.1f} mm (Probability: {float(w_fore.get('rain_probability', 0.0))*100:.0f}%)</div>
+        <div><strong>Forecast Summary:</strong> {w_fore.get('summary', 'Stable conditions')}</div>
+        <div><strong>Air Quality:</strong> AQI {w_air.get('aqi', record.aqi):.0f} ({w_air.get('aqi_category', 'Moderate')}) · <strong>Ozone:</strong> {w_air.get('ozone', record.ozone):.3f} ppm</div>
+      </div>
+    </div>
+    <div style="margin-top:6px; font-size:11px; color:#64748b; font-style:italic;">
+      * Note: Weather context was retrieved from OpenWeather at the time of analysis; this provides surrounding macroclimate data and does not represent an on-leaf direct physical sensor.
+    </div>
+  </div>
+"""
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -377,8 +426,9 @@ def get_record_report_html(record_identifier: str, db: Session = Depends(get_db)
     <div class="meta-box">
       <div style="font-size:11px; color:#64748b; text-transform:uppercase; font-weight:700;">Observation Metadata</div>
       <div style="margin-top:4px;"><strong>Analysis Date:</strong> {created_str}</div>
+      <div><strong>Field / Parcel:</strong> {field_display}</div>
       <div><strong>Crop Growth Stage:</strong> {record.growth_stage}</div>
-      <div><strong>Field Status:</strong> Evaluated via AgroVision Decision Pipeline</div>
+      <div><strong>Weather Source:</strong> {weather_source_display}</div>
     </div>
     <div class="meta-box">
       <div style="font-size:11px; color:#64748b; text-transform:uppercase; font-weight:700;">Evidence Concordance</div>
@@ -406,15 +456,15 @@ def get_record_report_html(record_identifier: str, db: Session = Depends(get_db)
     </div>
 
     <div>
-      <div class="section-title">2. Environmental Inputs Used</div>
+      <div class="section-title">2. Environmental Inputs Used (SNN)</div>
       <table>
         <tbody>
           <tr><td style="padding:4px 0; color:#4b5563;">Air Temperature:</td><td style="padding:4px 0; font-weight:600; text-align:right;">{record.temperature:.1f} °C</td></tr>
           <tr><td style="padding:4px 0; color:#4b5563;">Relative Humidity:</td><td style="padding:4px 0; font-weight:600; text-align:right;">{record.humidity:.1f} %</td></tr>
-          <tr><td style="padding:4px 0; color:#4b5563;">7-Day Rainfall:</td><td style="padding:4px 0; font-weight:600; text-align:right;">{record.rainfall_mm:.1f} mm</td></tr>
-          <tr><td style="padding:4px 0; color:#4b5563;">Soil Moisture:</td><td style="padding:4px 0; font-weight:600; text-align:right;">{record.soil_moisture:.3f} m³/m³</td></tr>
+          <tr><td style="padding:4px 0; color:#4b5563;">Observed Rainfall:</td><td style="padding:4px 0; font-weight:600; text-align:right;">{record.rainfall_mm:.1f} mm</td></tr>
+          <tr><td style="padding:4px 0; color:#4b5563;">Soil Moisture:</td><td style="padding:4px 0; font-weight:600; text-align:right;">{record.soil_moisture:.3f} m³/m³ (Manual)</td></tr>
           <tr><td style="padding:4px 0; color:#4b5563;">Air Quality Index (AQI):</td><td style="padding:4px 0; font-weight:600; text-align:right;">{record.aqi:.0f}</td></tr>
-          <tr><td style="padding:4px 0; color:#4b5563;">Tropospheric Ozone:</td><td style="padding:4px 0; font-weight:600; text-align:right;">{record.ozone:.3f}</td></tr>
+          <tr><td style="padding:4px 0; color:#4b5563;">Tropospheric Ozone:</td><td style="padding:4px 0; font-weight:600; text-align:right;">{record.ozone:.3f} ppm</td></tr>
         </tbody>
       </table>
       <div style="margin-top:8px; font-size:11px; color:#64748b;">
@@ -430,6 +480,8 @@ def get_record_report_html(record_identifier: str, db: Session = Depends(get_db)
       {recs_html}
     </ul>
   </div>
+
+  {weather_block_html}
 
   <!-- Disclaimer -->
   <div class="disclaimer">

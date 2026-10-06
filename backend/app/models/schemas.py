@@ -21,12 +21,14 @@ class PredictResponseSchema(BaseModel):
 class AnalysisRecordResponseSchema(BaseModel):
     id: int
     record_uuid: str
+    field_name: str | None = "Field A — North Parcel"
     image_url: str
     heatmap_url: str | None = None
     temperature: float
     humidity: float
     soil_moisture: float
     rainfall_mm: float = 0.0
+    forecast_rainfall_mm: float = 0.0
     aqi: float = 50.0
     ozone: float = 0.040
     growth_stage: str = "Flowering"
@@ -37,6 +39,8 @@ class AnalysisRecordResponseSchema(BaseModel):
     fusion_json: str | None = None
     expert_veto_json: str | None = None
     recommendations_json: str | None = None
+    weather_source: str | None = "OpenWeather"
+    weather_context_json: str | None = None
     created_at: datetime
 
     class Config:

@@ -81,6 +81,8 @@ class ExpertVetoRuleRegistry:
 
         # Extract environmental parameters
         rainfall = float(env_data.get("rainfall_mm", env_data.get("rainfall", 0.0)))
+        forecast_rain = float(env_data.get("forecast_rainfall_mm", env_data.get("rainfall_forecast_mm", 0.0)))
+        effective_rain = max(rainfall, forecast_rain)
         raw_sm = float(env_data.get("soil_moisture", 0.35))
         # Support volumetric m³/m³ (e.g. 0.35) or percentage (35.0%)
         sm_pct = raw_sm * 100.0 if raw_sm <= 1.0 else raw_sm
@@ -93,14 +95,14 @@ class ExpertVetoRuleRegistry:
         # -------------------------------------------------------------
         # RULE 1: Over-Irrigation / Waterlogging Risk
         # -------------------------------------------------------------
-        if rainfall >= t["rainfall_high_mm"] and sm_pct >= t["soil_moisture_high_pct"]:
+        if effective_rain >= t["rainfall_high_mm"] and sm_pct >= t["soil_moisture_high_pct"]:
             triggered_rules.append({
                 "rule_id": "EVR-001",
                 "name": "Over-Irrigation / Waterlogging Risk",
                 "severity": RuleSeverity.WARNING.value,
                 "rule_status": "High Environmental Risk",
-                "condition": f"Rainfall ({rainfall:.1f} mm) >= {t['rainfall_high_mm']} mm AND Soil Moisture ({sm_pct:.1f}%) >= {t['soil_moisture_high_pct']}%",
-                "reason": "High soil moisture combined with significant rainfall forecast creates elevated risk of root hypoxia, waterlogging, and nutrient leaching.",
+                "condition": f"Rainfall/Forecast ({effective_rain:.1f} mm) >= {t['rainfall_high_mm']} mm AND Soil Moisture ({sm_pct:.1f}%) >= {t['soil_moisture_high_pct']}%",
+                "reason": "High soil moisture combined with significant rainfall (observed or forecast) creates elevated risk of root hypoxia, waterlogging, and nutrient leaching.",
                 "interpretation": "High soil moisture combined with significant rainfall forecast creates elevated risk of root hypoxia, waterlogging, and nutrient leaching.",
                 "impact": "Saturated soil limits oxygen availability to cotton taproots, reducing nutrient uptake and increasing vulnerability to fungal root rots.",
                 "precaution": "Temporarily halt planned irrigation cycles and inspect field drainage channels to prevent root zone saturation.",

@@ -3,7 +3,7 @@ Pydantic Schemas for Multimodal Fusion and Combined AgroVision Analysis.
 """
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 
@@ -33,6 +33,8 @@ class CombineAnalysisRequest(BaseModel):
         ...,
         description="Raw environmental inputs used for inference: temperature, humidity, rainfall, soil_moisture, aqi, ozone, growth_stage, etc."
     )
+    field_name: Optional[str] = Field("Field A — North Parcel", description="Field/Plot identifier")
+    weather_context: Optional[dict[str, Any]] = Field(None, description="OpenWeather canonical snapshot used during analysis")
 
 
 class FusionDetails(BaseModel):
@@ -75,6 +77,8 @@ class FinalAssessmentDetails(BaseModel):
 class ProvenanceMetadata(BaseModel):
     cnn_model: str = "AgroVision Custom CNN (110k parameters, 5 classes)"
     snn_model: str = "AgroVision 3-layer LIF SNN (33 features, T=10)"
+    gemini_model: str = "Google Gemini 2.5 Flash"
+    weather_provider: str = "OpenWeather API (Live & Forecast)"
     fusion_type: str = "Deterministic Multi-modal Evidentiary Alignment"
     expert_rules_engine: str = "AgroVision Deterministic Rule Registry"
     timestamp: datetime = Field(default_factory=datetime.utcnow)
@@ -87,9 +91,11 @@ class ProvenanceMetadata(BaseModel):
 class CombinedAnalysisResponse(BaseModel):
     success: bool = True
     record_uuid: str | None = None
+    field_name: str | None = "Field A — North Parcel"
     visual_assessment: dict[str, Any]
     environmental_assessment: dict[str, Any]
     environmental_inputs: dict[str, Any]
+    weather_context: dict[str, Any] | None = None
     fusion: FusionDetails
     expert_veto: ExpertVetoDetails
     final_assessment: FinalAssessmentDetails

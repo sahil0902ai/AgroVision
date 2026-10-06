@@ -19,15 +19,21 @@ class AnalysisRecordDB(Base):
     __tablename__ = "analysis_records"
     id = Column(Integer, primary_key=True, index=True)
     record_uuid = Column(String, unique=True, index=True, nullable=False)
+    field_name = Column(String, default="Field A — North Parcel")
     image_url = Column(String, nullable=False)
     heatmap_url = Column(String, nullable=True)
+    
+    # Environmental measurements used during inference
     temperature = Column(Float, nullable=False)
     humidity = Column(Float, nullable=False)
     soil_moisture = Column(Float, nullable=False)
     rainfall_mm = Column(Float, default=0.0)
+    forecast_rainfall_mm = Column(Float, default=0.0)
     aqi = Column(Float, default=50.0)
     ozone = Column(Float, default=40.0)
     growth_stage = Column(String, default="Flowering")
+    
+    # Model Outputs
     stress_severity = Column(String, nullable=False)  # High, Low, Moderate
     confidence_score = Column(Float, nullable=False)
     cnn_predictions_json = Column(Text, nullable=False)  # JSON string
@@ -35,4 +41,21 @@ class AnalysisRecordDB(Base):
     fusion_json = Column(Text, nullable=True)  # JSON string containing relationship & alignment
     expert_veto_json = Column(Text, nullable=True)  # JSON string containing triggered rules & status
     recommendations_json = Column(Text, nullable=False)  # JSON string
+    
+    # Full OpenWeather context snapshot at time of analysis
+    weather_source = Column(String, default="OpenWeather")
+    weather_context_json = Column(Text, nullable=True)  # Full CanonicalWeatherResponse JSON
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ChatMessageDB(Base):
+    __tablename__ = "chat_messages"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, default="anonymous", index=True)
+    record_uuid = Column(String, index=True, nullable=True)
+    field_name = Column(String, default="Field A — North Parcel")
+    message = Column(Text, nullable=False)
+    response = Column(Text, nullable=False)
+    model_used = Column(String, default="gemini-2.5-flash")
     created_at = Column(DateTime, default=datetime.utcnow)

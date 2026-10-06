@@ -75,3 +75,6 @@ class HealthResponse(BaseModel):
     cnn_loaded: bool = Field(..., description="Whether CNN model weights are loaded and ready")
     snn_loaded: bool = Field(..., description="Whether SNN model weights are loaded and ready")
     device: str | None = Field(None, description="Inference device (cpu or cuda)")
+    weather_api_configured: bool = Field(default=False, description="Whether OpenWeather API key is configured")
+    gemini_api_configured: bool = Field(default=False, description="Whether Google Gemini API key is configured")
+    gemini_model: str = Field(default="gemini-2.5-flash", description="Configured Gemini model")

@@ -1,6 +1,7 @@
 /* =========================================================
    AgroVision — Interactive Farmer Dashboard Logic
    Exact implementation matching Figures 4, 5, 6, 7 & 8
+   Integrated with OpenWeather Live Data & Gemini Assistant
    ========================================================= */
 
 let selectedFile = null;
@@ -8,6 +9,13 @@ let latestCNNResult = null;
 let latestSNNResult = null;
 let latestSNNPayload = null;
 let latestCombinedData = null;
+
+// Weather State
+let currentWeatherContext = null;
+let envSourceMode = "auto"; // "auto" or "manual"
+let currentFieldName = "Field A — North Parcel (Wardha)";
+let currentFieldLat = 20.975;
+let currentFieldLon = 78.72;
 
 function getApiUrl(endpoint) {
   if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
@@ -197,6 +205,244 @@ function resetAnalysisState() {
 }
 
 // =========================================================
+// OPENWEATHER INTEGRATION & AUTO SLIDER SYNC
+// =========================================================
+
+const FIELD_COORDINATES = {
+  "Field A — North Parcel (Zone 1)": { lat: 20.975, lon: 78.72, name: "Field A — Wardha South" },
+  "Field B — South Parcel (Zone 2)": { lat: 21.1458, lon: 79.0882, name: "Field B — Nagpur East" },
+  "Field C — East Plot (Zone 3)": { lat: 20.9320, lon: 77.7523, name: "Field C — Amravati West" },
+  "Field D — Research Plot (Zone 4)": { lat: 20.7002, lon: 77.0082, name: "Field D — Akola North" }
+};
+
+async function fetchFieldWeather(lat, lon, forceRefresh = false) {
+  const refreshBtn = document.getElementById("weatherRefreshBtn");
+  if (refreshBtn) {
+    refreshBtn.textContent = "⌛ Refreshing…";
+    refreshBtn.disabled = true;
+  }
+
+  try {
+    const url = getApiUrl(`/api/weather/current?lat=${lat}&lon=${lon}&force_refresh=${forceRefresh}`);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Could not fetch real-time weather from OpenWeather.");
+
+    const data = await res.json();
+    currentWeatherContext = data;
+    renderWeatherHero(data);
+
+    // If in auto mode, populate sliders from weather data
+    if (envSourceMode === "auto") {
+      applyWeatherToSliders(data);
+    }
+  } catch (err) {
+    console.warn("OpenWeather fetch error:", err);
+    const stationEl = document.getElementById("weatherStationName");
+    if (stationEl) stationEl.textContent = "Offline Fallback (Telemetry Active)";
+  } finally {
+    if (refreshBtn) {
+      refreshBtn.textContent = "🔄 Refresh Weather";
+      refreshBtn.disabled = false;
+    }
+  }
+}
+
+function renderWeatherHero(w) {
+  if (!w || !w.current) return;
+
+  const stationEl = document.getElementById("weatherStationName");
+  const observedEl = document.getElementById("weatherObservedAt");
+  const srcBadge = document.getElementById("weatherSourceBadge");
+  const tempEl = document.getElementById("weatherTemp");
+  const humEl = document.getElementById("weatherHumidity");
+  const rainEl = document.getElementById("weatherRainfall");
+  const rainBadge = document.getElementById("weatherRainBadge");
+  const windEl = document.getElementById("weatherWind");
+  const cloudEl = document.getElementById("weatherCloud");
+  const aqiEl = document.getElementById("weatherAqi");
+  const ozoneEl = document.getElementById("weatherOzone");
+  const fSummary = document.getElementById("weatherForecastSummary");
+  const fRain = document.getElementById("weatherForecastRain");
+  const fPop = document.getElementById("weatherForecastPop");
+  const alertBanner = document.getElementById("weatherAlertBanner");
+  const alertText = document.getElementById("weatherAlertText");
+
+  if (stationEl) {
+    stationEl.textContent = `${w.location?.name || "Wardha"} (${w.location?.latitude?.toFixed(3)}°N, ${w.location?.longitude?.toFixed(3)}°E)`;
+  }
+  if (observedEl) {
+    const d = new Date(w.observed_at || Date.now());
+    observedEl.textContent = `Observed: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Live Station`;
+  }
+  if (srcBadge) {
+    srcBadge.textContent = "● OpenWeather Live";
+  }
+
+  if (tempEl) tempEl.textContent = `${w.current.temperature_c.toFixed(1)}°C`;
+  if (humEl) humEl.textContent = `${Math.round(w.current.humidity_percent)}%`;
+  if (rainEl) rainEl.textContent = `${w.current.rainfall_mm.toFixed(1)} mm`;
+
+  if (rainBadge) {
+    rainBadge.textContent = w.current.rainfall_mm > 0 ? "Observed Rain" : "No Precipitation";
+    rainBadge.style.background = w.current.rainfall_mm > 0 ? "#e0f2fe" : "#f1f5f9";
+    rainBadge.style.color = w.current.rainfall_mm > 0 ? "#0369a1" : "#475569";
+  }
+
+  if (windEl) windEl.textContent = `${w.current.wind_speed.toFixed(1)} m/s`;
+  if (cloudEl) cloudEl.textContent = `${w.current.cloud_cover}%`;
+
+  if (aqiEl) {
+    aqiEl.textContent = `${Math.round(w.air_quality?.aqi || 84)} AQI`;
+  }
+  if (ozoneEl) {
+    const o3Ppb = w.air_quality?.ozone_ppb || Math.round((w.air_quality?.ozone || 0.041) * 1000);
+    ozoneEl.textContent = `O₃: ${o3Ppb} ppb`;
+  }
+
+  if (fSummary) {
+    const cond = w.current.weather_condition || "Clear";
+    const pop = Math.round((w.forecast?.rain_probability || 0) * 100);
+    fSummary.textContent = `${cond} · Rain Prob: ${pop}% · 48h Outlook: ${w.forecast?.rainfall_forecast_mm?.toFixed(1) || "0.0"} mm`;
+  }
+  if (fRain) {
+    fRain.textContent = `${w.forecast?.rainfall_forecast_mm?.toFixed(1) || "0.0"} mm`;
+  }
+  if (fPop) {
+    fPop.textContent = `${Math.round((w.forecast?.rain_probability || 0) * 100)}%`;
+  }
+
+  // Alerts
+  if (alertBanner && alertText) {
+    if (w.alerts && w.alerts.length > 0) {
+      alertText.textContent = `${w.alerts[0].event}: ${w.alerts[0].description}`;
+      alertBanner.style.display = "block";
+    } else {
+      alertBanner.style.display = "none";
+    }
+  }
+}
+
+function applyWeatherToSliders(w) {
+  if (!w || !w.current) return;
+
+  const sTemp = document.getElementById("sliderTemp");
+  const sHum = document.getElementById("sliderHumidity");
+  const sRain = document.getElementById("sliderRainfall");
+  const sAqi = document.getElementById("sliderAqi");
+  const sOzone = document.getElementById("sliderOzone");
+
+  if (sTemp) sTemp.value = Math.round(w.current.temperature_c);
+  if (sHum) sHum.value = Math.round(w.current.humidity_percent);
+  if (sRain) sRain.value = Math.round(w.current.rainfall_mm);
+  if (sAqi) sAqi.value = Math.round(w.air_quality?.aqi || 84);
+  if (sOzone) {
+    const o3Ppb = w.air_quality?.ozone_ppb || Math.round((w.air_quality?.ozone || 0.041) * 1000);
+    sOzone.value = o3Ppb;
+  }
+
+  // Soil moisture is strictly a field measurement / soil probe reading (never faked)
+  updateSourceBadges("auto");
+  updateEnvDisplay();
+}
+
+function setEnvSourceMode(mode) {
+  envSourceMode = mode;
+  const btnAuto = document.getElementById("btnSourceAuto");
+  const btnManual = document.getElementById("btnSourceManual");
+
+  if (mode === "auto") {
+    if (btnAuto) {
+      btnAuto.style.background = "#059669";
+      btnAuto.style.color = "#ffffff";
+    }
+    if (btnManual) {
+      btnManual.style.background = "#f1f5f9";
+      btnManual.style.color = "#475569";
+    }
+    if (currentWeatherContext) {
+      applyWeatherToSliders(currentWeatherContext);
+    }
+    updateSourceBadges("auto");
+  } else {
+    if (btnManual) {
+      btnManual.style.background = "#059669";
+      btnManual.style.color = "#ffffff";
+    }
+    if (btnAuto) {
+      btnAuto.style.background = "#f1f5f9";
+      btnAuto.style.color = "#475569";
+    }
+    updateSourceBadges("manual");
+  }
+}
+
+function updateSourceBadges(mode) {
+  const badgeMap = {
+    badgeSourceTemp: mode === "auto" ? "OpenWeather" : "Manual Entry",
+    badgeSourceHumidity: mode === "auto" ? "OpenWeather" : "Manual Entry",
+    badgeSourceRainfall: mode === "auto" ? "OpenWeather" : "Manual Entry",
+    badgeSourceAqi: mode === "auto" ? "OpenWeather Air" : "Manual Entry",
+    badgeSourceOzone: mode === "auto" ? "OpenWeather Air" : "Manual Entry",
+    badgeSourceSoil: "Soil Probe (In-Field)"
+  };
+
+  for (const [id, label] of Object.entries(badgeMap)) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.textContent = label;
+      if (label.includes("OpenWeather")) {
+        el.style.background = "#ecfdf5";
+        el.style.color = "#059669";
+        el.style.borderColor = "#a7f3d0";
+      } else if (label.includes("Soil Probe")) {
+        el.style.background = "#f0fdf4";
+        el.style.color = "#166534";
+        el.style.borderColor = "#bbf7d0";
+      } else {
+        el.style.background = "#f1f5f9";
+        el.style.color = "#475569";
+        el.style.borderColor = "#cbd5e1";
+      }
+    }
+  }
+}
+
+function handleFieldChange(e) {
+  const selectedText = e.target.options[e.target.selectedIndex].text;
+  const val = e.target.value;
+  currentFieldName = selectedText;
+
+  const coord = FIELD_COORDINATES[selectedText] || FIELD_COORDINATES["Field A — North Parcel (Zone 1)"];
+  if (coord) {
+    currentFieldLat = coord.lat;
+    currentFieldLon = coord.lon;
+    fetchFieldWeather(coord.lat, coord.lon, true);
+  }
+}
+
+// Initialize weather on page load
+document.addEventListener("DOMContentLoaded", () => {
+  const fieldSel = document.getElementById("fieldSelect");
+  if (fieldSel) {
+    fieldSel.addEventListener("change", handleFieldChange);
+  }
+
+  // Attach auto/manual toggle buttons
+  const btnAuto = document.getElementById("btnSourceAuto");
+  const btnManual = document.getElementById("btnSourceManual");
+  if (btnAuto) btnAuto.addEventListener("click", () => setEnvSourceMode("auto"));
+  if (btnManual) btnManual.addEventListener("click", () => setEnvSourceMode("manual"));
+
+  const refreshBtn = document.getElementById("weatherRefreshBtn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => fetchFieldWeather(currentFieldLat, currentFieldLon, true));
+  }
+
+  // Initial fetch for Field A
+  fetchFieldWeather(currentFieldLat, currentFieldLon, false);
+});
+
+// =========================================================
 // 1. CNN Visual Stress Inference (Figure 5)
 // =========================================================
 
@@ -350,8 +596,6 @@ function renderFigure5(data) {
 // =========================================================
 
 const SNN_FIXED_INPUTS = {
-  latitude: 20.975,
-  longitude: 78.72,
   soil_nitrogen: 280.0,
   soil_phosphorus: 13.5,
   soil_potassium: 122.4,
@@ -390,6 +634,8 @@ async function runEnvironmentAnalysis(switchToSNN = true) {
     const now = new Date();
     const payload = {
       ...SNN_FIXED_INPUTS,
+      latitude: currentFieldLat,
+      longitude: currentFieldLon,
       temperature: temp,
       humidity: humidity,
       rainfall: rainfall,
@@ -611,7 +857,9 @@ async function runCombinedSynthesis() {
         spike_counts: latestSNNResult.spike_counts || {},
         timesteps: latestSNNResult.timesteps || 10
       },
-      environmental_inputs: latestSNNPayload
+      environmental_inputs: latestSNNPayload,
+      field_name: currentFieldName,
+      weather_context: currentWeatherContext
     };
 
     const response = await fetch(getApiUrl("/api/analysis/combine"), {
@@ -637,6 +885,7 @@ function renderFigure7(data) {
   const final = data.final_assessment || {};
   const rules = veto.triggered_rules || [];
   const recUuid = data.record_uuid || "";
+  const weatherCtx = data.weather_context || currentWeatherContext;
 
   // 1. Visual evidence from backend
   const visualClass = data.visual_assessment?.class || (latestCNNResult?.prediction?.class || "Evaluated");
@@ -759,7 +1008,31 @@ function renderFigure7(data) {
     }
   }
 
-  // 6. Expert Check Transparent Analytical Rules Section
+  // 6. Macroclimate Weather Box in View 4
+  const weatherBox = document.getElementById("fig7WeatherBox");
+  if (weatherBox && weatherCtx && weatherCtx.current) {
+    weatherBox.style.display = "block";
+    const stEl = document.getElementById("fig7WeatherStation");
+    const tempEl = document.getElementById("fig7WeatherTemp");
+    const humEl = document.getElementById("fig7WeatherHumidity");
+    const rainEl = document.getElementById("fig7WeatherRain");
+    const aqiEl = document.getElementById("fig7WeatherAqi");
+    const fRainEl = document.getElementById("fig7WeatherForecastRain");
+    const sumEl = document.getElementById("fig7WeatherSummary");
+
+    if (stEl) stEl.textContent = `${weatherCtx.location?.name || currentFieldName} (OpenWeather)`;
+    if (tempEl) tempEl.textContent = `${weatherCtx.current.temperature_c.toFixed(1)}°C`;
+    if (humEl) humEl.textContent = `${Math.round(weatherCtx.current.humidity_percent)}%`;
+    if (rainEl) rainEl.textContent = `${weatherCtx.current.rainfall_mm.toFixed(1)} mm`;
+    if (aqiEl) aqiEl.textContent = `${Math.round(weatherCtx.air_quality?.aqi || 84)} AQI`;
+    if (fRainEl) fRainEl.textContent = `${weatherCtx.forecast?.rainfall_forecast_mm?.toFixed(1) || "0.0"} mm (48h)`;
+    if (sumEl) {
+      const pop = Math.round((weatherCtx.forecast?.rain_probability || 0) * 100);
+      sumEl.textContent = `Forecast: ${weatherCtx.current.weather_condition || "Clear"} · Rain Probability: ${pop}% · 48h Outlook: ${weatherCtx.forecast?.rainfall_forecast_mm?.toFixed(1) || 0}mm precipitation.`;
+    }
+  }
+
+  // 7. Expert Check Transparent Analytical Rules Section
   const ruleDetailsContainer = document.getElementById("fig7RuleDetailsContainer");
   const topRuleIdBadge = document.getElementById("fig7RuleIdBadge");
   const topRuleStatusBadge = document.getElementById("fig7RuleStatusBadge");
@@ -894,7 +1167,7 @@ function renderFigure7(data) {
     }).join("");
   }
 
-  // 7. Action Buttons
+  // 8. Action Buttons
   const reportBtn = document.getElementById("fig7ReportBtn");
   if (reportBtn && recUuid) {
     reportBtn.href = getApiUrl(`/api/v1/records/${recUuid}/report`);

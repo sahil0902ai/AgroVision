@@ -65,24 +65,35 @@ def combine_multimodal_analysis(
         )
 
         # 2. Expert Veto Rule Evaluation
+        env_with_forecast = dict(payload.environmental_inputs)
+        forecast_rain_val = 0.0
+        if payload.weather_context and "forecast" in payload.weather_context:
+            forecast_rain_val = float(payload.weather_context["forecast"].get("next_24h_rainfall_mm", 0.0))
+            env_with_forecast["forecast_rainfall_mm"] = forecast_rain_val
+
         veto_result = ExpertRecommendationEngine.evaluate_structured(
             cnn_probs=cnn_probs_norm,
             snn_severity=payload.environmental_evidence.severity,
-            env_data=payload.environmental_inputs,
+            env_data=env_with_forecast,
             fusion_relationship=fused.relationship.value,
         )
 
         # 3. Persist record to database for history and PDF report traceability
         rec_uuid = f"AV-{uuid.uuid4().hex[:12].upper()}"
+        field_id_name = payload.field_name or "Field A — North Parcel"
+        weather_json_str = json.dumps(payload.weather_context) if payload.weather_context else None
+
         try:
             env_in = payload.environmental_inputs or {}
             db_record = AnalysisRecordDB(
                 record_uuid=rec_uuid,
+                field_name=field_id_name,
                 image_url="",
                 temperature=float(env_in.get("temperature", 0.0)),
                 humidity=float(env_in.get("humidity", 0.0)),
                 soil_moisture=float(env_in.get("soil_moisture", 0.0)),
                 rainfall_mm=float(env_in.get("rainfall", env_in.get("rainfall_mm", 0.0))),
+                forecast_rainfall_mm=forecast_rain_val,
                 aqi=float(env_in.get("aqi", 0.0)),
                 ozone=float(env_in.get("ozone", 0.0)),
                 growth_stage=str(env_in.get("growth_stage", "Flowering")),
@@ -100,6 +111,8 @@ def combine_multimodal_analysis(
                 }),
                 expert_veto_json=json.dumps(veto_result),
                 recommendations_json=json.dumps(veto_result["final_assessment"]["precautions"]),
+                weather_source="OpenWeather" if payload.weather_context else "Manual",
+                weather_context_json=weather_json_str,
             )
             db.add(db_record)
             db.commit()
@@ -109,9 +122,11 @@ def combine_multimodal_analysis(
 
         return CombinedAnalysisResponse(
             record_uuid=rec_uuid,
+            field_name=field_id_name,
             visual_assessment=visual_data,
             environmental_assessment=snn_data,
             environmental_inputs=payload.environmental_inputs,
+            weather_context=payload.weather_context,
             fusion={
                 "relationship": fused.relationship.value,
                 "alignment_score": fused.alignment_score,

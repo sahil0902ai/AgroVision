@@ -276,4 +276,81 @@ async function loadOverviewData() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", loadOverviewData);
+// OpenWeather Integration for Overview
+const OVERVIEW_FIELD_COORDINATES = {
+  0: { lat: 20.975, lon: 78.72, name: "Field A — Wardha South Station" },
+  1: { lat: 21.1458, lon: 79.0882, name: "Field B — Nagpur East Station" },
+  2: { lat: 20.9320, lon: 77.7523, name: "Field C — Amravati West Station" }
+};
+
+let currentOverviewLat = 20.975;
+let currentOverviewLon = 78.72;
+
+async function fetchOverviewWeather(lat, lon, forceRefresh = false) {
+  const refreshBtn = document.getElementById("overviewWeatherRefreshBtn");
+  if (refreshBtn) {
+    refreshBtn.textContent = "⌛ Refreshing…";
+    refreshBtn.disabled = true;
+  }
+
+  try {
+    const url = getApiUrl(`/api/weather/current?lat=${lat}&lon=${lon}&force_refresh=${forceRefresh}`);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Could not fetch weather");
+
+    const data = await res.json();
+    const stEl = document.getElementById("overviewWeatherStation");
+    const obsEl = document.getElementById("overviewWeatherObserved");
+    const tEl = document.getElementById("ovTemp");
+    const hEl = document.getElementById("ovHum");
+    const rEl = document.getElementById("ovRain");
+    const wEl = document.getElementById("ovWind");
+    const aEl = document.getElementById("ovAqi");
+    const fEl = document.getElementById("ovForecastRain");
+
+    if (stEl) stEl.textContent = `${data.location?.name || "Wardha"} (${data.location?.latitude?.toFixed(3)}°N, ${data.location?.longitude?.toFixed(3)}°E)`;
+    if (obsEl) {
+      const d = new Date(data.observed_at || Date.now());
+      obsEl.textContent = `Observed: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Live Station`;
+    }
+
+    if (tEl && data.current) tEl.textContent = `${data.current.temperature_c.toFixed(1)} °C`;
+    if (hEl && data.current) hEl.textContent = `${Math.round(data.current.humidity_percent)} %`;
+    if (rEl && data.current) rEl.textContent = `${data.current.rainfall_mm.toFixed(1)} mm`;
+    if (wEl && data.current) wEl.textContent = `${data.current.wind_speed.toFixed(1)} m/s`;
+    if (aEl && data.air_quality) aEl.textContent = `${Math.round(data.air_quality.aqi)} AQI`;
+    if (fEl && data.forecast) fEl.textContent = `${data.forecast.rainfall_forecast_mm.toFixed(1)} mm`;
+
+  } catch (err) {
+    console.warn("Overview weather error:", err);
+  } finally {
+    if (refreshBtn) {
+      refreshBtn.textContent = "🔄 Refresh";
+      refreshBtn.disabled = false;
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadOverviewData();
+
+  const fieldSel = document.getElementById("fieldSelect");
+  if (fieldSel) {
+    fieldSel.addEventListener("change", (e) => {
+      const coord = OVERVIEW_FIELD_COORDINATES[e.target.selectedIndex] || OVERVIEW_FIELD_COORDINATES[0];
+      currentOverviewLat = coord.lat;
+      currentOverviewLon = coord.lon;
+      fetchOverviewWeather(coord.lat, coord.lon, true);
+    });
+  }
+
+  const refreshBtn = document.getElementById("overviewWeatherRefreshBtn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      fetchOverviewWeather(currentOverviewLat, currentOverviewLon, true);
+    });
+  }
+
+  fetchOverviewWeather(currentOverviewLat, currentOverviewLon, false);
+});
+

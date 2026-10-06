@@ -139,6 +139,9 @@
             <p style="margin:2px 0 0; font-size:12.5px; color:#64748b;" id="pageSub">UUID: Loading…</p>
           </div>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a id="askAIBtn" href="assistant.html" class="btn btn-action-outline" style="padding:9px 16px; font-size:12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-color:#059669; color:#065f46; background:#f0fdf4;">
+              🤖 Ask AI Assistant
+            </a>
             <a id="reportBtn" href="#" target="_blank" class="btn btn-primary" style="padding:9px 18px; font-size:12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
               🖨️ View / Print PDF Report
             </a>
@@ -234,7 +237,31 @@
             </details>
           </div>
 
-          <!-- 4. EXPERT CHECK (DETERMINISTIC AGRONOMIC RULE LAYER) -->
+          <!-- 4. HISTORICAL MACROCLIMATE & WEATHER CONTEXT (OPENWEATHER) -->
+          <div class="card-pbi" id="detailWeatherCard" style="display:none;">
+            <div class="card-pbi-title" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>🌤️ 3. Historical Macroclimate &amp; Weather Context (OpenWeather)</span>
+              <span id="detailWeatherSourceBadge" style="font-size:10.5px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Recorded at Observation Time</span>
+            </div>
+            
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <div>
+                <strong style="color:#0f172a; font-size:13px;" id="detailWeatherStation">Wardha Station</strong>
+                <div style="font-size:11px; color:#64748b;" id="detailWeatherObserved">Observed Time: —</div>
+              </div>
+              <div style="font-size:12px; color:#475569;" id="detailWeatherCondition">Condition: Clear</div>
+            </div>
+
+            <div class="meta-grid-6" id="detailWeatherGrid">
+              <!-- Dynamically rendered -->
+            </div>
+
+            <div style="margin-top:12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 14px; font-size:12px; color:#1e40af;" id="detailWeatherForecastText">
+              48-Hour Forecast Outlook
+            </div>
+          </div>
+
+          <!-- 5. EXPERT CHECK (DETERMINISTIC AGRONOMIC RULE LAYER) -->
           <div class="card-pbi" id="expertCheckCard">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
               <div style="display:flex; align-items:center; gap:8px;">

@@ -194,6 +194,49 @@
           </div>
         </div>
 
+        <!-- Real-Time OpenWeather Live Station Banner -->
+        <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:14px; padding:14px 18px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:18px;">🌤️</span>
+              <div>
+                <strong style="color:#0f172a; font-size:13.5px;" id="overviewWeatherStation">Field A — Wardha South Station</strong>
+                <span style="font-size:11px; color:#64748b; margin-left:8px;" id="overviewWeatherObserved">Observed: Just now</span>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="overviewWeatherSourceBadge" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px;">● OpenWeather Live</span>
+              <button id="overviewWeatherRefreshBtn" style="background:#f1f5f9; border:1px solid #cbd5e1; font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px; cursor:pointer; color:#334155;">🔄 Refresh</button>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:10px;" id="overviewWeatherGrid">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
+              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Temperature</div>
+              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovTemp">-- °C</div>
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
+              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Humidity</div>
+              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovHum">-- %</div>
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
+              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Observed Rain</div>
+              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovRain">0.0 mm</div>
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
+              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Wind Speed</div>
+              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovWind">-- m/s</div>
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
+              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Air Quality</div>
+              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovAqi">-- AQI</div>
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
+              <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">48h Rain Outlook</div>
+              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:2px;" id="ovForecastRain">0.0 mm</div>
+            </div>
+          </div>
+        </div>
+
         <!-- 2. Power BI Top KPI Cards Row -->
         <div class="kpi-grid-4">
           <div class="kpi-card">

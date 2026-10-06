@@ -5,7 +5,10 @@ from fastapi.responses import RedirectResponse
 from .api.cnn import router as cnn_router
 from .api.snn import router as snn_router
 from .api.analysis import router as analysis_router
+from .api.weather import router as weather_router
+from .api.chat import router as chat_router
 from .api.v1.api import api_router
+from .core.config import settings
 from .core.database import init_db
 from .schemas.snn_schema import HealthResponse
 from .services.cnn_service import CNNService
@@ -69,27 +72,34 @@ def startup_event() -> None:
     else:
         logger.warning("[Startup] Notice: SNN model weights not loaded. Please ensure agrovision_snn.pth is in backend/models/.")
 
-# Mount CNN, SNN, Multimodal Analysis and Core API Routers
+# Mount CNN, SNN, Multimodal Analysis, Weather, Chat, and Core API Routers
 app.include_router(cnn_router, prefix="/api", tags=["CNN Visual Analysis"])
 app.include_router(snn_router, prefix="/api", tags=["SNN Environmental Analysis"])
 app.include_router(analysis_router, prefix="/api", tags=["Multimodal Analysis & Expert Veto"])
+app.include_router(weather_router, prefix="/api", tags=["Weather & Environment"])
+app.include_router(chat_router, prefix="/api", tags=["AI Assistant (Gemini)"])
 app.include_router(api_router, prefix="/api/v1", tags=["v1"])
 
 
 @app.get("/api/health", response_model=HealthResponse, tags=["Health"])
 def health_check():
     """
-    Health check endpoint reporting whether both model services are loaded.
+    Health check endpoint reporting whether CNN, SNN, OpenWeather, and Gemini services are ready.
     """
     cnn_service = CNNService.get_instance()
     snn_service = SNNService.get_instance()
     cnn_ready = cnn_service.weights_loaded
     snn_ready = snn_service.weights_loaded
+    weather_configured = bool(settings.OPENWEATHER_API_KEY)
+    gemini_configured = bool(settings.GEMINI_API_KEY)
     return HealthResponse(
         status="ok" if (cnn_ready and snn_ready) else "degraded",
         cnn_loaded=cnn_ready,
         snn_loaded=snn_ready,
         device=cnn_service.device.type,
+        weather_api_configured=weather_configured,
+        gemini_api_configured=gemini_configured,
+        gemini_model=settings.GEMINI_MODEL,
     )
 
 # Mount Static Uploads directory
