@@ -633,62 +633,128 @@ function renderFigure7(data) {
   const rules = veto.triggered_rules || [];
   const recUuid = data.record_uuid || "";
 
-  const visualClass = data.visual_assessment?.class || (latestCNNResult?.prediction?.class || "Nutrient Deficiency");
-  let visualConf = data.visual_assessment?.confidence || latestCNNResult?.prediction?.confidence || 0.99;
-  if (visualConf <= 1.0) visualConf = visualConf * 100.0;
-  const visualConfStr = visualConf.toFixed(0);
+  // 1. Visual evidence from backend
+  const visualClass = data.visual_assessment?.class || (latestCNNResult?.prediction?.class || "Evaluated");
+  let visualConf = data.visual_assessment?.confidence !== undefined ? data.visual_assessment.confidence : latestCNNResult?.prediction?.confidence;
+  let visualConfStr = "";
+  if (visualConf !== undefined && visualConf !== null) {
+    if (visualConf <= 1.0) visualConf = visualConf * 100.0;
+    visualConfStr = `${visualConf.toFixed(1)}%`;
+  }
 
+  // 2. Environmental evidence from backend
   const envClass = data.environmental_assessment?.severity || (latestSNNResult?.prediction?.class || "Low");
   
-  // Hero Banner updates
-  const finalTitle = document.getElementById("fig7FinalTitle");
-  const heroBanner = document.getElementById("fig7HeroBanner");
-  const attentionBadge = document.getElementById("fig7AttentionBadge");
+  // 3. Evidence Relationship from backend
+  const relRaw = (fusion.relationship || "ALIGNED").toUpperCase();
+  let relLabel = "Aligned";
+  let relBg = "#ecfdf5";
+  let relColor = "#059669";
+  let relBorder = "#a7f3d0";
+
+  if (relRaw === "CONFLICTING") {
+    relLabel = "Conflicting";
+    relBg = "#fee2e2";
+    relColor = "#dc2626";
+    relBorder = "#fca5a5";
+  } else if (relRaw === "PARTIALLY_ALIGNED") {
+    relLabel = "Partially Aligned";
+    relBg = "#fef3c7";
+    relColor = "#d97706";
+    relBorder = "#fde68a";
+  } else if (relRaw === "BASELINE_HEALTHY" || relRaw === "ALIGNED") {
+    relLabel = "Aligned";
+    relBg = "#ecfdf5";
+    relColor = "#059669";
+    relBorder = "#a7f3d0";
+  } else {
+    relLabel = relRaw.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+    relBg = "#eff6ff";
+    relColor = "#2563eb";
+    relBorder = "#bfdbfe";
+  }
+
+  // Bind 3 Evidence Blocks
   const evVisTitle = document.getElementById("fig7EvidenceVisualTitle");
   const evVisBadge = document.getElementById("fig7EvidenceVisualBadge");
   const evEnvTitle = document.getElementById("fig7EvidenceEnvTitle");
   const evRel = document.getElementById("fig7EvidenceRelationship");
-  const finalDesc = document.getElementById("fig7FinalDesc");
 
-  if (finalTitle) {
-    finalTitle.textContent = visualClass;
-    if (visualClass === "Healthy") {
-      finalTitle.style.color = "#15803d";
-      if (heroBanner) { heroBanner.style.background = "#f0fdf4"; heroBanner.style.borderColor = "#bbf7d0"; }
-      if (attentionBadge) {
-        attentionBadge.textContent = "● Stable";
-        attentionBadge.style.background = "#ecfdf5";
-        attentionBadge.style.color = "#059669";
-        attentionBadge.style.borderColor = "#a7f3d0";
-      }
+  if (evVisTitle) evVisTitle.textContent = visualClass;
+  if (evVisBadge) {
+    if (visualConfStr) {
+      evVisBadge.textContent = `Confidence: ${visualConfStr}`;
+      evVisBadge.style.display = "inline-block";
     } else {
-      finalTitle.style.color = "#dc2626";
-      if (heroBanner) { heroBanner.style.background = "#fff1f2"; heroBanner.style.borderColor = "#fecdd3"; }
-      if (attentionBadge) {
-        attentionBadge.textContent = "● Attention";
-        attentionBadge.style.background = "#fef3c7";
-        attentionBadge.style.color = "#d97706";
-        attentionBadge.style.borderColor = "#fde68a";
-      }
+      evVisBadge.style.display = "none";
     }
   }
 
-  if (evVisTitle) evVisTitle.textContent = visualClass;
-  if (evVisBadge) evVisBadge.textContent = `Confidence: ${visualConfStr}%`;
   if (evEnvTitle) evEnvTitle.textContent = `${envClass} Stress`;
-
   if (evRel) {
-    evRel.textContent = "Aligned";
-    evRel.style.background = "#ecfdf5";
-    evRel.style.color = "#059669";
-    evRel.style.borderColor = "#a7f3d0";
+    evRel.textContent = relLabel;
+    evRel.style.background = relBg;
+    evRel.style.color = relColor;
+    evRel.style.borderColor = relBorder;
   }
 
+  // 4. Prominent Final Assessment Banner
+  const finalTitle = document.getElementById("fig7FinalTitle");
+  const heroBanner = document.getElementById("fig7HeroBanner");
+  const attentionBadge = document.getElementById("fig7AttentionBadge");
+  const finalDesc = document.getElementById("fig7FinalDesc");
+
+  const isHealthy = visualClass.toLowerCase() === "healthy" && envClass.toLowerCase() === "low";
+
+  if (finalTitle) {
+    finalTitle.textContent = isHealthy ? "Healthy Baseline Maintained" : `${visualClass} Observable`;
+    finalTitle.style.color = isHealthy ? "#059669" : (visualClass.toLowerCase().includes("stress") ? "#dc2626" : "#d97706");
+  }
+
+  if (heroBanner) {
+    if (isHealthy) {
+      heroBanner.style.background = "#f0fdf4";
+      heroBanner.style.borderColor = "#bbf7d0";
+    } else if (relRaw === "CONFLICTING" || visualClass.toLowerCase() === "water stress") {
+      heroBanner.style.background = "#fff1f2";
+      heroBanner.style.borderColor = "#fecdd3";
+    } else {
+      heroBanner.style.background = "#fffbeb";
+      heroBanner.style.borderColor = "#fde68a";
+    }
+  }
+
+  if (attentionBadge) {
+    if (isHealthy) {
+      attentionBadge.textContent = "● Stable Baseline";
+      attentionBadge.style.background = "#ecfdf5";
+      attentionBadge.style.color = "#059669";
+      attentionBadge.style.borderColor = "#a7f3d0";
+    } else if (relRaw === "CONFLICTING" || visualClass.toLowerCase() === "water stress") {
+      attentionBadge.textContent = "● Action Recommended";
+      attentionBadge.style.background = "#fee2e2";
+      attentionBadge.style.color = "#dc2626";
+      attentionBadge.style.borderColor = "#fca5a5";
+    } else {
+      attentionBadge.textContent = "● Cautionary Monitoring";
+      attentionBadge.style.background = "#fef3c7";
+      attentionBadge.style.color = "#d97706";
+      attentionBadge.style.borderColor = "#fde68a";
+    }
+  }
+
+  // 5. Plain Language Why This Result?
   if (finalDesc) {
-    finalDesc.textContent = `The visual evidence indicates patterns associated with ${visualClass.toLowerCase()}, while the current environmental conditions indicate ${envClass.toLowerCase()} stress. The two sources of evidence are aligned.`;
+    if (fusion.interpretation) {
+      finalDesc.textContent = fusion.interpretation;
+    } else if (fusion.summary) {
+      finalDesc.textContent = fusion.summary;
+    } else {
+      finalDesc.textContent = `Visual leaf assessment indicates observable patterns of ${visualClass.toLowerCase()}, while current field environmental sensors register ${envClass.toLowerCase()} abiotic risk. The two evidence streams are evaluated in synthesis (${relLabel.toLowerCase()}).`;
+    }
   }
 
-  // Expert Check Left Box
+  // 6. Expert Check Left Box
   const expertStatus = document.getElementById("fig7ExpertStatus");
   const expertText = document.getElementById("fig7ExpertText");
   if (rules.length > 0) {
@@ -699,8 +765,9 @@ function renderFigure7(data) {
     }
     if (expertText) {
       expertText.innerHTML = rules.map(r => `
-        <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">🛡️ Rule: ${r.rule_id}</div>
-        <div>${r.precaution || r.interpretation || 'Foliar patterns indicate possible stress. Verify soil nutrient and moisture status.'}</div>
+        <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">🛡️ Rule: ${r.rule_id} (${r.name || 'Deterministic Rule'})</div>
+        <div style="margin-bottom:4px;">${r.interpretation || r.condition}</div>
+        <div style="background:#fffbeb; padding:6px 8px; border-radius:4px; font-weight:600; color:#9a3412;">👉 Precaution: ${r.precaution}</div>
       `).join("");
     }
   } else {
@@ -711,21 +778,21 @@ function renderFigure7(data) {
     }
     if (expertText) {
       expertText.innerHTML = `
-        <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">🛡️ Rule: EVR-007</div>
-        <div>All environmental and foliar signals are within optimal baseline agronomic thresholds.</div>
+        <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">🛡️ Rule: EVR-007 (Normal Baseline)</div>
+        <div>All environmental and foliar signals are within standard agricultural threshold limits.</div>
       `;
     }
   }
 
-  // What to Check Next Right Box
+  // 7. What to Check Next Right Box
   const precList = document.getElementById("fig7PrecautionsList");
   if (precList) {
     const listItems = (final.precautions && final.precautions.length > 0) ? final.precautions : [
-      "Confirm soil nutrient status (N-P-K)",
-      "Inspect affected leaves and new growth",
-      "Monitor leaf colour and overall growth",
-      "Consider balanced foliar nutrition (after verification)",
-      "Repeat analysis in 7-14 days"
+      "Confirm root zone soil moisture depth (15cm and 30cm)",
+      "Inspect affected foliage across middle and lower canopy",
+      "Monitor canopy leaf color and new vegetative shoots",
+      "Cross-reference with local 5-day weather and evapotranspiration forecast",
+      "Repeat multimodal check in 7–10 days"
     ];
     precList.innerHTML = listItems.map(item => `
       <li style="display:flex; align-items:center; gap:6px;">
@@ -735,7 +802,7 @@ function renderFigure7(data) {
     `).join("");
   }
 
-  // Action Buttons
+  // 8. Action Buttons
   const reportBtn = document.getElementById("fig7ReportBtn");
   if (reportBtn && recUuid) {
     reportBtn.href = getApiUrl(`/api/v1/records/${recUuid}/report`);

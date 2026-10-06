@@ -80,7 +80,7 @@
           <span class="view-step-badge">3</span> Environmental Check
         </button>
         <button class="view-step-btn" id="stepBtnCombined" onclick="switchView('combined')">
-          <span class="view-step-badge">4</span> Final Assessment
+          <span class="view-step-badge">4</span> Combined Assessment
         </button>
       </div>
 
@@ -380,63 +380,73 @@
       </div>
 
       <!-- ============================================================
-           VIEW 4: Final Assessment (Multimodal)
+           VIEW 4: Combined Assessment (Multimodal Fusion)
            ============================================================ -->
-      <div id="viewCombined" class="panel" style="display:none; max-width:920px; margin:0 auto; background:#ffffff; border-radius:16px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+      <div id="viewCombined" class="panel" style="display:none; max-width:920px; margin:0 auto; background:#ffffff; border-radius:18px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
 
-        <!-- Header with Green Sprout Icon and Complete Pill -->
+        <!-- Header with Sprout Icon and Complete Pill -->
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:18px;">
           <div style="display:flex; align-items:center; gap:10px;">
             <div style="width:32px; height:32px; border-radius:50%; background:#ecfdf5; display:flex; align-items:center; justify-content:center; font-size:18px;">🌿</div>
-            <h3 style="font-size:1.15rem; color:#0f172a; font-weight:700; margin:0;">Final Assessment (Multimodal)</h3>
+            <h3 style="font-size:1.15rem; color:#0f172a; font-weight:700; margin:0;">Combined Assessment</h3>
           </div>
           <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Complete</span>
         </div>
 
-        <!-- Top Summary Banner -->
-        <div id="fig7HeroBanner" style="background:#fff1f2; border:1px solid #fecdd3; border-radius:12px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-          <div style="display:flex; align-items:center; gap:14px;">
-            <div style="width:44px; height:44px; border-radius:10px; background:#ffffff; border:1px solid #fecdd3; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;">🌱</div>
-            <div>
-              <div style="font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Final Assessment</div>
-              <div id="fig7FinalTitle" style="font-size:1.55rem; font-weight:800; color:#dc2626; margin:2px 0 0;">Nutrient Deficiency</div>
-            </div>
+        <!-- Three Evidence Blocks -->
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; margin-bottom:18px;">
+          
+          <!-- Block 1: Visual Evidence (CNN) -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px;">
+            <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Visual Evidence (CNN)</div>
+            <div id="fig7EvidenceVisualTitle" style="font-size:14px; font-weight:800; color:#0d3b2e; margin:4px 0 6px;">Nutrient Deficiency</div>
+            <span id="fig7EvidenceVisualBadge" style="display:inline-block; background:#fef3c7; color:#d97706; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; border:1px solid #fde68a;">Confidence: 98.7%</span>
           </div>
-          <span id="fig7AttentionBadge" style="background:#fef3c7; color:#d97706; font-size:11px; font-weight:700; padding:5px 14px; border-radius:999px; border:1px solid #fde68a;">● Attention</span>
+
+          <!-- Block 2: Environmental Evidence (SNN) -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px;">
+            <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Environmental Evidence (SNN)</div>
+            <div id="fig7EvidenceEnvTitle" style="font-size:14px; font-weight:800; color:#059669; margin:4px 0 6px;">Low Stress</div>
+            <span id="fig7EvidenceEnvBadge" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">SNN Neuromorphic Model</span>
+          </div>
+
+          <!-- Block 3: Evidence Relationship -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px;">
+            <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Evidence Relationship</div>
+            <div style="margin:4px 0 6px;">
+              <span id="fig7EvidenceRelationship" style="background:#ecfdf5; color:#059669; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px; border:1px solid #a7f3d0; display:inline-block;">Aligned</span>
+            </div>
+            <span style="font-size:10.5px; color:#64748b;">Multimodal Fusion Logic</span>
+          </div>
         </div>
 
-        <!-- 3-Column Evidence Tiles (PowerBI Card Style) -->
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; margin-bottom:18px;">
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px;">
-            <div style="font-size:11px; font-weight:600; color:#64748b;">Visual Evidence (CNN)</div>
-            <div id="fig7EvidenceVisualTitle" style="font-size:13px; font-weight:800; color:#dc2626; margin:4px 0;">Nutrient Deficiency</div>
-            <span id="fig7EvidenceVisualBadge" style="background:#ffe4e6; color:#be123c; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">Confidence: 99%</span>
-          </div>
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px;">
-            <div style="font-size:11px; font-weight:600; color:#64748b;">Environmental Evidence (SNN)</div>
-            <div id="fig7EvidenceEnvTitle" style="font-size:13px; font-weight:800; color:#059669; margin:4px 0;">Low Stress</div>
-          </div>
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px;">
-            <div style="font-size:11px; font-weight:600; color:#64748b;">Evidence Relationship</div>
-            <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
-              <span style="font-size:16px; color:#2563eb;">🔗</span>
-              <span id="fig7EvidenceRelationship" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px; border:1px solid #a7f3d0;">Aligned</span>
+        <!-- Prominent Final Assessment Hero Banner -->
+        <div id="fig7HeroBanner" style="background:#fff1f2; border:1.5px solid #fecdd3; border-radius:14px; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:48px; height:48px; border-radius:12px; background:#ffffff; border:1px solid #fecdd3; display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0;">🌱</div>
+            <div>
+              <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Final Assessment</div>
+              <div id="fig7FinalTitle" style="font-size:1.55rem; font-weight:800; color:#dc2626; margin:2px 0 0;">Nutrient Deficiency Detected</div>
             </div>
           </div>
+          <span id="fig7AttentionBadge" style="background:#fef3c7; color:#d97706; font-size:11px; font-weight:700; padding:5px 14px; border-radius:999px; border:1px solid #fde68a;">● Cautionary Monitoring</span>
         </div>
 
         <!-- Why this result? Callout Box -->
-        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:12px 16px; margin-bottom:18px;">
+        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:14px 18px; margin-bottom:18px;">
           <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#0369a1; margin-bottom:4px;">
             <span>📄</span>
             <span>Why this result?</span>
           </div>
-          <p id="fig7FinalDesc" style="margin:0; font-size:12px; color:#334155; line-height:1.5;">
-            The visual evidence indicates patterns associated with nutrient deficiency, while the current environmental conditions indicate low stress. The two sources of evidence are aligned.
+          <p id="fig7FinalDesc" style="margin:0 0 8px; font-size:12.5px; color:#334155; line-height:1.55;">
+            Visual evidence indicates foliar symptoms associated with nutrient deficiency, while environmental conditions indicate low abiotic risk. The evidence streams are evaluated in synthesis.
           </p>
+          <div style="background:#ffffff; border-left:3px solid #0284c7; padding:6px 10px; font-size:11px; color:#475569; border-radius:0 4px 4px 0;">
+            <strong>Decision Support Notice:</strong> This multimodal synthesis provides agricultural decision support to assist routine crop monitoring. It does not establish a confirmed biological cause, guaranteed disease diagnosis, or certain chemical treatment.
+          </div>
         </div>
 
-        <!-- Two-Column Decision Split -->
+        <!-- Two-Column Decision Split: Expert Check & What to Check Next -->
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
           <!-- Left: Expert Check -->
           <div style="background:#fffbeb; border:1px solid #fed7aa; border-radius:12px; padding:14px 16px;" id="fig7ExpertBox">
@@ -447,7 +457,7 @@
               </div>
               <span id="fig7ExpertStatus" style="background:#fef3c7; color:#d97706; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;">Precaution Detected</span>
             </div>
-            <div id="fig7ExpertText" style="font-size:11px; color:#334155; line-height:1.45;">
+            <div id="fig7ExpertText" style="font-size:11.5px; color:#334155; line-height:1.5;">
               <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">🛡️ Rule: EVR-006</div>
               <div>Foliar patterns indicate possible nutrient deficiency. Verify soil nutrient status and consider balanced fertilization.</div>
             </div>
@@ -459,7 +469,7 @@
               <span>📊</span>
               <span>What to Check Next</span>
             </div>
-            <ul id="fig7PrecautionsList" style="margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px; font-size:11px; color:#334155;">
+            <ul id="fig7PrecautionsList" style="margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px; font-size:11.5px; color:#334155;">
               <li style="display:flex; align-items:center; gap:6px;"><span style="color:#059669; font-size:12px;">🟢</span> Confirm soil nutrient status (N-P-K)</li>
               <li style="display:flex; align-items:center; gap:6px;"><span style="color:#059669; font-size:12px;">🟢</span> Inspect affected leaves and new growth</li>
               <li style="display:flex; align-items:center; gap:6px;"><span style="color:#059669; font-size:12px;">🟢</span> Monitor leaf colour and overall growth</li>
