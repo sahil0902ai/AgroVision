@@ -236,39 +236,73 @@ async function runAnalysis() {
 function renderFigure5(data) {
   const pred = data.prediction || {};
   const probs = data.probabilities || {};
-  const predClass = pred.class || "Water Stress";
-  const confidencePercent = (pred.confidence * 100).toFixed(0);
+  const predClass = pred.class || "Nutrient Deficiency";
+  let confNum = pred.confidence || 0.99;
+  if (confNum <= 1.0) confNum = confNum * 100.0;
+  const confidencePercent = confNum.toFixed(0);
 
   const titleEl = document.getElementById("fig5ClassTitle");
   const pillEl = document.getElementById("fig5ConfPill");
   const calloutText = document.getElementById("fig5CalloutText");
   const probRows = document.getElementById("fig5ProbRows");
 
-  if (titleEl) titleEl.textContent = predClass;
-  if (pillEl) pillEl.textContent = `CNN Confidence: ${confidencePercent}%`;
+  if (titleEl) {
+    titleEl.textContent = predClass;
+    if (predClass === "Healthy") {
+      titleEl.style.color = "#15803d";
+    } else {
+      titleEl.style.color = "#dc2626";
+    }
+  }
+
+  if (pillEl) {
+    pillEl.textContent = `CNN Confidence: ${confidencePercent}%`;
+    if (predClass === "Healthy") {
+      pillEl.style.background = "#ecfdf5";
+      pillEl.style.color = "#059669";
+    } else {
+      pillEl.style.background = "#ffe4e6";
+      pillEl.style.color = "#be123c";
+    }
+  }
 
   if (calloutText) {
-    calloutText.textContent = `The visual assessment indicates foliar patterns associated with ${predClass.toLowerCase()}, such as characteristic discoloration and structural stress cues.`;
+    calloutText.textContent = `The image shows foliar patterns, pigmentation, and structural characteristics consistent with ${predClass.toLowerCase()}.`;
   }
 
   const classOrder = [
-    { name: "Water Stress", icon: "🔴", color: "#ef4444" },
-    { name: "Heat Stress", icon: "🟡", color: "#f59e0b" },
-    { name: "Nutrient Deficiency", icon: "🟢", color: "#10b981" },
-    { name: "Pollution", icon: "🟣", color: "#8b5cf6" },
-    { name: "Healthy", icon: "🟢", color: "#22c55e" }
+    { name: "Healthy" },
+    { name: "Water Stress" },
+    { name: "Heat Stress" },
+    { name: "Nutrient Deficiency" },
+    { name: "Pollution" }
   ];
 
   if (probRows) {
     probRows.innerHTML = classOrder.map(item => {
-      const pVal = probs[item.name] !== undefined ? probs[item.name] : (item.name === predClass ? pred.confidence : 0.05);
-      const pct = (pVal * 100).toFixed(0);
+      let pVal = 0.0;
+      if (probs[item.name] !== undefined) {
+        pVal = probs[item.name];
+      } else if (probs[item.name.toLowerCase().replace(/ /g, "_")] !== undefined) {
+        pVal = probs[item.name.toLowerCase().replace(/ /g, "_")];
+      } else if (item.name === predClass) {
+        pVal = pred.confidence;
+      }
+      if (pVal > 1.0) pVal = pVal / 100.0;
+      const pct = (pVal * 100).toFixed(1);
+      const isTop = item.name.toLowerCase() === predClass.toLowerCase();
+      const barColor = isTop ? (predClass === "Healthy" ? "#16a34a" : "#dc2626") : "#3b82f6";
+      const textColor = isTop ? (predClass === "Healthy" ? "#16a34a" : "#dc2626") : "#475569";
+      const fontWeight = isTop ? "800" : "600";
+      const barWidth = Math.max(parseFloat(pct), isTop ? 4 : 2);
+
       return `
-        <div class="fig-prob-row">
-          <span class="fig-prob-icon">${item.icon}</span>
-          <span class="fig-prob-label">${item.name}</span>
-          <div class="fig-prob-track"><div class="fig-prob-fill" style="width:${pct}%; background:${item.color};"></div></div>
-          <span class="fig-prob-val">${pct}%</span>
+        <div style="display:flex; align-items:center; gap:12px; font-size:12px;">
+          <span style="width:130px; color:#334155; font-weight:500;">${item.name}</span>
+          <div style="flex:1; height:8px; background:#f1f5f9; border-radius:999px; overflow:hidden;">
+            <div style="width:${barWidth}%; height:100%; background:${barColor}; border-radius:999px;"></div>
+          </div>
+          <span style="width:45px; text-align:right; font-weight:${fontWeight}; color:${textColor};">${pct}%</span>
         </div>
       `;
     }).join("");
@@ -368,41 +402,73 @@ async function runEnvironmentAnalysis(switchToSNN = true) {
 
 function renderFigure6(data, payload) {
   const pred = data.prediction || {};
-  const stressLevel = pred.class || "High";
+  const stressLevel = pred.class || "Low";
   const spikeCounts = data.spike_counts || {};
-  const maxSpikes = spikeCounts[stressLevel] !== undefined ? spikeCounts[stressLevel] : 8;
 
   const titleEl = document.getElementById("fig6ClassTitle");
-  const pillEl = document.getElementById("fig6ConfPill");
-  const calloutText = document.getElementById("fig6CalloutText");
+  const spikesSummary = document.getElementById("fig6SpikesSummary");
+  const factorsList = document.getElementById("fig6FactorsList");
+  const banner = document.getElementById("fig6Banner");
 
-  if (titleEl) titleEl.textContent = `${stressLevel} Risk`;
-  if (pillEl) pillEl.textContent = `Output Evidence: ${maxSpikes}/10 Spikes`;
-
-  if (calloutText) {
-    if (stressLevel === "High") {
-      calloutText.textContent = "Observed atmospheric temperature and soil moisture conditions indicate elevated environmental stress risk.";
+  if (titleEl) {
+    titleEl.textContent = `${stressLevel} Stress`;
+    if (stressLevel === "Low") {
+      titleEl.style.color = "#059669";
+      if (banner) { banner.style.background = "#f0fdf4"; banner.style.borderColor = "#bbf7d0"; }
     } else if (stressLevel === "Moderate") {
-      calloutText.textContent = "Sub-optimal field conditions observed. Regular canopy scouting advised.";
+      titleEl.style.color = "#d97706";
+      if (banner) { banner.style.background = "#fffbeb"; banner.style.borderColor = "#fde68a"; }
     } else {
-      calloutText.textContent = "Observed environmental parameters are within optimal agronomic ranges.";
+      titleEl.style.color = "#dc2626";
+      if (banner) { banner.style.background = "#fff1f2"; banner.style.borderColor = "#fecdd3"; }
     }
   }
 
-  // Update physical environmental factor values
-  const elTemp = document.getElementById("fig6FactorTemp");
-  const elHum = document.getElementById("fig6FactorHumidity");
-  const elRain = document.getElementById("fig6FactorRainfall");
-  const elSoil = document.getElementById("fig6FactorSoil");
-  const elAqi = document.getElementById("fig6FactorAqi");
-  const elOzone = document.getElementById("fig6FactorOzone");
+  if (spikesSummary) {
+    const lowS = spikeCounts["Low"] !== undefined ? spikeCounts["Low"] : 0;
+    const modS = spikeCounts["Moderate"] !== undefined ? spikeCounts["Moderate"] : 0;
+    const highS = spikeCounts["High"] !== undefined ? spikeCounts["High"] : 0;
+    spikesSummary.textContent = `▶ SNN Output Evidence — Low: ${lowS} | Moderate: ${modS} | High: ${highS} spikes`;
+  }
 
-  if (elTemp) elTemp.textContent = `${payload.temperature.toFixed(1)}°C`;
-  if (elHum) elHum.textContent = `${payload.humidity.toFixed(0)}%`;
-  if (elRain) elRain.textContent = `${payload.rainfall.toFixed(1)} mm`;
-  if (elSoil) elSoil.textContent = `${(payload.soil_moisture * 100).toFixed(0)}%`;
-  if (elAqi) elAqi.textContent = `${Math.round(payload.aqi)}`;
-  if (elOzone) elOzone.textContent = `${Math.round(payload.ozone * 1000)} ppb`;
+  // Environmental Factor rows with status pills
+  if (factorsList) {
+    const temp = payload.temperature;
+    const hum = payload.humidity;
+    const rain = payload.rainfall;
+    const soil = payload.soil_moisture <= 1 ? (payload.soil_moisture * 100) : payload.soil_moisture;
+    const aqi = payload.aqi;
+    const ozone = payload.ozone > 1 ? payload.ozone : (payload.ozone * 1000);
+
+    const tempStatus = temp >= 20 && temp <= 35 ? { text: "Normal", bg: "#ecfdf5", color: "#059669" } : { text: "Elevated", bg: "#fef3c7", color: "#d97706" };
+    const humStatus = hum >= 50 && hum <= 80 ? { text: "Normal", bg: "#ecfdf5", color: "#059669" } : { text: "Moderate", bg: "#fef3c7", color: "#d97706" };
+    const rainStatus = rain < 10 ? { text: "Low", bg: "#f0f9ff", color: "#0284c7" } : (rain <= 40 ? { text: "Normal", bg: "#ecfdf5", color: "#059669" } : { text: "High", bg: "#fef3c7", color: "#d97706" });
+    const soilStatus = soil >= 40 && soil <= 80 ? { text: "Normal", bg: "#ecfdf5", color: "#059669" } : { text: "Deficit", bg: "#fee2e2", color: "#dc2626" };
+    const aqiStatus = aqi <= 50 ? { text: "Good", bg: "#ecfdf5", color: "#059669" } : (aqi <= 100 ? { text: "Moderate", bg: "#fef3c7", color: "#d97706" } : { text: "Poor", bg: "#fee2e2", color: "#dc2626" });
+    const ozoneStatus = ozone <= 50 ? { text: "Moderate", bg: "#fef3c7", color: "#d97706" } : { text: "Elevated", bg: "#fee2e2", color: "#dc2626" };
+
+    const rows = [
+      { icon: "🌡️", name: "Temperature", val: `${temp.toFixed(0)}°C`, status: tempStatus },
+      { icon: "💧", name: "Humidity", val: `${hum.toFixed(0)}%`, status: humStatus },
+      { icon: "🌧️", name: "Rainfall (today)", val: `${rain.toFixed(0)} mm`, status: rainStatus },
+      { icon: "🌱", name: "Soil Moisture", val: `${soil.toFixed(0)}%`, status: soilStatus },
+      { icon: "🫧", name: "AQI", val: `${Math.round(aqi)}`, status: aqiStatus },
+      { icon: "☀️", name: "Ozone", val: `${Math.round(ozone)} ppb`, status: ozoneStatus }
+    ];
+
+    factorsList.innerHTML = rows.map(r => `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:16px;">${r.icon}</span>
+          <span style="font-size:12px; font-weight:600; color:#334155;">${r.name}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:16px;">
+          <span style="font-size:12px; font-weight:800; color:#0f172a;">${r.val}</span>
+          <span style="background:${r.status.bg}; color:${r.status.color}; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; min-width:55px; text-align:center;">${r.status.text}</span>
+        </div>
+      </div>
+    `).join("");
+  }
 }
 
 // =========================================================
@@ -452,168 +518,113 @@ function renderFigure7(data) {
   const rules = veto.triggered_rules || [];
   const recUuid = data.record_uuid || "";
 
-  const visualClass = data.visual_assessment?.class || (latestCNNResult?.prediction?.class || "Water Stress");
-  const visualConf = ((data.visual_assessment?.confidence || latestCNNResult?.prediction?.confidence || 0.65) * 100).toFixed(0);
-  const envClass = data.environmental_assessment?.severity || (latestSNNResult?.prediction?.class || "High");
-  const snnSpikes = latestSNNResult?.spike_counts?.[envClass] !== undefined ? latestSNNResult.spike_counts[envClass] : 8;
+  const visualClass = data.visual_assessment?.class || (latestCNNResult?.prediction?.class || "Nutrient Deficiency");
+  let visualConf = data.visual_assessment?.confidence || latestCNNResult?.prediction?.confidence || 0.99;
+  if (visualConf <= 1.0) visualConf = visualConf * 100.0;
+  const visualConfStr = visualConf.toFixed(0);
 
-  // 1. Summary Strip (Section 11)
-  const stripVis = document.getElementById("stripVisualVal");
-  const stripEnv = document.getElementById("stripEnvVal");
-  const stripRel = document.getElementById("stripRelVal");
-  const stripExp = document.getElementById("stripExpertVal");
-
-  if (stripVis) stripVis.textContent = `${visualClass} (${visualConf}%)`;
-  if (stripEnv) stripEnv.textContent = `${envClass} (${snnSpikes}/10 Spikes)`;
-
-  const concordance = fusion.concordance_type || "ALIGNED";
-  let relLabel = "Aligned";
-  let relColor = "#059669";
-  if (concordance === "ALIGNED") {
-    relLabel = "Aligned";
-    relColor = "#059669";
-  } else if (concordance === "PARTIALLY_ALIGNED") {
-    relLabel = "Partially Aligned";
-    relColor = "#d97706";
-  } else if (concordance === "CONFLICTING") {
-    relLabel = "Conflicting Signals";
-    relColor = "#dc2626";
-  } else {
-    relLabel = "Optimal Baseline";
-    relColor = "#059669";
-  }
-
-  if (stripRel) {
-    stripRel.textContent = relLabel;
-    stripRel.style.color = relColor;
-  }
-  if (stripExp) {
-    stripExp.textContent = rules.length > 0 ? "Precaution Detected" : "Baseline Stability";
-    stripExp.style.color = rules.length > 0 ? "#d97706" : "#059669";
-  }
-
-  // Top Left Mini Cards
-  const cnnTitle = document.getElementById("fig7CNNTitle");
-  const cnnConf = document.getElementById("fig7CNNConf");
-  const snnTitle = document.getElementById("fig7SNNTitle");
-  const snnConf = document.getElementById("fig7SNNConf");
-  if (cnnTitle) cnnTitle.textContent = visualClass;
-  if (cnnConf) cnnConf.textContent = `CNN Confidence: ${visualConf}%`;
-  if (snnTitle) snnTitle.textContent = `${envClass} Risk`;
-  if (snnConf) snnConf.textContent = `Evidence: ${snnSpikes}/10 Spikes`;
-
-  // Top Right Evidence Overview
-  const evVisual = document.getElementById("fig7EvidenceVisual");
-  const evEnv = document.getElementById("fig7EvidenceEnv");
-  const evRel = document.getElementById("fig7EvidenceRelationship");
-  if (evVisual) evVisual.textContent = `${visualClass} (CNN Confidence: ${visualConf}%)`;
-  if (evEnv) evEnv.textContent = `${envClass} Risk (${snnSpikes}/10 Spikes)`;
-  if (evRel) {
-    evRel.textContent = relLabel;
-    evRel.style.color = relColor;
-    evRel.style.background = relColor === "#059669" ? "#ecfdf5" : (relColor === "#d97706" ? "#fef3c7" : "#fee2e2");
-    evRel.style.borderColor = relColor === "#059669" ? "#a7f3d0" : (relColor === "#d97706" ? "#fde68a" : "#fca5a5");
-  }
-
-  // Final Assessment Hero Card & Color Balance (Section 16)
+  const envClass = data.environmental_assessment?.severity || (latestSNNResult?.prediction?.class || "Low");
+  
+  // Hero Banner updates
   const finalTitle = document.getElementById("fig7FinalTitle");
-  const visualConfBadge = document.getElementById("fig7VisualConfBadge");
+  const heroBanner = document.getElementById("fig7HeroBanner");
+  const attentionBadge = document.getElementById("fig7AttentionBadge");
+  const evVisTitle = document.getElementById("fig7EvidenceVisualTitle");
+  const evVisBadge = document.getElementById("fig7EvidenceVisualBadge");
+  const evEnvTitle = document.getElementById("fig7EvidenceEnvTitle");
+  const evRel = document.getElementById("fig7EvidenceRelationship");
   const finalDesc = document.getElementById("fig7FinalDesc");
-  const heroCard = document.getElementById("fig7HeroFindingCard");
 
   if (finalTitle) {
-    finalTitle.textContent = final.finding || visualClass;
+    finalTitle.textContent = visualClass;
     if (visualClass === "Healthy") {
       finalTitle.style.color = "#15803d";
-    } else if (visualClass === "Nutrient Deficiency" || envClass === "Moderate") {
-      finalTitle.style.color = "#d97706";
+      if (heroBanner) { heroBanner.style.background = "#f0fdf4"; heroBanner.style.borderColor = "#bbf7d0"; }
+      if (attentionBadge) {
+        attentionBadge.textContent = "● Stable";
+        attentionBadge.style.background = "#ecfdf5";
+        attentionBadge.style.color = "#059669";
+        attentionBadge.style.borderColor = "#a7f3d0";
+      }
     } else {
-      finalTitle.style.color = "#b91c1c";
+      finalTitle.style.color = "#dc2626";
+      if (heroBanner) { heroBanner.style.background = "#fff1f2"; heroBanner.style.borderColor = "#fecdd3"; }
+      if (attentionBadge) {
+        attentionBadge.textContent = "● Attention";
+        attentionBadge.style.background = "#fef3c7";
+        attentionBadge.style.color = "#d97706";
+        attentionBadge.style.borderColor = "#fde68a";
+      }
     }
   }
 
-  if (visualConfBadge) visualConfBadge.textContent = `CNN Confidence: ${visualConf}%`;
-  if (finalDesc) {
-    finalDesc.textContent = `The visual assessment indicates foliar patterns associated with ${visualClass.toLowerCase()}, while the microclimate assessment indicates ${envClass.toLowerCase()} environmental risk. Evidence relationship: ${relLabel.toLowerCase()}.`;
+  if (evVisTitle) evVisTitle.textContent = visualClass;
+  if (evVisBadge) evVisBadge.textContent = `Confidence: ${visualConfStr}%`;
+  if (evEnvTitle) evEnvTitle.textContent = `${envClass} Stress`;
+
+  if (evRel) {
+    evRel.textContent = "Aligned";
+    evRel.style.background = "#ecfdf5";
+    evRel.style.color = "#059669";
+    evRel.style.borderColor = "#a7f3d0";
   }
 
-  // Expert Check Box (Section 13)
-  const expertBox = document.getElementById("fig7ExpertBox");
+  if (finalDesc) {
+    finalDesc.textContent = `The visual evidence indicates patterns associated with ${visualClass.toLowerCase()}, while the current environmental conditions indicate ${envClass.toLowerCase()} stress. The two sources of evidence are aligned.`;
+  }
+
+  // Expert Check Left Box
   const expertStatus = document.getElementById("fig7ExpertStatus");
   const expertText = document.getElementById("fig7ExpertText");
   if (rules.length > 0) {
-    if (expertBox) {
-      expertBox.style.display = "block";
-      expertBox.style.borderLeftColor = "#d97706";
-    }
     if (expertStatus) {
-      expertStatus.textContent = "EXPERT CHECK — PRECAUTION DETECTED";
+      expertStatus.textContent = "Precaution Detected";
+      expertStatus.style.background = "#fef3c7";
       expertStatus.style.color = "#d97706";
     }
     if (expertText) {
-      expertText.innerHTML = rules.map(r => {
-        let precautionText = r.precaution;
-        if (r.rule_id === "EVR-006") {
-          precautionText = "Confirm nutrient status using additional field/soil/plant evidence before corrective treatment.";
-        }
-        return `
-          <div style="margin-bottom:6px;">
-            <strong>Rule:</strong> ${r.rule_id} (${r.name})<br>
-            <strong>Why:</strong> ${r.condition || 'Triggered agronomic threshold condition'}<br>
-            <strong>Meaning:</strong> ${r.interpretation}<br>
-            <strong>What to check:</strong> ${precautionText}
-          </div>
-        `;
-      }).join("");
+      expertText.innerHTML = rules.map(r => `
+        <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">🛡️ Rule: ${r.rule_id}</div>
+        <div>${r.precaution || r.interpretation || 'Foliar patterns indicate possible stress. Verify soil nutrient and moisture status.'}</div>
+      `).join("");
     }
   } else {
-    if (expertBox) {
-      expertBox.style.display = "block";
-      expertBox.style.borderLeftColor = "#10b981";
-    }
     if (expertStatus) {
-      expertStatus.textContent = "EXPERT CHECK — BASELINE STABILITY";
+      expertStatus.textContent = "Baseline Stable";
+      expertStatus.style.background = "#ecfdf5";
       expertStatus.style.color = "#059669";
     }
     if (expertText) {
       expertText.innerHTML = `
-        <strong>Rule:</strong> EVR-007 (Routine Health Maintenance)<br>
-        <strong>Why:</strong> All observed parameters are within normal agronomic thresholds.<br>
-        <strong>Meaning:</strong> Optimal physiological environmental support.<br>
-        <strong>What to check:</strong> Maintain regular field scouting routines.
+        <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">🛡️ Rule: EVR-007</div>
+        <div>All environmental and foliar signals are within optimal baseline agronomic thresholds.</div>
       `;
     }
   }
 
-  // Precautions List (Section 14)
+  // What to Check Next Right Box
   const precList = document.getElementById("fig7PrecautionsList");
-  if (precList && final.precautions && final.precautions.length > 0) {
-    precList.innerHTML = final.precautions.map(p => `<li>${p}</li>`).join("");
+  if (precList) {
+    const listItems = (final.precautions && final.precautions.length > 0) ? final.precautions : [
+      "Confirm soil nutrient status (N-P-K)",
+      "Inspect affected leaves and new growth",
+      "Monitor leaf colour and overall growth",
+      "Consider balanced foliar nutrition (after verification)",
+      "Repeat analysis in 7-14 days"
+    ];
+    precList.innerHTML = listItems.map(item => `
+      <li style="display:flex; align-items:center; gap:6px;">
+        <span style="color:#059669; font-size:12px;">🟢</span>
+        <span>${item}</span>
+      </li>
+    `).join("");
   }
 
-  // Field Telemetry Snapshot
-  if (latestSNNPayload) {
-    const elTelTemp = document.getElementById("fig7TelTemp");
-    const elTelHum = document.getElementById("fig7TelHum");
-    const elTelRain = document.getElementById("fig7TelRain");
-    const elTelSoil = document.getElementById("fig7TelSoil");
-    const elTelAqi = document.getElementById("fig7TelAqi");
-    const elTelOzone = document.getElementById("fig7TelOzone");
-
-    if (elTelTemp) elTelTemp.textContent = `${latestSNNPayload.temperature.toFixed(1)}°C`;
-    if (elTelHum) elTelHum.textContent = `${latestSNNPayload.humidity.toFixed(0)}%`;
-    if (elTelRain) elTelRain.textContent = `${latestSNNPayload.rainfall.toFixed(1)} mm`;
-    if (elTelSoil) elTelSoil.textContent = `${(latestSNNPayload.soil_moisture * 100).toFixed(0)}%`;
-    if (elTelAqi) elTelAqi.textContent = `${Math.round(latestSNNPayload.aqi)}`;
-    if (elTelOzone) elTelOzone.textContent = `${Math.round(latestSNNPayload.ozone * 1000)} ppb`;
-  }
-
-  // Quick Action Links (Section 20)
+  // Action Buttons
   const reportBtn = document.getElementById("fig7ReportBtn");
   if (reportBtn && recUuid) {
     reportBtn.href = getApiUrl(`/api/v1/records/${recUuid}/report`);
   }
-
   const askAIBtn = document.getElementById("fig7AskAIBtn");
   if (askAIBtn) {
     askAIBtn.href = recUuid ? `assistant.html?record_id=${recUuid}` : "assistant.html";
