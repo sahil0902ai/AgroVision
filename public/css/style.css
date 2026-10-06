@@ -2384,6 +2384,264 @@ details.model-details summary:hover {
   }
 }
 
+/* =========================================================
+   AgroVision — Enterprise Cotton Leaf Upload Component
+   ========================================================= */
+.upload-dropzone {
+  position: relative;
+  min-height: 220px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.upload-dropzone:hover {
+  border-color: #059669;
+  background: #f0fdf4;
+}
+
+.upload-dropzone.drag-over {
+  border-color: #059669;
+  background: #ecfdf5;
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.12);
+  transform: scale(1.01);
+}
+
+.upload-state-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+
+.upload-icon-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  border: 1px solid #d1fae5;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.08);
+}
+
+.upload-prompt-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.upload-prompt-sub {
+  font-size: 11.5px;
+  color: #64748b;
+  margin-bottom: 14px;
+}
+
+.upload-browse-link {
+  color: #059669;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.upload-specs-pills {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.upload-spec-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.upload-spec-pill.highlight {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+/* Success State Preview Card */
+.upload-state-success {
+  width: 100%;
+}
+
+.upload-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.upload-thumb-wrap {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-meta-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.upload-meta-header {
+  margin-bottom: 4px;
+}
+
+.upload-status-ready {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #a7f3d0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.upload-meta-filename {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.upload-meta-details {
+  font-size: 11px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.upload-meta-dot {
+  color: #cbd5e1;
+}
+
+.upload-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-upload-action {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-upload-action.btn-replace:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.btn-upload-action.btn-remove:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* Validating State */
+.upload-state-validating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.upload-spinner {
+  font-size: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Validation Error Box */
+.upload-error-box {
+  margin-top: 10px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.upload-error-title {
+  font-weight: 800;
+  font-size: 12px;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Compact 2x3 Env Grid (Figures 5 & 6) */
 .compact-env-grid {
   display: grid;

@@ -168,55 +168,98 @@ function switchView(viewName) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// File Selection Handler
+// =========================================================
+// COTTON LEAF IMAGE UPLOAD & INTEGRITY VALIDATION
+// =========================================================
+
+let currentObjectUrl = null;
+
+function triggerFileInput(event) {
+  // Prevent opening file picker when clicking action buttons or inside active preview card
+  if (event.target.closest("button") || event.target.closest(".upload-actions-bar")) {
+    return;
+  }
+  // If already loaded and clicked outside button, don't trigger
+  if (selectedFile && event.target.closest("#uploadSuccessState")) {
+    return;
+  }
+  const fileInput = document.getElementById("fileInput");
+  if (fileInput) {
+    fileInput.click();
+  }
+}
+
+function handleDragOver(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  const dropzone = document.getElementById("uploadDropzone");
+  if (dropzone) dropzone.classList.add("drag-over");
+}
+
+function handleDragLeave(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  const dropzone = document.getElementById("uploadDropzone");
+  if (dropzone) dropzone.classList.remove("drag-over");
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  const dropzone = document.getElementById("uploadDropzone");
+  if (dropzone) dropzone.classList.remove("drag-over");
+
+  const dt = event.dataTransfer;
+  if (dt && dt.files && dt.files.length > 0) {
+    validateAndProcessFile(dt.files[0]);
+  }
+}
+
 function handleFileSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-  if (!validTypes.includes(file.type) && !file.name.match(/\.(jpg|jpeg|png|webp)$/i)) {
-    alert("Unsupported image format. Please upload JPG or PNG.");
-    return;
+  const file = event.target.files && event.target.files[0];
+  if (file) {
+    validateAndProcessFile(file);
   }
+}
 
-  if (file.size > 10 * 1024 * 1024) {
-    alert("Image size is too large. Please upload a smaller image (max 10MB).");
-    return;
+function replaceSelectedImage(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
   }
+  const fileInput = document.getElementById("fileInput");
+  if (fileInput) {
+    fileInput.value = "";
+    fileInput.click();
+  }
+}
 
-  selectedFile = file;
+function showUploadError(title, message) {
+  selectedFile = null;
+  const fileInput = document.getElementById("fileInput");
+  if (fileInput) fileInput.value = "";
 
-  const nameLabel = document.getElementById("fileNameLabel");
-  if (nameLabel) nameLabel.textContent = file.name;
+  const emptyState = document.getElementById("uploadEmptyState");
+  const successState = document.getElementById("uploadSuccessState");
+  const validatingState = document.getElementById("uploadValidatingState");
+  const errorBox = document.getElementById("uploadErrorBox");
+  const errorTitle = document.getElementById("uploadErrorTitle");
+  const errorMsg = document.getElementById("uploadErrorMsg");
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const previewImg = document.getElementById("previewImg");
-    const uploadPreview = document.getElementById("uploadPreview");
-    const uploadPrompt = document.getElementById("uploadPrompt");
-    if (previewImg) previewImg.src = e.target.result;
-    if (uploadPreview) uploadPreview.style.display = "block";
-    if (uploadPrompt) uploadPrompt.style.display = "none";
+  if (validatingState) validatingState.style.display = "none";
+  if (successState) successState.style.display = "none";
+  if (emptyState) emptyState.style.display = "flex";
 
-    // Propagate image to Figure 5, 6, 7 previews
-    const f5 = document.getElementById("fig5LeafImg");
-    const f6 = document.getElementById("fig6LeafImg");
-    const f7 = document.getElementById("fig7LeafImg");
-    if (f5) f5.src = e.target.result;
-    if (f6) f6.src = e.target.result;
-    if (f7) f7.src = e.target.result;
+  if (errorBox) {
+    if (errorTitle) errorTitle.textContent = title;
+    if (errorMsg) errorMsg.textContent = message;
+    errorBox.style.display = "block";
+  }
+}
 
-    const fn5 = document.getElementById("fig5FileName");
-    const fn6 = document.getElementById("fig6FileName");
-    const fn7 = document.getElementById("fig7FileName");
-    if (fn5) fn5.textContent = file.name;
-    if (fn6) fn6.textContent = file.name;
-    if (fn7) fn7.textContent = file.name;
-  };
-  reader.readAsDataURL(file);
-
-  const analyzeBtn = document.getElementById("analyzeBtn");
-  if (analyzeBtn) analyzeBtn.disabled = false;
+function clearUploadError() {
+  const errorBox = document.getElementById("uploadErrorBox");
+  if (errorBox) errorBox.style.display = "none";
 }
 
 function clearSelectedImage(event) {
@@ -225,17 +268,158 @@ function clearSelectedImage(event) {
     event.stopPropagation();
   }
 
+  if (currentObjectUrl) {
+    try { URL.revokeObjectURL(currentObjectUrl); } catch (e) {}
+    currentObjectUrl = null;
+  }
+
   selectedFile = null;
   const fileInput = document.getElementById("fileInput");
   if (fileInput) fileInput.value = "";
 
-  const nameLabel = document.getElementById("fileNameLabel");
-  if (nameLabel) nameLabel.textContent = "No file chosen (e.g. cotton_leaf.jpg)";
+  const emptyState = document.getElementById("uploadEmptyState");
+  const successState = document.getElementById("uploadSuccessState");
+  const validatingState = document.getElementById("uploadValidatingState");
+  const previewImg = document.getElementById("previewImg");
 
-  const uploadPreview = document.getElementById("uploadPreview");
-  const uploadPrompt = document.getElementById("uploadPrompt");
-  if (uploadPreview) uploadPreview.style.display = "none";
-  if (uploadPrompt) uploadPrompt.style.display = "block";
+  if (previewImg) previewImg.src = "";
+  if (validatingState) validatingState.style.display = "none";
+  if (successState) successState.style.display = "none";
+  if (emptyState) emptyState.style.display = "flex";
+
+  clearUploadError();
+}
+
+function validateAndProcessFile(file) {
+  if (!file) return;
+  clearUploadError();
+
+  const emptyState = document.getElementById("uploadEmptyState");
+  const successState = document.getElementById("uploadSuccessState");
+  const validatingState = document.getElementById("uploadValidatingState");
+
+  // 1. File Format Validation (JPG, PNG, WEBP)
+  const validMimes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  const validExts = /\.(jpe?g|png|webp)$/i;
+  const isMimeValid = validMimes.includes(file.type);
+  const isExtValid = validExts.test(file.name);
+
+  if (!isMimeValid && !isExtValid) {
+    showUploadError(
+      "Unsupported File Format",
+      `The file "${file.name}" is not a supported format. Please upload a valid JPG, PNG, or WEBP cotton leaf image.`
+    );
+    return;
+  }
+
+  // 2. File Size Validation (Max 10 MB, Non-zero)
+  if (file.size === 0) {
+    showUploadError(
+      "Empty File (0 Bytes)",
+      `The selected file "${file.name}" contains 0 bytes. Please select a valid, non-empty image file.`
+    );
+    return;
+  }
+
+  const maxSizeBytes = 10 * 1024 * 1024; // 10 MB
+  if (file.size > maxSizeBytes) {
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+    showUploadError(
+      "File Size Exceeded",
+      `The selected file size (${sizeMb} MB) exceeds the maximum allowed limit of 10 MB. Please choose a smaller image.`
+    );
+    return;
+  }
+
+  // 3. Show Validating Spinner
+  if (emptyState) emptyState.style.display = "none";
+  if (successState) successState.style.display = "none";
+  if (validatingState) validatingState.style.display = "flex";
+
+  // 4. Image Decoding & Integrity Check
+  if (currentObjectUrl) {
+    try { URL.revokeObjectURL(currentObjectUrl); } catch (e) {}
+  }
+  const objectUrl = URL.createObjectURL(file);
+  currentObjectUrl = objectUrl;
+
+  const testImg = new Image();
+  testImg.onload = () => {
+    // Verify readable dimensions
+    if (testImg.naturalWidth < 16 || testImg.naturalHeight < 16) {
+      try { URL.revokeObjectURL(objectUrl); } catch (e) {}
+      showUploadError(
+        "Low Resolution / Corrupted Image",
+        `The uploaded image is too small (${testImg.naturalWidth}×${testImg.naturalHeight} px) or corrupted. Minimum resolution is 16×16 px.`
+      );
+      return;
+    }
+
+    // Validation Successful!
+    selectedFile = file;
+
+    // Populate metadata labels
+    const previewImg = document.getElementById("previewImg");
+    const fileNameLabel = document.getElementById("fileNameLabel");
+    const fileSizeLabel = document.getElementById("fileSizeLabel");
+    const fileDimsLabel = document.getElementById("fileDimensionsLabel");
+    const fileFormatLabel = document.getElementById("fileFormatLabel");
+    const statusBadge = document.getElementById("uploadStatusBadge");
+
+    if (previewImg) previewImg.src = objectUrl;
+    if (fileNameLabel) fileNameLabel.textContent = file.name;
+    
+    if (fileSizeLabel) {
+      const sizeFormatted = file.size < 1024 * 1024
+        ? `${(file.size / 1024).toFixed(1)} KB`
+        : `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+      fileSizeLabel.textContent = sizeFormatted;
+    }
+
+    if (fileDimsLabel) {
+      fileDimsLabel.textContent = `${testImg.naturalWidth} × ${testImg.naturalHeight} px`;
+    }
+
+    if (fileFormatLabel) {
+      const ext = (file.name.split(".").pop() || "JPG").toUpperCase();
+      fileFormatLabel.textContent = ext;
+    }
+
+    if (statusBadge) {
+      statusBadge.textContent = "✓ Image Ready";
+    }
+
+    // Propagate image to Figure 5, 6, 7 previews
+    const f5 = document.getElementById("fig5LeafImg");
+    const f6 = document.getElementById("fig6LeafImg");
+    const f7 = document.getElementById("fig7LeafImg");
+    if (f5) f5.src = objectUrl;
+    if (f6) f6.src = objectUrl;
+    if (f7) f7.src = objectUrl;
+
+    const fn5 = document.getElementById("fig5FileName");
+    const fn6 = document.getElementById("fig6FileName");
+    const fn7 = document.getElementById("fig7FileName");
+    if (fn5) fn5.textContent = file.name;
+    if (fn6) fn6.textContent = file.name;
+    if (fn7) fn7.textContent = file.name;
+
+    // Display success card
+    if (validatingState) validatingState.style.display = "none";
+    if (emptyState) emptyState.style.display = "none";
+    if (successState) successState.style.display = "block";
+    clearUploadError();
+  };
+
+  testImg.onerror = () => {
+    try { URL.revokeObjectURL(objectUrl); } catch (e) {}
+    showUploadError(
+      "Corrupted or Unreadable Image",
+      `The file "${file.name}" could not be decoded as a valid image. Please ensure the file is not corrupted and try again.`
+    );
+  };
+
+  testImg.src = objectUrl;
 }
 
 function resetAnalysisState() {
@@ -527,7 +711,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function runAnalysis() {
   if (!selectedFile) {
-    alert("Please select a cotton leaf image to analyze.");
+    showUploadError("Cotton Leaf Image Required", "Please upload and validate a cotton leaf image before running visual CNN analysis.");
+    const dropzone = document.getElementById("uploadDropzone");
+    if (dropzone) {
+      dropzone.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
     return;
   }
 
@@ -547,7 +735,8 @@ async function runAnalysis() {
     });
 
     if (!response.ok) {
-      throw new Error("Visual analysis could not be completed.");
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.detail || "Visual analysis could not be completed.");
     }
 
     const data = await response.json();
@@ -560,7 +749,7 @@ async function runAnalysis() {
 
   } catch (err) {
     console.error("CNN inference error:", err);
-    alert(err.message || "Error running visual leaf analysis.");
+    showUploadError("Inference Execution Failed", err.message || "Error running visual leaf analysis.");
   } finally {
     if (analyzeBtn) {
       analyzeBtn.disabled = false;

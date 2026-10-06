@@ -348,38 +348,105 @@
            ============================================================ -->
       <div id="viewInput" class="dash-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:stretch;">
 
-        <!-- LEFT: Cotton Leaf Image -->
-        <div class="panel" style="display:flex; flex-direction:column; height:100%;">
+        <!-- LEFT: Cotton Leaf Image Component -->
+        <div class="panel upload-panel" style="display:flex; flex-direction:column; height:100%;">
+          
+          <!-- Header Bar -->
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:16px;">🍃</span>
               <h3 style="font-size:14px; color:#0d3b2e; font-weight:800; margin:0;">Cotton Leaf Image</h3>
             </div>
-            <span class="source-badge source-badge-green">Farmer Upload</span>
+            <span class="source-badge source-badge-green" id="uploadSourceBadge">Farmer Upload</span>
           </div>
 
-          <!-- Upload Dropzone / Image Container with Floating Trash Icon -->
-          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" style="position:relative; min-height:210px; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:18px; border:2px dashed #cbd5e1; border-radius:12px; background:#f8fafc; cursor:pointer; transition:all 0.2s ease;">
-            <div id="uploadPrompt" style="text-align:center;">
-              <div style="width:44px; height:44px; border-radius:10px; background:#ecfdf5; color:#059669; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; font-size:22px; border:1px solid #d1fae5;">📸</div>
-              <p style="margin:0; font-size:13.5px; font-weight:700; color:#1e293b;">Click or drag to upload cotton leaf</p>
-              <p style="margin:4px 0 0; font-size:11px; color:#64748b;">Supports high-res JPG, PNG, WEBP (Max 10MB)</p>
-            </div>
-
-            <div id="uploadPreview" style="display:none; width:100%; text-align:center;">
-              <div style="position:relative; display:inline-block; max-width:100%;">
-                <img id="previewImg" src="" alt="Selected leaf preview" style="max-height:190px; width:auto; border-radius:10px; border:1px solid #e2e8f0; object-fit:cover; box-shadow:0 2px 8px rgba(0,0,0,0.06);" />
-                <button type="button" onclick="clearSelectedImage(event)" style="position:absolute; top:8px; right:8px; background:rgba(15,23,42,0.75); color:#ffffff; border:none; border-radius:6px; width:28px; height:28px; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px);" title="Remove image">
-                  🗑️
-                </button>
+          <!-- Drag and Drop Upload Dropzone -->
+          <div
+            class="upload-dropzone"
+            id="uploadDropzone"
+            ondragover="handleDragOver(event)"
+            ondragleave="handleDragLeave(event)"
+            ondrop="handleDrop(event)"
+            onclick="triggerFileInput(event)"
+            role="button"
+            tabindex="0"
+            aria-label="Upload cotton leaf image"
+          >
+            <!-- 1. Clean Empty State (Before Upload) -->
+            <div id="uploadEmptyState" class="upload-state-empty">
+              <div class="upload-icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:26px; height:26px; color:#059669;">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </div>
+              <div class="upload-prompt-title">Drag and drop cotton leaf image here</div>
+              <div class="upload-prompt-sub">or <span class="upload-browse-link">browse files</span> from your device</div>
+              <div class="upload-specs-pills">
+                <span class="upload-spec-pill">JPG</span>
+                <span class="upload-spec-pill">PNG</span>
+                <span class="upload-spec-pill">WEBP</span>
+                <span class="upload-spec-pill highlight">Max 10 MB</span>
               </div>
             </div>
-          </div>
-          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleFileSelect(event)" />
 
-          <div style="display:flex; justify-content:space-between; align-items:center; margin:8px 0 12px; font-size:11.5px; color:#64748b;">
-            <span class="file-name" id="fileNameLabel" style="font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:240px;">No file chosen (e.g. cotton_leaf.jpg)</span>
-            <span style="font-size:10.5px; color:#059669; font-weight:700; background:#ecfdf5; padding:2px 6px; border-radius:4px; border:1px solid #a7f3d0;">224×224 Ready</span>
+            <!-- 2. Validated Upload State (After Upload) -->
+            <div id="uploadSuccessState" class="upload-state-success" style="display:none;">
+              <div class="upload-preview-card">
+                <div class="upload-thumb-wrap">
+                  <img id="previewImg" src="" alt="Uploaded cotton leaf" class="upload-thumb-img" />
+                </div>
+                <div class="upload-meta-info">
+                  <div class="upload-meta-header">
+                    <span class="upload-status-ready" id="uploadStatusBadge">✓ Image Ready</span>
+                  </div>
+                  <div class="upload-meta-filename" id="fileNameLabel">cotton_leaf.jpg</div>
+                  <div class="upload-meta-details">
+                    <span id="fileSizeLabel">1.4 MB</span>
+                    <span class="upload-meta-dot">•</span>
+                    <span id="fileDimensionsLabel">224 × 224 px</span>
+                    <span class="upload-meta-dot">•</span>
+                    <span id="fileFormatLabel">JPG</span>
+                  </div>
+                  <div class="upload-actions-bar">
+                    <button type="button" class="btn-upload-action btn-replace" onclick="replaceSelectedImage(event)" title="Choose a different image">
+                      🔄 Replace
+                    </button>
+                    <button type="button" class="btn-upload-action btn-remove" onclick="clearSelectedImage(event)" title="Remove image">
+                      🗑️ Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Validation Loading State -->
+            <div id="uploadValidatingState" class="upload-state-validating" style="display:none;">
+              <div class="upload-spinner">⌛</div>
+              <div style="font-size:12.5px; font-weight:700; color:#0f172a; margin-top:8px;">Validating image file…</div>
+              <div style="font-size:11px; color:#64748b;">Checking format, file size &amp; decoding integrity</div>
+            </div>
+          </div>
+
+          <!-- Hidden Native File Input -->
+          <input
+            type="file"
+            id="fileInput"
+            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+            style="display:none"
+            onchange="handleFileSelect(event)"
+          />
+
+          <!-- Validation Error Box -->
+          <div class="upload-error-box" id="uploadErrorBox" style="display:none;">
+            <div class="upload-error-title">
+              <span>⚠️</span>
+              <span id="uploadErrorTitle">Image Validation Failed</span>
+            </div>
+            <div class="upload-error-msg" id="uploadErrorMsg">
+              Please select a valid, non-corrupted JPG, PNG, or WEBP image under 10MB.
+            </div>
           </div>
 
           <!-- Collapsible Model Specs (CNN) -->
@@ -387,11 +454,12 @@
             <summary style="font-size:11px; font-weight:700; color:#475569; cursor:pointer;">Model Specifications (CNN)</summary>
             <div class="model-meta-grid" style="margin-top:6px; font-size:10.5px;">
               <div><strong>Architecture:</strong> ResNet-18 Custom</div>
-              <div><strong>Resolution:</strong> 224 × 224 RGB</div>
+              <div><strong>Input Resolution:</strong> 224 × 224 RGB</div>
               <div><strong>Classes:</strong> 5 Stress Categories</div>
               <div><strong>Validation:</strong> 86.05% Benchmark Accuracy</div>
             </div>
           </details>
+
         </div>
 
         <!-- RIGHT: Environmental Conditions -->
