@@ -702,6 +702,7 @@ button {
   min-height: 100vh;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
 .dash-shell {
@@ -709,6 +710,8 @@ button {
   min-height: 100vh;
   background: #f8faf9;
   position: relative;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Fixed Desktop Sidebar */
@@ -862,6 +865,7 @@ button {
   padding: 30px 36px 60px;
   background: #f8faf9;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* Responsive Mobile Navigation Bar & Drawer */
@@ -2876,9 +2880,9 @@ details.model-details summary:hover {
 
 /* Centered Container Width Optimization */
 .dash-main {
-  max-width: 1280px;
-  margin: 0 auto;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* Summary Strip (Section 11) */
