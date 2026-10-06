@@ -242,76 +242,101 @@ async function runAnalysis() {
 function renderFigure5(data) {
   const pred = data.prediction || {};
   const probs = data.probabilities || {};
-  const predClass = pred.class || "Nutrient Deficiency";
-  let confNum = pred.confidence || 0.99;
-  if (confNum <= 1.0) confNum = confNum * 100.0;
-  const confidencePercent = confNum.toFixed(0);
-
+  const predClass = pred.class || "Evaluated";
+  
   const titleEl = document.getElementById("fig5ClassTitle");
   const pillEl = document.getElementById("fig5ConfPill");
   const calloutText = document.getElementById("fig5CalloutText");
   const probRows = document.getElementById("fig5ProbRows");
+  const metaLatency = document.getElementById("fig5InferenceMeta");
+
+  // Semantic color mapping
+  const semanticColors = {
+    "Healthy": { text: "#059669", bg: "#ecfdf5", border: "#a7f3d0", bar: "#059669" },
+    "Water Stress": { text: "#dc2626", bg: "#fee2e2", border: "#fca5a5", bar: "#dc2626" },
+    "Heat Stress": { text: "#ea580c", bg: "#ffedd5", border: "#fed7aa", bar: "#ea580c" },
+    "Nutrient Deficiency": { text: "#d97706", bg: "#fef3c7", border: "#fde68a", bar: "#d97706" },
+    "Pollution": { text: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe", bar: "#7c3aed" }
+  };
+
+  const currentTheme = semanticColors[predClass] || { text: "#0d3b2e", bg: "#f1f5f9", border: "#cbd5e1", bar: "#0d3b2e" };
 
   if (titleEl) {
     titleEl.textContent = predClass;
-    if (predClass === "Healthy") {
-      titleEl.style.color = "#15803d";
-    } else {
-      titleEl.style.color = "#dc2626";
-    }
+    titleEl.style.color = currentTheme.text;
   }
 
+  // Display backend confidence directly if provided; do not invent if missing
   if (pillEl) {
-    pillEl.textContent = `CNN Confidence: ${confidencePercent}%`;
-    if (predClass === "Healthy") {
-      pillEl.style.background = "#ecfdf5";
-      pillEl.style.color = "#059669";
+    if (pred && pred.confidence !== undefined && pred.confidence !== null) {
+      let confNum = Number(pred.confidence);
+      if (confNum <= 1.0) confNum = confNum * 100.0;
+      pillEl.textContent = `CNN Confidence: ${confNum.toFixed(1)}%`;
+      pillEl.style.background = currentTheme.bg;
+      pillEl.style.color = currentTheme.text;
+      pillEl.style.borderColor = currentTheme.border;
+      pillEl.style.display = "inline-block";
     } else {
-      pillEl.style.background = "#ffe4e6";
-      pillEl.style.color = "#be123c";
+      pillEl.style.display = "none";
     }
   }
 
+  // Grounded rationale explaining foliar observables without claiming disease diagnosis
   if (calloutText) {
-    calloutText.textContent = `The image shows foliar patterns, pigmentation, and structural characteristics consistent with ${predClass.toLowerCase()}.`;
+    const rationales = {
+      "Healthy": "Foliar pigmentation, leaf turgidity, and vein structure show uniform green coloration without visible signs of abiotic stress, wilting, or chlorosis.",
+      "Water Stress": "Foliar observables show leaf drooping, marginal curling, or reduced turgor pressure consistent with plant moisture deficit.",
+      "Heat Stress": "Foliar observables show thermal stress indicators, leaf edge scorch, or cupping typically observed under elevated ambient temperatures.",
+      "Nutrient Deficiency": "Interveinal chlorosis, pale yellowing, or abnormal discoloration patterns suggest potential mineral deficit (such as nitrogen, potassium, or micronutrients).",
+      "Pollution": "Superficial spotting, particulate deposit signatures, or atmospheric exposure symptoms observed on the leaf surface."
+    };
+    calloutText.textContent = rationales[predClass] || `The leaf image displays foliar observables and pigmentation signatures consistent with ${predClass.toLowerCase()}.`;
   }
 
+  // 5 strict classes in order
   const classOrder = [
-    { name: "Healthy" },
-    { name: "Water Stress" },
-    { name: "Heat Stress" },
-    { name: "Nutrient Deficiency" },
-    { name: "Pollution" }
+    "Healthy",
+    "Water Stress",
+    "Heat Stress",
+    "Nutrient Deficiency",
+    "Pollution"
   ];
 
   if (probRows) {
-    probRows.innerHTML = classOrder.map(item => {
+    probRows.innerHTML = classOrder.map(clsName => {
       let pVal = 0.0;
-      if (probs[item.name] !== undefined) {
-        pVal = probs[item.name];
-      } else if (probs[item.name.toLowerCase().replace(/ /g, "_")] !== undefined) {
-        pVal = probs[item.name.toLowerCase().replace(/ /g, "_")];
-      } else if (item.name === predClass) {
-        pVal = pred.confidence;
+      if (probs[clsName] !== undefined) {
+        pVal = Number(probs[clsName]);
+      } else if (probs[clsName.toLowerCase().replace(/ /g, "_")] !== undefined) {
+        pVal = Number(probs[clsName.toLowerCase().replace(/ /g, "_")]);
+      } else if (clsName.toLowerCase() === predClass.toLowerCase() && pred.confidence !== undefined) {
+        pVal = Number(pred.confidence);
       }
+
       if (pVal > 1.0) pVal = pVal / 100.0;
-      const pct = (pVal * 100).toFixed(1);
-      const isTop = item.name.toLowerCase() === predClass.toLowerCase();
-      const barColor = isTop ? (predClass === "Healthy" ? "#16a34a" : "#dc2626") : "#3b82f6";
-      const textColor = isTop ? (predClass === "Healthy" ? "#16a34a" : "#dc2626") : "#475569";
-      const fontWeight = isTop ? "800" : "600";
-      const barWidth = Math.max(parseFloat(pct), isTop ? 4 : 2);
+      const pctFormatted = (pVal * 100).toFixed(1);
+      const isTop = clsName.toLowerCase() === predClass.toLowerCase();
+      
+      const barColor = isTop ? currentTheme.bar : "#94a3b8";
+      const textColor = isTop ? currentTheme.text : "#475569";
+      const fontWeight = isTop ? "800" : "500";
+      const barWidth = Math.max(parseFloat(pctFormatted), isTop ? 3 : 1);
 
       return `
         <div style="display:flex; align-items:center; gap:12px; font-size:12px;">
-          <span style="width:130px; color:#334155; font-weight:500;">${item.name}</span>
+          <span style="width:135px; color:#334155; font-weight:${fontWeight}; flex-shrink:0;">${clsName}</span>
           <div style="flex:1; height:8px; background:#f1f5f9; border-radius:999px; overflow:hidden;">
-            <div style="width:${barWidth}%; height:100%; background:${barColor}; border-radius:999px;"></div>
+            <div style="width:${barWidth}%; height:100%; background:${barColor}; border-radius:999px; transition:width 0.4s ease;"></div>
           </div>
-          <span style="width:45px; text-align:right; font-weight:${fontWeight}; color:${textColor};">${pct}%</span>
+          <span style="width:48px; text-align:right; font-weight:${fontWeight}; color:${textColor}; flex-shrink:0;">${pctFormatted}%</span>
         </div>
       `;
     }).join("");
+  }
+
+  // Update inference metadata if available
+  if (metaLatency && data.inference_time_ms) {
+    metaLatency.innerHTML = `<strong>Inference Time:</strong> ${data.inference_time_ms.toFixed(1)}ms on CPU`;
   }
 }
 

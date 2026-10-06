@@ -243,9 +243,9 @@
       </div>
 
       <!-- ============================================================
-           VIEW 2: Visual Check (CNN)
+           VIEW 2: Visual Analysis Result (CNN)
            ============================================================ -->
-      <div id="viewCNN" class="panel" style="display:none; max-width:860px; margin:0 auto; background:#ffffff; border-radius:16px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+      <div id="viewCNN" class="panel" style="display:none; max-width:860px; margin:0 auto; background:#ffffff; border-radius:18px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
         
         <!-- Header with Leaf Icon and Completed Pill -->
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:18px;">
@@ -256,43 +256,54 @@
           <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Completed</span>
         </div>
 
-        <!-- Top Dual-Column: Image on Left, Predicted Class & Probabilities on Right -->
-        <div style="display:grid; grid-template-columns:150px 1fr; gap:24px; align-items:start; margin-bottom:20px;">
+        <!-- Top Dual-Column: Uploaded Leaf Image on Left, Predicted Condition & Class Probabilities on Right -->
+        <div style="display:grid; grid-template-columns:160px 1fr; gap:24px; align-items:start; margin-bottom:20px;">
           
-          <!-- Left Leaf Image -->
+          <!-- Left: Uploaded Leaf Image -->
           <div style="text-align:center;">
-            <img id="fig5LeafImg" src="images/leaf_placeholder.jpg" alt="Leaf photo" style="width:140px; height:140px; border-radius:12px; object-fit:cover; border:1px solid #e2e8f0; box-shadow:0 2px 6px rgba(0,0,0,0.05);" />
-            <div id="fig5FileName" style="font-size:11px; color:#64748b; margin-top:6px; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">cotton_leaf.jpg</div>
+            <img id="fig5LeafImg" src="images/leaf_placeholder.jpg" alt="Uploaded cotton leaf" style="width:150px; height:150px; border-radius:12px; object-fit:cover; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.04);" />
+            <div id="fig5FileName" style="font-size:11px; color:#64748b; margin-top:6px; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;">cotton_leaf.jpg</div>
           </div>
 
-          <!-- Right Prediction & Bars -->
+          <!-- Right: Predicted Condition & Real Class Probabilities -->
           <div>
-            <div style="font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Predicted Class</div>
-            <div id="fig5ClassTitle" style="font-size:1.55rem; font-weight:800; color:#dc2626; margin:2px 0 6px;">Nutrient Deficiency</div>
-            <span id="fig5ConfPill" style="display:inline-block; background:#ffe4e6; color:#be123c; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; margin-bottom:14px;">CNN Confidence: 99%</span>
+            <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Predicted Condition</div>
+            <div id="fig5ClassTitle" style="font-size:1.55rem; font-weight:800; color:#0d3b2e; margin:2px 0 6px;">Nutrient Deficiency</div>
+            <span id="fig5ConfPill" style="display:inline-block; background:#fef3c7; color:#d97706; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; border:1px solid #fde68a; margin-bottom:16px;">CNN Confidence: 98.7%</span>
 
-            <!-- Class Probabilities PowerBI Bar Gauge -->
-            <div style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; margin-bottom:8px; letter-spacing:0.04em;">Class Probabilities</div>
-            <div id="fig5ProbRows" style="display:flex; flex-direction:column; gap:6px;">
-              <!-- Filled dynamically by updateFig5CNN -->
+            <!-- Class Probabilities Power BI Horizontal Bar Gauges -->
+            <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; margin-bottom:10px; letter-spacing:0.05em;">Class Probabilities</div>
+            <div id="fig5ProbRows" style="display:flex; flex-direction:column; gap:8px;">
+              <!-- 5 real probability bars generated dynamically from CNN backend -->
             </div>
           </div>
         </div>
 
-        <!-- Accordions -->
+        <!-- Expandable Drawers -->
         <div style="display:flex; flex-direction:column; gap:10px;">
+          
+          <!-- 1. Why this result? -->
           <details class="model-details" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px;">
             <summary style="font-size:12px; font-weight:700; color:#1e293b; cursor:pointer;">▶ Why this result?</summary>
-            <p id="fig5CalloutText" style="margin:8px 0 0; font-size:12px; color:#475569; line-height:1.5;">The image shows chlorosis and leaf discoloration patterns consistent with nutrient deficiency.</p>
+            <div style="margin-top:8px; font-size:12px; color:#475569; line-height:1.55;">
+              <p id="fig5CalloutText" style="margin:0 0 6px;">The image shows foliar patterns, pigmentation, and structural characteristics consistent with the detected stress condition.</p>
+              <div style="background:#f1f5f9; border-left:3px solid #64748b; padding:6px 10px; font-size:11px; color:#475569; border-radius:0 4px 4px 0;">
+                <strong>Decision Support Notice:</strong> This visual screening evaluates foliar symptom patterns to assist agricultural monitoring. It does not constitute a confirmed laboratory disease diagnosis.
+              </div>
+            </div>
           </details>
 
+          <!-- 2. Model Details (CNN) -->
           <details class="model-details" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px;">
             <summary style="font-size:12px; font-weight:700; color:#1e293b; cursor:pointer;">▶ Model Details (CNN)</summary>
             <div class="model-meta-grid" style="margin-top:8px;">
               <div><strong>Architecture:</strong> ResNet-18 Custom (110,853 parameters)</div>
-              <div><strong>Resolution:</strong> 224 × 224 RGB</div>
+              <div><strong>Input Dimension:</strong> 224 × 224 RGB (3 Channels)</div>
+              <div><strong>Normalization:</strong> ImageNet Mean &amp; Std standard</div>
+              <div><strong>Classification Head:</strong> 5-Class Softmax Categorical Distribution</div>
               <div><strong>Classes:</strong> Healthy, Water Stress, Heat Stress, Nutrient Deficiency, Pollution</div>
-              <div><strong>Benchmark:</strong> 86.05% Test Accuracy</div>
+              <div><strong>Benchmark:</strong> 86.05% Test Accuracy across 5 classes</div>
+              <div id="fig5InferenceMeta"><strong>Inference Time:</strong> ~18ms on CPU</div>
             </div>
           </details>
         </div>
