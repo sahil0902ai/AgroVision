@@ -16,6 +16,13 @@ function getApiUrl(endpoint) {
   return endpoint;
 }
 
+function escapeHtml(text) {
+  if (!text) return "";
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 let allReportsList = [];
 let pendingDeleteUuid = null;
 
@@ -42,9 +49,12 @@ async function fetchReportsList() {
   if (tbody) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" style="text-align:center; padding:40px; color:#64748b;">
-          <div style="font-size:24px; margin-bottom:8px;">⏳</div>
-          <strong>Retrieving verified reports from database…</strong>
+        <td colspan="6" style="padding:16px 20px;">
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div class="agro-skeleton" style="height:28px; width:100%;"></div>
+            <div class="agro-skeleton" style="height:28px; width:95%;"></div>
+            <div class="agro-skeleton" style="height:28px; width:98%;"></div>
+          </div>
         </td>
       </tr>
     `;
@@ -53,7 +63,7 @@ async function fetchReportsList() {
   try {
     const res = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
     if (!res.ok) {
-      throw new Error(`Failed to retrieve reports: ${res.statusText}`);
+      throw new Error(`Failed to retrieve reports from database (${res.status}: ${res.statusText})`);
     }
 
     const records = await res.json();
@@ -67,11 +77,17 @@ async function fetchReportsList() {
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" style="text-align:center; padding:40px; color:#dc2626;">
-            <div style="font-size:24px; margin-bottom:8px;">⚠️</div>
-            <strong>Could not load reports from database</strong>
-            <p style="font-size:12px; color:#64748b; margin:4px 0 12px;">${err.message}</p>
-            <button onclick="fetchReportsList()" class="btn btn-action-table">Try Again</button>
+          <td colspan="6" style="padding:28px 20px;">
+            <div class="agro-error-banner" style="margin:0;">
+              <div class="agro-error-icon">⚠️</div>
+              <div class="agro-error-body">
+                <h4 class="agro-error-title">Unable to load reports</h4>
+                <p class="agro-error-desc">${escapeHtml(err.message || "Failed to load reports from backend database.")}</p>
+                <button type="button" class="agro-retry-btn agro-retry-btn-primary" onclick="fetchReportsList()">
+                  🔄 Try Again
+                </button>
+              </div>
+            </div>
           </td>
         </tr>
       `;

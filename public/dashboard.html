@@ -51,6 +51,12 @@
           </a>
         </li>
         <li>
+          <a href="analytics.html" class="side-nav-item">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Analytics</span>
+          </a>
+        </li>
+        <li>
           <a href="history.html" class="side-nav-item">
             <span class="nav-icon">📜</span>
             <span class="nav-label">History</span>
@@ -235,7 +241,7 @@
             <div>
               <h3 class="weather-card-title">
                 Current Field Weather
-                <span class="weather-source-badge" id="weatherSourceBadge">AUTO • OpenWeather</span>
+                <span class="provenance-tag tag-auto-weather" id="weatherSourceBadge">AUTO · WEATHER API</span>
               </h3>
               <div class="weather-card-subtitle">
                 <strong id="weatherLocStation" style="color:#0f172a;">Field A — Wardha South Station</strong>
@@ -433,7 +439,7 @@
               <span style="font-size:16px;">🍃</span>
               <h3 style="font-size:14px; color:#0d3b2e; font-weight:800; margin:0;">Cotton Leaf Image</h3>
             </div>
-            <span class="source-badge source-badge-green" id="uploadSourceBadge">Farmer Upload</span>
+            <span class="provenance-tag tag-farmer-upload" id="uploadSourceBadge">FARMER UPLOAD</span>
           </div>
 
           <!-- Drag and Drop Upload Dropzone -->
@@ -1004,7 +1010,7 @@
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span style="font-size:20px;">🌿</span>
               <h3 style="font-size:1.25rem; color:#0d3b2e; font-weight:800; margin:0;">Live Decision-Support &amp; Multimodal Advisory</h3>
-              <span class="provenance-tag tag-gemini-ai">AI VERIFIED</span>
+              <span class="provenance-tag tag-gemini-ai">GEMINI AI</span>
             </div>
             <div style="font-size:11.5px; color:#64748b; margin-top:4px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span><strong>ID:</strong> <span id="fig7RecordId" style="font-family:monospace; font-weight:700; color:#0f172a;">AV-SESSION</span> <button onclick="copyCurrentAnalysisUuid()" style="background:none; border:none; color:#059669; font-size:11px; font-weight:700; cursor:pointer; padding:0;">📋 Copy</button></span>
@@ -1047,7 +1053,7 @@
           <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
               <span style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">3. Concordance Status</span>
-              <span class="provenance-tag tag-rule-engine">FUSION LAYER</span>
+              <span class="provenance-tag tag-rule-engine">FUSION ENGINE</span>
             </div>
             <div style="margin:4px 0;">
               <span id="fig7EvidenceRelationship" style="background:#ecfdf5; color:#059669; font-size:11.5px; font-weight:800; padding:2px 10px; border-radius:999px; border:1px solid #a7f3d0; display:inline-block;">BASELINE HEALTHY</span>
@@ -1075,7 +1081,7 @@
               <span>📄</span>
               <span>Why this advisory? (Agronomic Synthesis)</span>
             </div>
-            <span class="provenance-tag tag-gemini-ai">GROUNDED INSIGHT</span>
+            <span class="provenance-tag tag-gemini-ai">GEMINI AI</span>
           </div>
           <p id="fig7FinalDesc" style="margin:0; font-size:12.5px; color:#334155; line-height:1.55;">
             Both your cotton leaf scan and current field weather readings confirm healthy plant vigor. Continue regular scouting and standard watering.
@@ -1088,7 +1094,7 @@
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:16px;">🛡️</span>
               <h4 style="margin:0; font-size:13.5px; font-weight:800; color:#0f172a;">Expert Veto Rule Engine Evaluation</h4>
-              <span class="provenance-tag tag-rule-engine">7 RULES EVALUATED</span>
+              <span class="provenance-tag tag-rule-engine">RULE ENGINE</span>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
               <span id="fig7RuleStatusBadge" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px; border:1px solid #a7f3d0;">Passed · No Safety Overrides</span>

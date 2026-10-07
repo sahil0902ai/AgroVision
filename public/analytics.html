@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgroVision — Advanced Analytics</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* =========================================================
+       AgroVision Advanced Analytics — Power BI Enterprise Theme
+       ========================================================= */
+    .analytics-shell {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Top Ribbon Header */
+    .analytics-header-ribbon {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .ribbon-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .ribbon-icon-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .ribbon-titles h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      margin: 0 0 3px 0;
+    }
+    .ribbon-titles p {
+      margin: 0;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .ribbon-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Global Slicers / Filter Bar */
+    .slicers-bar {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .slicers-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .slicer-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .slicer-select-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .slicer-select {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: #0f172a;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .slicer-select:focus {
+      border-color: #059669;
+      background: #ffffff;
+      box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.12);
+    }
+    .btn-slicer-reset {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+    }
+    .btn-slicer-reset:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* Active Filter Badges */
+    .active-filters-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding-top: 4px;
+      border-top: 1px solid #f1f5f9;
+    }
+    .filter-chip {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .filter-chip-remove {
+      cursor: pointer;
+      font-weight: 800;
+      color: #15803d;
+    }
+    .filter-chip-remove:hover {
+      color: #b91c1c;
+    }
+
+    /* KPI Row */
+    .analytics-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .analytics-kpi-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+    .analytics-kpi-card:hover {
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(13, 59, 46, 0.05);
+    }
+    .kpi-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .kpi-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .kpi-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .kpi-val {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .kpi-sub {
+      font-size: 11.5px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .kpi-progress-track {
+      width: 100%;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .kpi-progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    /* Analytical Chart Cards */
+    .chart-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .chart-panel {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .chart-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .chart-panel-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .chart-panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .chart-panel-desc {
+      font-size: 11px;
+      color: #64748b;
+    }
+    .chart-panel-tools {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .chart-tool-btn {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 11px;
+      color: #475569;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .chart-tool-btn:hover,
+    .chart-tool-btn.active {
+      background: #e2e8f0;
+      color: #0f172a;
+      border-color: #94a3b8;
+    }
+
+    /* Horizontal Bar Chart (Stress by Analysis) */
+    .hbar-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 4px 0;
+    }
+    .hbar-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 6px;
+      transition: background 0.15s ease;
+    }
+    .hbar-row:hover {
+      background: #f8fafc;
+    }
+    .hbar-row.selected {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+    .hbar-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+    .hbar-name {
+      font-weight: 600;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hbar-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .hbar-values {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 11.5px;
+    }
+    .hbar-track {
+      width: 100%;
+      height: 10px;
+      background: #f1f5f9;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+    .hbar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    /* SVG Chart Canvas Containers */
+    .svg-chart-wrap {
+      width: 100%;
+      height: 220px;
+      position: relative;
+    }
+    .svg-chart-wrap svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* Matrix & Detailed Table */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+    }
+    .analytics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .analytics-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .analytics-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #1e293b;
+    }
+    .analytics-table tr:hover {
+      background: #f8fafc;
+    }
+
+    /* Responsive */
+    @media (max-width: 1080px) {
+      .chart-grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .analytics-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 640px) {
+      .analytics-kpi-grid {
+        grid-template-columns: 1fr;
+      }
+      .analytics-header-ribbon {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body class="dash-body">
+
+  <!-- Mobile Top Navigation Bar -->
+  <div class="mobile-top-bar">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:20px;">🌿</span>
+      <strong style="color:#ffffff; font-size:14px;">AgroVision</strong>
+    </div>
+    <button class="mobile-toggle-btn" onclick="toggleMobileSidebar()" aria-label="Toggle Navigation">
+      ☰ Menu
+    </button>
+  </div>
+
+  <div class="dash-shell">
+
+    <!-- ============ PROFESSIONAL ENTERPRISE SIDEBAR ============ -->
+    <aside class="sidebar">
+      <a href="overview.html" class="brand">
+        <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="23" fill="rgba(255,255,255,0.12)"/>
+          <path d="M24 34c-6-2-10-8-9-16 8-1 14 3 16 9 1 3 0 5-1 7-2-4-6-6-10-7" fill="#ffffff"/>
+          <path d="M24 34c6-2 10-8 9-16-8-1-14 3-16 9-1 3 0 5 1 7 2-4 6-6 10-7" fill="#bfe6cc"/>
+        </svg>
+        <div>
+          <div class="brand-name">AgroVision</div>
+          <div class="brand-tag">Smart Cotton Farming</div>
+        </div>
+      </a>
+
+      <ul class="side-links">
+        <li>
+          <a href="overview.html" class="side-nav-item">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Overview</span>
+          </a>
+        </li>
+        <li>
+          <a href="dashboard.html" class="side-nav-item">
+            <span class="nav-icon">🌿</span>
+            <span class="nav-label">New Analysis</span>
+          </a>
+        </li>
+        <li>
+          <a href="analytics.html" class="side-nav-item active">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Analytics</span>
+          </a>
+        </li>
+        <li>
+          <a href="history.html" class="side-nav-item">
+            <span class="nav-icon">📜</span>
+            <span class="nav-label">History</span>
+          </a>
+        </li>
+        <li>
+          <a href="reports.html" class="side-nav-item">
+            <span class="nav-icon">📄</span>
+            <span class="nav-label">Reports</span>
+          </a>
+        </li>
+        <li>
+          <a href="assistant.html" class="side-nav-item">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-label">AI Assistant</span>
+          </a>
+        </li>
+        <li>
+          <a href="settings.html" class="side-nav-item">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Settings</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">
+          <span style="font-size:14px;">↩</span>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Analytics Content Area -->
+    <main class="dash-main">
+      <div class="analytics-shell">
+
+        <!-- 1. Header Ribbon -->
+        <header class="analytics-header-ribbon">
+          <div class="ribbon-left">
+            <div class="ribbon-icon-badge">📊</div>
+            <div class="ribbon-titles">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h1>AgroVision Analytics</h1>
+                <span class="source-tag tag-database" style="font-size:10px; padding:2px 8px;">SQLITE DATABASE</span>
+              </div>
+              <p>Power BI Agricultural Intelligence &amp; Multi-Dimensional Crop Stress Cross-Filtering Matrix</p>
+            </div>
+          </div>
+          <div class="ribbon-actions">
+            <span id="analyticsLastUpdated" style="font-size:11.5px; color:#64748b;">Loading records…</span>
+            <button type="button" class="chart-tool-btn" onclick="exportAnalyticsCSV()" title="Export Filtered Data as CSV">
+              📥 Export CSV
+            </button>
+            <button type="button" class="agro-retry-btn agro-retry-btn-primary" onclick="loadAnalyticsData()" style="padding:6px 12px; font-size:11.5px;">
+              🔄 Refresh
+            </button>
+          </div>
+        </header>
+
+        <!-- 2. Global Slicers (Interactive Filters) -->
+        <section class="slicers-bar" aria-label="Analytical Slicers">
+          <div class="slicers-row">
+            <div class="slicer-label">
+              <span>🔍</span>
+              <span>Slicers:</span>
+            </div>
+
+            <!-- Field Slicer -->
+            <div class="slicer-select-wrap">
+              <label for="slicerField" style="font-size:11px; color:#64748b; font-weight:600;">Field:</label>
+              <select id="slicerField" class="slicer-select" onchange="handleSlicerChange()">
+                <option value="">All Fields</option>
+              </select>
+            </div>
+
+            <!-- Date Range Slicer -->
+            <div class="slicer-select-wrap">
+              <label for="slicerDateRange" style="font-size:11px; color:#64748b; font-weight:600;">Date Range:</label>
+              <select id="slicerDateRange" class="slicer-select" onchange="handleDateRangeChange()">
+                <option value="all">All Time</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d" selected>Last 30 Days</option>
+                <option value="90d">Last 90 Days</option>
+                <option value="custom">Custom Range…</option>
+              </select>
+            </div>
+
+            <!-- Custom Date Inputs (Hidden by default) -->
+            <div id="customDateRangeBox" style="display:none; align-items:center; gap:6px;">
+              <input type="date" id="slicerStartDate" class="slicer-select" style="padding:4px 6px;" onchange="handleSlicerChange()" />
+              <span style="font-size:11px; color:#94a3b8;">to</span>
+              <input type="date" id="slicerEndDate" class="slicer-select" style="padding:4px 6px;" onchange="handleSlicerChange()" />
+            </div>
+
+            <!-- Crop Stage Slicer -->
+            <div class="slicer-select-wrap">
+              <label for="slicerStage" style="font-size:11px; color:#64748b; font-weight:600;">Crop Stage:</label>
+              <select id="slicerStage" class="slicer-select" onchange="handleSlicerChange()">
+                <option value="">All Stages</option>
+                <option value="Emergence">Emergence</option>
+                <option value="Vegetative">Vegetative</option>
+                <option value="Flowering">Flowering</option>
+                <option value="Boll Development">Boll Development</option>
+                <option value="Maturity">Maturity</option>
+              </select>
+            </div>
+
+            <!-- Visual Stress Slicer -->
+            <div class="slicer-select-wrap">
+              <label for="slicerVisual" style="font-size:11px; color:#64748b; font-weight:600;">Visual Stress:</label>
+              <select id="slicerVisual" class="slicer-select" onchange="handleSlicerChange()">
+                <option value="">All Classes</option>
+                <option value="healthy">Healthy</option>
+                <option value="water_stress">Water Stress</option>
+                <option value="heat_stress">Heat Stress</option>
+                <option value="nutrient_deficiency">Nutrient Deficiency</option>
+                <option value="pollution">Pollution</option>
+              </select>
+            </div>
+
+            <!-- Environmental Stress Slicer -->
+            <div class="slicer-select-wrap">
+              <label for="slicerEnv" style="font-size:11px; color:#64748b; font-weight:600;">Env. Risk:</label>
+              <select id="slicerEnv" class="slicer-select" onchange="handleSlicerChange()">
+                <option value="">All Risks</option>
+                <option value="low">Low (Optimal)</option>
+                <option value="moderate">Moderate</option>
+                <option value="high">High (Alert)</option>
+              </select>
+            </div>
+
+            <button type="button" class="btn-slicer-reset" onclick="resetAllSlicers()">
+              ↺ Reset Slicers
+            </button>
+          </div>
+
+          <!-- Active Filter Chips Row -->
+          <div id="activeFilterChipsContainer" class="active-filters-row" style="display:none;">
+            <span style="font-size:10.5px; color:#64748b; font-weight:700; text-transform:uppercase;">Active:</span>
+            <div id="activeFilterChipsList" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+          </div>
+        </section>
+
+        <!-- 3. KPI Summary Row -->
+        <section class="analytics-kpi-grid" aria-label="KPI Summary">
+          <!-- KPI 1: Total Analyses -->
+          <div class="analytics-kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Total Analyses</span>
+              <span class="kpi-badge" style="background:#f1f5f9; color:#475569;">Database</span>
+            </div>
+            <div class="kpi-val" id="kpiTotalCount">0</div>
+            <div class="kpi-sub" id="kpiTotalSub">Verified analytical sessions</div>
+            <div class="kpi-progress-track">
+              <div class="kpi-progress-fill" style="width:100%; background:#059669;"></div>
+            </div>
+          </div>
+
+          <!-- KPI 2: Healthy Crop Rate -->
+          <div class="analytics-kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Healthy Crop</span>
+              <span class="kpi-badge" style="background:#ecfdf5; color:#059669;">Optimal</span>
+            </div>
+            <div class="kpi-val" id="kpiHealthyCount" style="color:#059669;">0</div>
+            <div class="kpi-sub" id="kpiHealthySub">0% of total scans</div>
+            <div class="kpi-progress-track">
+              <div class="kpi-progress-fill" id="kpiHealthyProgress" style="width:0%; background:#059669;"></div>
+            </div>
+          </div>
+
+          <!-- KPI 3: Stressed Plants -->
+          <div class="analytics-kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Stressed Foliage</span>
+              <span class="kpi-badge" style="background:#fef3c7; color:#d97706;">Attention</span>
+            </div>
+            <div class="kpi-val" id="kpiStressedCount" style="color:#d97706;">0</div>
+            <div class="kpi-sub" id="kpiStressedSub">0% requiring scouting</div>
+            <div class="kpi-progress-track">
+              <div class="kpi-progress-fill" id="kpiStressedProgress" style="width:0%; background:#d97706;"></div>
+            </div>
+          </div>
+
+          <!-- KPI 4: High Environmental Risk -->
+          <div class="analytics-kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">High Climate Risk</span>
+              <span class="kpi-badge" style="background:#fee2e2; color:#dc2626;">SNN Alert</span>
+            </div>
+            <div class="kpi-val" id="kpiRiskCount" style="color:#dc2626;">0</div>
+            <div class="kpi-sub" id="kpiRiskSub">0% elevated stress</div>
+            <div class="kpi-progress-track">
+              <div class="kpi-progress-fill" id="kpiRiskProgress" style="width:0%; background:#dc2626;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Dynamic Container for Loading / Empty / Content -->
+        <div id="analyticsMainContainer">
+
+          <!-- Loading Shimmer State -->
+          <div id="analyticsLoadingState" style="display:none; flex-direction:column; gap:16px;">
+            <div class="chart-grid-2">
+              <div class="agro-skeleton" style="height:280px; border-radius:12px;"></div>
+              <div class="agro-skeleton" style="height:280px; border-radius:12px;"></div>
+            </div>
+            <div class="chart-grid-2">
+              <div class="agro-skeleton" style="height:280px; border-radius:12px;"></div>
+              <div class="agro-skeleton" style="height:280px; border-radius:12px;"></div>
+            </div>
+          </div>
+
+          <!-- Error Banner -->
+          <div id="analyticsErrorState" style="display:none;">
+            <div class="agro-error-banner">
+              <div class="agro-error-icon">⚠️</div>
+              <div class="agro-error-body">
+                <h4 class="agro-error-title">Unable to load analytics data</h4>
+                <p class="agro-error-desc" id="analyticsErrorMessage">Failed to connect to backend database service.</p>
+                <button type="button" class="agro-retry-btn agro-retry-btn-primary" onclick="loadAnalyticsData()">🔄 Retry Connection</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State (When 0 records in DB) -->
+          <div id="analyticsEmptyState" style="display:none;">
+            <div class="agro-empty-state">
+              <div class="empty-icon">📊</div>
+              <h3 class="empty-title">No analyses yet</h3>
+              <p class="empty-subtitle">Start your first cotton leaf assessment to generate analytical trends, field stress comparisons, and environmental telemetry distributions.</p>
+              <div class="empty-actions">
+                <a href="dashboard.html" class="empty-btn empty-btn-primary">+ Start First Analysis</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Analytical Charts Content -->
+          <div id="analyticsContent" style="display:flex; flex-direction:column; gap:18px;">
+
+            <!-- ================= ROW 1: Visual Stress Distribution & Environmental Stress Distribution ================= -->
+            <div class="chart-grid-2">
+              
+              <!-- Card 1: Horizontal Bar Chart (Stress by Analysis) -->
+              <div class="chart-panel">
+                <div class="chart-panel-header">
+                  <div class="chart-panel-title-group">
+                    <div class="chart-panel-title">
+                      <span>🏷️</span>
+                      <span>Stress by Analysis</span>
+                      <span class="source-tag tag-cnn" style="font-size:9.5px; padding:1px 6px;">CNN MODEL</span>
+                    </div>
+                    <div class="chart-panel-desc">Visual foliar classification breakdown across 5 crop condition categories</div>
+                  </div>
+                  <div class="chart-panel-tools">
+                    <button type="button" id="sortHBarBtn" class="chart-tool-btn" onclick="toggleHBarSort()">Sort: Count ↓</button>
+                  </div>
+                </div>
+
+                <div id="visualHBarContainer" class="hbar-container">
+                  <!-- Injected via JavaScript -->
+                </div>
+                <div style="font-size:10.5px; color:#64748b; text-align:right; margin-top:-4px;">
+                  💡 Click any bar to cross-filter entire dashboard
+                </div>
+              </div>
+
+              <!-- Card 2: Environmental Stress Distribution (Power BI Donut Chart) -->
+              <div class="chart-panel">
+                <div class="chart-panel-header">
+                  <div class="chart-panel-title-group">
+                    <div class="chart-panel-title">
+                      <span>⚡</span>
+                      <span>Environmental Stress Distribution</span>
+                      <span class="source-tag tag-snn" style="font-size:9.5px; padding:1px 6px;">SNN MODEL</span>
+                    </div>
+                    <div class="chart-panel-desc">Neuromorphic 33-feature agro-climatic stress level distribution</div>
+                  </div>
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; min-height:200px;">
+                  <div class="svg-chart-wrap" style="width:180px; height:180px; flex-shrink:0;">
+                    <svg id="envDonutSvg" viewBox="0 0 100 100">
+                      <!-- Donut Path & Center Text injected via JS -->
+                    </svg>
+                  </div>
+                  <div id="envDonutLegend" style="display:flex; flex-direction:column; gap:8px; flex:1; min-width:160px;">
+                    <!-- Legend items injected via JS -->
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ================= ROW 2: Analysis Trend & Stress by Field ================= -->
+            <div class="chart-grid-2">
+              
+              <!-- Card 3: Analysis Trend (Timeline Bar/Line) -->
+              <div class="chart-panel">
+                <div class="chart-panel-header">
+                  <div class="chart-panel-title-group">
+                    <div class="chart-panel-title">
+                      <span>📈</span>
+                      <span>Analysis Trend Over Time</span>
+                    </div>
+                    <div class="chart-panel-desc">Temporal volume of healthy vs stressed cotton leaf assessments</div>
+                  </div>
+                </div>
+                <div class="svg-chart-wrap" style="height:220px;">
+                  <svg id="timelineSvg" preserveAspectRatio="none">
+                    <!-- SVG timeline bars/lines injected via JS -->
+                  </svg>
+                </div>
+                <div id="timelineLegend" style="display:flex; justify-content:center; gap:16px; font-size:11px; color:#475569;">
+                  <div style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; background:#059669; border-radius:2px;"></span> Healthy</div>
+                  <div style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; background:#dc2626; border-radius:2px;"></span> Stressed</div>
+                </div>
+              </div>
+
+              <!-- Card 4: Stress by Field (Stacked Horizontal Bars) -->
+              <div class="chart-panel">
+                <div class="chart-panel-header">
+                  <div class="chart-panel-title-group">
+                    <div class="chart-panel-title">
+                      <span>📍</span>
+                      <span>Stress by Field / Parcel</span>
+                    </div>
+                    <div class="chart-panel-desc">Field-level comparison of crop stress incidence &amp; healthy foliage</div>
+                  </div>
+                </div>
+                <div id="fieldBreakdownContainer" class="hbar-container" style="min-height:200px;">
+                  <!-- Injected via JavaScript -->
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ================= ROW 3: Environmental Conditions Trend & Expert Alert Distribution ================= -->
+            <div class="chart-grid-2">
+              
+              <!-- Card 5: Environmental Conditions Trend -->
+              <div class="chart-panel">
+                <div class="chart-panel-header">
+                  <div class="chart-panel-title-group">
+                    <div class="chart-panel-title">
+                      <span>🌡️</span>
+                      <span>Environmental Conditions Trend</span>
+                      <span class="source-tag tag-auto-weather" style="font-size:9.5px; padding:1px 6px;">AUTO · WEATHER API</span>
+                    </div>
+                    <div class="chart-panel-desc">Temperature, relative humidity &amp; soil moisture telemetry over sessions</div>
+                  </div>
+                  <div class="chart-panel-tools" style="font-size:11px; color:#64748b;">
+                    Temp (°C) · Hum (%) · Soil (%)
+                  </div>
+                </div>
+                <div class="svg-chart-wrap" style="height:220px;">
+                  <svg id="envTelemetrySvg" preserveAspectRatio="none">
+                    <!-- Injected via JavaScript -->
+                  </svg>
+                </div>
+                <div style="display:flex; justify-content:center; gap:16px; font-size:11px; color:#475569;">
+                  <div style="display:flex; align-items:center; gap:5px;"><span style="width:12px; height:3px; background:#ea580c;"></span> Temperature (°C)</div>
+                  <div style="display:flex; align-items:center; gap:5px;"><span style="width:12px; height:3px; background:#0284c7;"></span> Humidity (%)</div>
+                  <div style="display:flex; align-items:center; gap:5px;"><span style="width:12px; height:3px; background:#059669;"></span> Soil Moisture (%)</div>
+                </div>
+              </div>
+
+              <!-- Card 6: Expert Alert Distribution -->
+              <div class="chart-panel">
+                <div class="chart-panel-header">
+                  <div class="chart-panel-title-group">
+                    <div class="chart-panel-title">
+                      <span>🛡️</span>
+                      <span>Expert Safeguard &amp; Veto Distribution</span>
+                      <span class="source-tag tag-rule-engine" style="font-size:9.5px; padding:1px 6px;">RULE ENGINE</span>
+                    </div>
+                    <div class="chart-panel-desc">Deterministic agronomic rules triggered across evaluation history</div>
+                  </div>
+                </div>
+                <div id="expertRulesContainer" class="hbar-container" style="min-height:200px;">
+                  <!-- Injected via JavaScript -->
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ================= ROW 4: Detailed Analysis Table ================= -->
+            <div class="chart-panel" style="gap:12px;">
+              <div class="chart-panel-header">
+                <div class="chart-panel-title-group">
+                  <div class="chart-panel-title">
+                    <span>📋</span>
+                    <span>Filtered Analysis Sessions</span>
+                  </div>
+                  <div class="chart-panel-desc" id="tableRecordCountSub">Showing verified historical records matching active slicers</div>
+                </div>
+                <div class="chart-panel-tools">
+                  <input type="text" id="tableFilterSearch" placeholder="Search filtered records…" class="slicer-select" style="width:200px;" oninput="handleTableSearch(this.value)" />
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table class="analytics-table">
+                  <thead>
+                    <tr>
+                      <th>Date &amp; Time</th>
+                      <th>Analysis ID</th>
+                      <th>Field</th>
+                      <th>Stage</th>
+                      <th>Visual Diagnosis (CNN)</th>
+                      <th>Climate Risk (SNN)</th>
+                      <th>Multimodal Fusion</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="analyticsTableBody">
+                    <!-- Injected via JavaScript -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Table Pagination Controls -->
+              <div style="display:flex; justify-content:space-between; align-items:center; padding-top:8px; font-size:12px; color:#64748b; flex-wrap:wrap; gap:10px;">
+                <div id="tablePaginationInfo">Showing 1 to 10 of 10 records</div>
+                <div style="display:flex; gap:6px;">
+                  <button type="button" id="tablePrevBtn" class="chart-tool-btn" onclick="changeTablePage(-1)">← Previous</button>
+                  <button type="button" id="tableNextBtn" class="chart-tool-btn" onclick="changeTablePage(1)">Next →</button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/analytics.js"></script>
+</body>
+</html>

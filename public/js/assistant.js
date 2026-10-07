@@ -299,10 +299,11 @@ async function handleSendMessage() {
     errorRow.className = "message-row assistant-row";
     errorRow.innerHTML = `
       <div class="message-bubble assistant-bubble" style="border-color:#fecaca; background:#fef2f2;">
-        <strong style="color:#991b1b; font-size:13px; display:block; margin-bottom:4px;">⚠️ Service Notification</strong>
-        <p style="margin:0; font-size:12.5px; color:#334155; line-height:1.45;">
-          ${escapeHtml(err.message || "Could not complete request with Gemini. Please verify server connectivity.")}
+        <strong style="color:#991b1b; font-size:13px; display:block; margin-bottom:4px;">⚠️ AI Assistant temporarily unavailable</strong>
+        <p style="margin:0 0 8px 0; font-size:12.5px; color:#334155; line-height:1.45;">
+          ${escapeHtml(err.message || "AI Assistant temporarily unavailable. Deterministic screening and rule-based decision support remain fully operational.")}
         </p>
+        <button type="button" class="agro-retry-btn" onclick="sendPrompt('${escapeHtml(text.replace(/'/g, "\\'"))}')">🔄 Retry Question</button>
       </div>
     `;
     stream.appendChild(errorRow);

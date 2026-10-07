@@ -57,9 +57,13 @@ async function loadHistoryData() {
   if (tbody) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" style="text-align:center; padding:36px; color:#64748b;">
-          <div style="font-size:24px; margin-bottom:8px;">⏳</div>
-          Loading completed analysis records…
+        <td colspan="8" style="padding:16px 20px;">
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div class="agro-skeleton" style="height:28px; width:100%;"></div>
+            <div class="agro-skeleton" style="height:28px; width:95%;"></div>
+            <div class="agro-skeleton" style="height:28px; width:98%;"></div>
+            <div class="agro-skeleton" style="height:28px; width:92%;"></div>
+          </div>
         </td>
       </tr>
     `;
@@ -89,13 +93,17 @@ async function loadHistoryData() {
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="8" style="text-align:center; padding:36px; color:#dc2626;">
-            <div style="font-size:24px; margin-bottom:8px;">⚠️</div>
-            <strong style="font-size:14px; display:block;">Unable to load analysis history</strong>
-            <p style="margin:4px 0 12px; font-size:12px; color:#64748b;">Failed to connect to backend database service.</p>
-            <button type="button" class="btn btn-primary" onclick="loadHistoryData()" style="font-size:11.5px; padding:6px 14px;">
-              🔄 Retry Connection
-            </button>
+          <td colspan="8" style="padding:28px 20px;">
+            <div class="agro-error-banner" style="margin:0;">
+              <div class="agro-error-icon">⚠️</div>
+              <div class="agro-error-body">
+                <h4 class="agro-error-title">Unable to load analysis history</h4>
+                <p class="agro-error-desc">${escapeHtml(err.message || "Failed to connect to backend database service. Please ensure the server is active.")}</p>
+                <button type="button" class="agro-retry-btn agro-retry-btn-primary" onclick="loadHistoryData()">
+                  🔄 Retry Connection
+                </button>
+              </div>
+            </div>
           </td>
         </tr>
       `;
