@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reports Center — AgroVision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=12">
+<style>
+  /* Layout & Container */
+  .dash-shell {
+    display: flex;
+    min-height: 100vh;
+    background: #f8faf9;
+    position: relative;
+    overflow-x: hidden;
+  }
+  .dash-main {
+    flex: 1;
+    min-width: 0;
+    padding: 24px 32px 60px;
+    background: #f8faf9;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+  .reports-container {
+    width: 100%;
+    max-width: 1380px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* Power BI Card Surface */
+  .panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .panel:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 14px rgba(13, 59, 46, 0.05);
+  }
+
+  /* Power BI KPI Summary Cards */
+  .reports-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .kpi-mini-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .kpi-mini-card:hover {
+    transform: translateY(-2px);
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 14px rgba(13, 59, 46, 0.06);
+  }
+  .kpi-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .kpi-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .kpi-icon-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .kpi-mini-lbl {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    letter-spacing: 0.04em;
+  }
+  .kpi-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .kpi-mini-val {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+    margin-bottom: 2px;
+  }
+  .kpi-sub {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  /* Search & Filter Toolbar */
+  .filter-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+  }
+  .filter-left-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .filter-search-box {
+    position: relative;
+    min-width: 240px;
+    flex: 1;
+    max-width: 380px;
+  }
+  .filter-search-box input {
+    width: 100%;
+    padding: 8px 12px 8px 32px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 12px;
+    background: #ffffff;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .filter-search-box input:focus {
+    border-color: #059669;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.12);
+  }
+  .filter-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #94a3b8;
+    pointer-events: none;
+  }
+  .filter-select {
+    padding: 7.5px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    background: #ffffff;
+    cursor: pointer;
+    outline: none;
+  }
+  .filter-select:focus {
+    border-color: #059669;
+  }
+
+  /* Enterprise Reports Table */
+  .reports-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+  }
+  .reports-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 12px;
+  }
+  .reports-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .reports-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
+  }
+  .reports-table tr:last-child td {
+    border-bottom: none;
+  }
+  .reports-table tr:hover td {
+    background: #fbfdfc;
+  }
+
+  /* Action Buttons */
+  .action-btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-action-table {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn-action-table:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #94a3b8;
+  }
+  .btn-action-table.btn-view {
+    background: #ecfdf5;
+    color: #065f46;
+    border-color: #a7f3d0;
+  }
+  .btn-action-table.btn-view:hover {
+    background: #d1fae5;
+    border-color: #6ee7b7;
+  }
+  .btn-action-table.btn-download {
+    background: #eff6ff;
+    color: #1e40af;
+    border-color: #bfdbfe;
+  }
+  .btn-action-table.btn-download:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+  }
+  .btn-action-table.btn-delete {
+    background: #fff1f2;
+    color: #be123c;
+    border-color: #fecdd3;
+  }
+  .btn-action-table.btn-delete:hover {
+    background: #ffe4e6;
+    border-color: #fda4af;
+  }
+
+  /* Status Badges */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 700;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .status-verified {
+    background: #ecfdf5;
+    color: #059669;
+    border-color: #a7f3d0;
+  }
+  .status-high {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+  }
+  .status-moderate {
+    background: #fef3c7;
+    color: #d97706;
+    border-color: #fde68a;
+  }
+  .status-conflict {
+    background: #fff1f2;
+    color: #e11d48;
+    border-color: #fecdd3;
+  }
+
+  /* Modal Dialog */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(3px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.active {
+    display: flex;
+  }
+  .modal-card {
+    background: #ffffff;
+    border-radius: 14px;
+    max-width: 580px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    background: #f8fafc;
+  }
+  .modal-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0d3b2e;
+    margin: 0;
+  }
+  .modal-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+  }
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid #f1f5f9;
+    background: #f8fafc;
+  }
+
+  @media (max-width: 900px) {
+    .reports-kpi-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 560px) {
+    .reports-kpi-grid {
+      grid-template-columns: 1fr;
+    }
+    .filter-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>
+</head>
+<body class="dash-body">
+
+  <!-- Mobile Top Navigation Bar -->
+  <div class="mobile-top-bar">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:20px;">🌿</span>
+      <strong style="color:#ffffff; font-size:14px; letter-spacing:-0.01em;">AgroVision</strong>
+    </div>
+    <button class="mobile-toggle-btn" onclick="toggleMobileSidebar()" aria-label="Toggle Navigation">
+      ☰ Menu
+    </button>
+  </div>
+
+  <div class="dash-shell">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <a href="overview.html" class="brand">
+        <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="23" fill="rgba(255,255,255,0.12)"/>
+          <path d="M24 34c-6-2-10-8-9-16 8-1 14 3 16 9 1 3 0 5-1 7-2-4-6-6-10-7" fill="#ffffff"/>
+          <path d="M24 34c6-2 10-8 9-16-8-1-14 3-16 9-1 3 0 5 1 7 2-4 6-6 10-7" fill="#bfe6cc"/>
+        </svg>
+        <div>
+          <div class="brand-name">AgroVision</div>
+          <div class="brand-tag">Smart Cotton Farming</div>
+        </div>
+      </a>
+
+      <ul class="side-links">
+        <li>
+          <a href="overview.html" class="side-nav-item">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Overview</span>
+          </a>
+        </li>
+        <li>
+          <a href="dashboard.html" class="side-nav-item">
+            <span class="nav-icon">🌿</span>
+            <span class="nav-label">New Analysis</span>
+          </a>
+        </li>
+        <li>
+          <a href="history.html" class="side-nav-item">
+            <span class="nav-icon">📜</span>
+            <span class="nav-label">History</span>
+          </a>
+        </li>
+        <li>
+          <a href="reports.html" class="side-nav-item active">
+            <span class="nav-icon">📄</span>
+            <span class="nav-label">Reports</span>
+          </a>
+        </li>
+        <li>
+          <a href="assistant.html" class="side-nav-item">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-label">AI Assistant</span>
+          </a>
+        </li>
+        <li>
+          <a href="javascript:void(0)" onclick="openSettingsModal()" class="side-nav-item">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Settings</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">
+          <span style="font-size:14px;">↩</span>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="dash-main">
+
+      <!-- ============ HEADER ============ -->
+      <header class="analytics-header">
+        
+        <div class="header-left-group">
+          <div class="header-title-box">
+            <h1 class="header-title" id="analyticsHeaderTitle">Reports Center</h1>
+            <p class="header-subtitle" id="analyticsHeaderSub">Enterprise agronomic assessment reports &amp; diagnostic archive</p>
+          </div>
+        </div>
+
+        <!-- Center Search -->
+        <div class="header-search-wrap">
+          <span class="header-search-icon">🔍</span>
+          <input
+            type="search"
+            class="header-search-input"
+            id="globalSearchInput"
+            placeholder="Search reports by ID, parcel or finding…"
+            aria-label="Search reports"
+            onkeydown="handleGlobalSearch(event)"
+          />
+        </div>
+
+        <!-- Right Header Items -->
+        <div class="header-right-group">
+          
+          <div class="header-date-badge">
+            <span style="font-size:13px;">📅</span>
+            <span id="globalHeaderDate">Today</span>
+          </div>
+
+          <div class="header-location-badge" id="globalHeaderLocation">
+            <span style="font-size:13px;">📍</span>
+            <span>Wardha Farm Station</span>
+          </div>
+
+          <button class="btn btn-primary" onclick="openGenerateReportModal()" style="padding:7px 14px; font-size:11.5px; border-radius:8px; font-weight:700; white-space:nowrap; border:none; cursor:pointer;">
+            📄 Generate Report
+          </button>
+
+          <!-- System Notifications -->
+          <div class="header-notif-wrap">
+            <button class="header-notif-btn" id="notifDropdownBtn" onclick="toggleNotifDropdown(event)" aria-label="System Notifications">
+              🔔
+              <span class="header-notif-dot"></span>
+            </button>
+            <div class="header-dropdown-menu" id="notifDropdownMenu">
+              <div style="font-size:12px; font-weight:800; color:#0d3b2e; border-bottom:1px solid #f1f5f9; padding-bottom:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                <span>Reports Center</span>
+                <span style="font-size:10px; color:#059669; font-weight:700; background:#ecfdf5; padding:1px 6px; border-radius:4px;">Ready</span>
+              </div>
+              <div class="notif-item">
+                <span style="font-size:14px;">🖨️</span>
+                <div>
+                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Report Engine Active</strong>
+                  <span style="color:#64748b; font-size:11px;">Print-ready HTML/PDF reports generated from verified database records.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Profile -->
+          <div class="user-profile-wrap">
+            <div class="user-profile-widget" id="userProfileWidget" onclick="toggleProfileDropdown(event)" aria-label="User Profile Menu">
+              <div class="user-avatar-circle" id="headerUserAvatar">F</div>
+              <div class="user-profile-info">
+                <span class="user-profile-name" id="headerUserName">Farmer</span>
+                <span class="user-profile-role">Farmer</span>
+              </div>
+              <span class="user-profile-chevron">▾</span>
+            </div>
+
+            <div class="header-dropdown-menu" id="profileDropdownMenu" style="width:230px;">
+              <div style="padding:4px 6px 10px; border-bottom:1px solid #f1f5f9; margin-bottom:6px;">
+                <div style="font-size:12.5px; font-weight:700; color:#0f172a;" id="profileMenuUserName">Farmer</div>
+                <div style="font-size:11px; color:#64748b; text-overflow:ellipsis; overflow:hidden;" id="headerUserEmail">farmer@agrovision.org</div>
+                <div style="margin-top:6px;"><span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Verified Operator</span></div>
+              </div>
+              <a href="reports.html" class="profile-menu-link">
+                <span>📄</span> <span>Reports Center</span>
+              </a>
+              <a href="javascript:void(0)" onclick="openSettingsModal()" class="profile-menu-link">
+                <span>⚙️</span> <span>Farm Preferences</span>
+              </a>
+              <div style="border-top:1px solid #f1f5f9; margin-top:6px; padding-top:6px;">
+                <a href="javascript:void(0)" onclick="logout()" class="profile-menu-link" style="color:#ef4444;">
+                  <span>↩</span> <span>Log Out</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <div class="reports-container">
+
+        <!-- ============ KPI SUMMARY CARDS ============ -->
+        <div class="reports-kpi-grid">
+          <!-- Total Reports -->
+          <div class="kpi-mini-card">
+            <div class="kpi-top-row">
+              <div class="kpi-title-group">
+                <div class="kpi-icon-badge" style="background:#f0fdf4; color:#059669;">📄</div>
+                <span class="kpi-mini-lbl">Total Reports</span>
+              </div>
+              <span class="kpi-tag">Database</span>
+            </div>
+            <div class="kpi-mini-val" id="kpiTotalReports">0</div>
+            <div class="kpi-sub">Generated from real analyses</div>
+          </div>
+
+          <!-- High Risk Reports -->
+          <div class="kpi-mini-card">
+            <div class="kpi-top-row">
+              <div class="kpi-title-group">
+                <div class="kpi-icon-badge" style="background:#fee2e2; color:#dc2626;">🚨</div>
+                <span class="kpi-mini-lbl">High Risk</span>
+              </div>
+              <span class="kpi-tag" style="background:#fee2e2; color:#dc2626;">Priority</span>
+            </div>
+            <div class="kpi-mini-val" id="kpiHighReports">0</div>
+            <div class="kpi-sub">Critical stress reports</div>
+          </div>
+
+          <!-- Moderate / Precaution -->
+          <div class="kpi-mini-card">
+            <div class="kpi-top-row">
+              <div class="kpi-title-group">
+                <div class="kpi-icon-badge" style="background:#fef3c7; color:#d97706;">⚠️</div>
+                <span class="kpi-mini-lbl">Precaution</span>
+              </div>
+              <span class="kpi-tag" style="background:#fef3c7; color:#d97706;">Attention</span>
+            </div>
+            <div class="kpi-mini-val" id="kpiModReports">0</div>
+            <div class="kpi-sub">Moderate stress reports</div>
+          </div>
+
+          <!-- Verified / Baseline -->
+          <div class="kpi-mini-card">
+            <div class="kpi-top-row">
+              <div class="kpi-title-group">
+                <div class="kpi-icon-badge" style="background:#ecfdf5; color:#059669;">🛡️</div>
+                <span class="kpi-mini-lbl">Verified Baseline</span>
+              </div>
+              <span class="kpi-tag" style="background:#ecfdf5; color:#059669;">Healthy</span>
+            </div>
+            <div class="kpi-mini-val" id="kpiLowReports">0</div>
+            <div class="kpi-sub">Optimal physiological status</div>
+          </div>
+        </div>
+
+        <!-- ============ MAIN REPORTS TABLE PANEL ============ -->
+        <div class="panel">
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+            <div>
+              <h2 style="font-size:1.15rem; font-weight:800; color:#0d3b2e; margin:0;">Generated Agronomic Reports</h2>
+              <p style="font-size:12px; color:#64748b; margin:2px 0 0;">Official decision-support reports generated from authentic stored analysis sessions</p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <button class="btn btn-action-outline" onclick="openGenerateReportModal()" style="padding:8px 14px; font-size:12px; border-radius:8px; border-color:#059669; color:#065f46; background:#f0fdf4; font-weight:700; cursor:pointer;">
+                📄 Generate Report
+              </button>
+              <button class="btn btn-action-outline" onclick="exportReportsCSV()" style="padding:8px 14px; font-size:12px; border-radius:8px; background:#ffffff; color:#334155; font-weight:600; cursor:pointer;">
+                📥 Export CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar -->
+          <div class="filter-toolbar" style="margin-bottom:16px;">
+            <div class="filter-left-group">
+              <div class="filter-search-box">
+                <span class="filter-search-icon">🔍</span>
+                <input
+                  type="search"
+                  id="reportsSearchInput"
+                  placeholder="Filter by report name, analysis ID, field…"
+                  aria-label="Filter reports"
+                  oninput="applyReportsFilter()"
+                />
+              </div>
+
+              <select class="filter-select" id="reportsSeverityFilter" onchange="applyReportsFilter()" aria-label="Filter by Severity">
+                <option value="">All Severities</option>
+                <option value="High">High Risk</option>
+                <option value="Moderate">Moderate Precaution</option>
+                <option value="Low">Low / Healthy Baseline</option>
+              </select>
+
+              <select class="filter-select" id="reportsGrowthFilter" onchange="applyReportsFilter()" aria-label="Filter by Growth Stage">
+                <option value="">All Growth Stages</option>
+                <option value="Vegetative">Vegetative</option>
+                <option value="Squaring">Squaring</option>
+                <option value="Flowering">Flowering</option>
+                <option value="Boll Development">Boll Development</option>
+                <option value="Maturity">Maturity</option>
+              </select>
+            </div>
+
+            <button class="btn btn-action-outline" onclick="fetchReportsList()" style="padding:6px 12px; font-size:11.5px; border-radius:6px; cursor:pointer;">
+              🔄 Refresh
+            </button>
+          </div>
+
+          <!-- Reports Table Container -->
+          <div class="reports-table-wrap">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>Report Name</th>
+                  <th>Analysis ID</th>
+                  <th>Field</th>
+                  <th>Created Date</th>
+                  <th>Status</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="reportsTableBody">
+                <tr>
+                  <td colspan="6" style="text-align:center; padding:40px; color:#64748b;">
+                    <div style="font-size:24px; margin-bottom:8px;">⏳</div>
+                    <strong>Loading generated reports from database…</strong>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State Container -->
+          <div id="reportsEmptyState" style="display:none; text-align:center; padding:50px 20px; background:#ffffff; border-radius:12px; margin-top:12px;">
+            <div style="font-size:36px; margin-bottom:12px;">📄</div>
+            <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin:0 0 6px;">No reports generated yet.</h3>
+            <p style="font-size:12.5px; color:#64748b; max-width:440px; margin:0 auto 18px; line-height:1.5;">
+              Start a crop scan or generate an assessment report from your completed historical analyses.
+            </p>
+            <div style="display:flex; justify-content:center; gap:10px;">
+              <button onclick="openGenerateReportModal()" class="btn btn-primary" style="padding:9px 18px; font-size:12.5px; border-radius:8px; border:none; cursor:pointer;">
+                + Generate Report
+              </button>
+              <a href="dashboard.html" class="btn btn-action-outline" style="padding:9px 16px; font-size:12.5px; border-radius:8px; text-decoration:none;">
+                🌿 New Analysis
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ GENERATE REPORT MODAL ============ -->
+  <div class="modal-overlay" id="generateReportModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">📄 Generate Agronomic Report</h3>
+        <button class="modal-close-btn" onclick="closeGenerateReportModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:12.5px; color:#475569; margin:0 0 14px; line-height:1.45;">
+          Select a stored analysis session from the database to generate a full print-ready diagnostic report with CNN leaf analysis, SNN environmental stress, historical weather snapshot, and action checklist.
+        </p>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-size:11px; font-weight:700; color:#334155; text-transform:uppercase; display:block; margin-bottom:6px;">
+            Select Completed Analysis Session
+          </label>
+          <select id="modalAnalysisSelect" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:12.5px; outline:none; background:#ffffff;">
+            <option value="">Loading stored analyses…</option>
+          </select>
+        </div>
+
+        <div id="modalAnalysisPreview" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:14px; font-size:12px;">
+          <!-- Dynamically updated -->
+        </div>
+
+        <div style="background:#eff6ff; border-left:3px solid #2563eb; padding:8px 12px; font-size:11px; color:#1e40af; border-radius:0 6px 6px 0;">
+          <strong>Actual Data Guarantee:</strong> Reports use stored CNN probabilities, SNN spike metrics, and the historical weather snapshot recorded at observation time.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="dashboard.html" class="btn btn-action-outline" style="font-size:12px; padding:7px 14px; text-decoration:none;">
+          + New Crop Scan
+        </a>
+        <button class="btn btn-primary" onclick="generateSelectedReport()" style="font-size:12px; padding:7px 18px; border:none; cursor:pointer;">
+          🖨️ Open Full Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DELETE CONFIRMATION MODAL ============ -->
+  <div class="modal-overlay" id="deleteConfirmModal">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color:#b91c1c;">🗑️ Delete Report</h3>
+        <button class="modal-close-btn" onclick="closeDeleteModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px; color:#334155; margin:0 0 10px;">
+          Are you sure you want to delete this report and its verified analysis record?
+        </p>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; font-size:12px; margin-bottom:12px;">
+          <div><strong style="color:#0f172a;" id="deleteReportName">Diagnostic Report</strong></div>
+          <div style="font-family:monospace; color:#64748b; font-size:11px; margin-top:3px;" id="deleteReportId">UUID: —</div>
+        </div>
+        <p style="font-size:11.5px; color:#dc2626; margin:0;">
+          This action will permanently remove the record from the database.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-action-outline" onclick="closeDeleteModal()" style="font-size:12px; padding:7px 14px; cursor:pointer;">
+          Cancel
+        </button>
+        <button class="btn btn-action-table btn-delete" id="confirmDeleteBtn" onclick="executeDeleteRecord()" style="font-size:12px; padding:7px 16px; cursor:pointer;">
+          Delete Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js?v=12"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/header.js"></script>
+  <script src="js/reports.js?v=12"></script>
+</body>
+</html>
