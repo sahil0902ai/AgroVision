@@ -118,32 +118,39 @@ class TestGeminiService(unittest.TestCase):
         self.assertNotIn("i confirm 100% guaranteed", reply_lower)
 
 
+from fastapi.testclient import TestClient
+from backend.app.main import app
+
 class TestHttpIntegration(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.client = TestClient(app)
+
     def test_get_health(self):
-        req = urllib.request.Request(f"{BASE_URL}/api/health")
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode())
-            self.assertEqual(data.get("status"), "ok")
-            self.assertTrue(data.get("weather_api_configured"))
-            self.assertTrue(data.get("gemini_api_configured"))
+        resp = self.client.get("/api/health")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data.get("status"), "ok")
+        self.assertTrue(data.get("weather_api_configured"))
+        self.assertTrue(data.get("gemini_api_configured"))
 
     def test_get_weather_current(self):
-        req = urllib.request.Request(f"{BASE_URL}/api/weather/current?lat=20.975&lon=78.72")
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode())
-            self.assertEqual(data.get("source"), "OpenWeather")
-            self.assertIn("current", data)
-            self.assertIn("forecast", data)
-            self.assertIn("air_quality", data)
+        resp = self.client.get("/api/weather/current?lat=20.975&lon=78.72")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data.get("source"), "OpenWeather")
+        self.assertIn("current", data)
+        self.assertIn("forecast", data)
+        self.assertIn("air_quality", data)
 
     def test_get_weather_fields(self):
-        req = urllib.request.Request(f"{BASE_URL}/api/weather/fields")
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode())
-            self.assertIsInstance(data, list)
-            self.assertGreaterEqual(len(data), 3)
-            self.assertIn("field_name", data[0])
-            self.assertIn("latitude", data[0])
+        resp = self.client.get("/api/weather/fields")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIsInstance(data, list)
+        self.assertGreaterEqual(len(data), 3)
+        self.assertIn("field_name", data[0])
+        self.assertIn("latitude", data[0])
 
     def test_post_chat_api(self):
         payload = {
@@ -151,16 +158,12 @@ class TestHttpIntegration(unittest.TestCase):
             "field_name": "Field A — Wardha South",
             "history": []
         }
-        req = urllib.request.Request(
-            f"{BASE_URL}/api/chat",
-            data=json.dumps(payload).encode(),
-            headers={"Content-Type": "application/json"}
-        )
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode())
-            self.assertIn("reply", data)
-            self.assertTrue(data.get("source_context_used") is True or "model_used" in data)
-            self.assertTrue(len(data["reply"]) > 20)
+        resp = self.client.post("/api/chat", json=payload)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("reply", data)
+        self.assertTrue(data.get("source_context_used") is True or "model_used" in data)
+        self.assertTrue(len(data["reply"]) > 20)
 
     def test_post_combine_with_weather_context(self):
         combine_payload = {
@@ -195,73 +198,69 @@ class TestHttpIntegration(unittest.TestCase):
             }
         }
 
-        req = urllib.request.Request(
-            f"{BASE_URL}/api/analysis/combine",
-            data=json.dumps(combine_payload).encode(),
-            headers={"Content-Type": "application/json"}
-        )
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode())
-            self.assertIn("record_uuid", data)
-            rec_uuid = data["record_uuid"]
-            self.assertTrue(rec_uuid.startswith("AV-"))
+        resp = self.client.post("/api/analysis/combine", json=combine_payload)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("record_uuid", data)
+        rec_uuid = data["record_uuid"]
+        self.assertTrue(rec_uuid.startswith("AV-"))
 
-            detail_req = urllib.request.Request(f"{BASE_URL}/api/v1/records/{rec_uuid}")
-            with urllib.request.urlopen(detail_req) as d_resp:
-                rec_data = json.loads(d_resp.read().decode())
-                self.assertEqual(rec_data["record_uuid"], rec_uuid)
-                self.assertEqual(rec_data["field_name"], "Field A — Wardha South")
-                self.assertIsNotNone(rec_data["weather_context_json"])
-                w_obj = json.loads(rec_data["weather_context_json"])
-                self.assertEqual(w_obj["location"]["name"], "Wardha")
+        d_resp = self.client.get(f"/api/v1/records/{rec_uuid}")
+        self.assertEqual(d_resp.status_code, 200)
+        rec_data = d_resp.json()
+        self.assertEqual(rec_data["record_uuid"], rec_uuid)
+        self.assertEqual(rec_data["field_name"], "Field A — Wardha South")
+        self.assertIsNotNone(rec_data["weather_context_json"])
+        w_obj = json.loads(rec_data["weather_context_json"])
+        self.assertEqual(w_obj["location"]["name"], "Wardha")
 
     def test_get_analytics_trend_30d(self):
-        req = urllib.request.Request(f"{BASE_URL}/api/v1/analytics/trend?period=30d")
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode())
-            self.assertEqual(data["period"], "30d")
-            self.assertIn("has_sufficient_data", data)
-            self.assertIn("series", data)
-            self.assertIn("healthy", data["series"])
-            self.assertIn("stressed", data["series"])
-            self.assertIn("dates", data["series"])
-            self.assertIn("summary", data)
+        resp = self.client.get("/api/v1/analytics/trend?period=30d")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["period"], "30d")
+        self.assertIn("has_sufficient_data", data)
+        self.assertIn("series", data)
+        self.assertIn("healthy", data["series"])
+        self.assertIn("stressed", data["series"])
+        self.assertIn("dates", data["series"])
+        self.assertIn("summary", data)
 
     def test_get_analytics_trend_7d(self):
-        req = urllib.request.Request(f"{BASE_URL}/api/v1/analytics/trend?period=7d")
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode())
-            self.assertEqual(data["period"], "7d")
-            self.assertIn("has_sufficient_data", data)
-            self.assertIn("data_points", data)
+        resp = self.client.get("/api/v1/analytics/trend?period=7d")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["period"], "7d")
+        self.assertIn("has_sufficient_data", data)
+        self.assertIn("data_points", data)
 
     def test_get_analytics_trend_empty_custom_range(self):
-        req = urllib.request.Request(f"{BASE_URL}/api/v1/analytics/trend?period=custom&start_date=2020-01-01&end_date=2020-01-05")
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode())
-            self.assertEqual(data["period"], "custom")
-            self.assertFalse(data["has_sufficient_data"])
-            self.assertEqual(data["message"], "Not enough data for trend analysis")
-            self.assertEqual(data["total_records"], 0)
+        resp = self.client.get("/api/v1/analytics/trend?period=custom&start_date=2020-01-01&end_date=2020-01-05")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["period"], "custom")
+        self.assertFalse(data["has_sufficient_data"])
+        self.assertEqual(data["message"], "Not enough data for trend analysis")
+        self.assertEqual(data["total_records"], 0)
 
     def test_get_analytics_visual_distribution(self):
-        req = urllib.request.Request(f"{BASE_URL}/api/v1/analytics/visual-distribution")
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode())
-            self.assertIn("total_analyses", data)
-            self.assertIn("has_data", data)
-            self.assertIn("categories", data)
-            self.assertEqual(len(data["categories"]), 5)
-            cat_names = [c["name"] for c in data["categories"]]
-            self.assertIn("Healthy", cat_names)
-            self.assertIn("Water Stress", cat_names)
-            self.assertIn("Heat Stress", cat_names)
-            self.assertIn("Nutrient Deficiency", cat_names)
-            self.assertIn("Pollution", cat_names)
-            for c in data["categories"]:
-                self.assertIn("count", c)
-                self.assertIn("percentage", c)
-                self.assertIn("color", c)
+        resp = self.client.get("/api/v1/analytics/visual-distribution")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("total_analyses", data)
+        self.assertIn("has_data", data)
+        self.assertIn("categories", data)
+        self.assertEqual(len(data["categories"]), 5)
+        cat_names = [c["name"] for c in data["categories"]]
+        self.assertIn("Healthy", cat_names)
+        self.assertIn("Water Stress", cat_names)
+        self.assertIn("Heat Stress", cat_names)
+        self.assertIn("Nutrient Deficiency", cat_names)
+        self.assertIn("Pollution", cat_names)
+        for c in data["categories"]:
+            self.assertIn("count", c)
+            self.assertIn("percentage", c)
+            self.assertIn("color", c)
 
 
 if __name__ == "__main__":
