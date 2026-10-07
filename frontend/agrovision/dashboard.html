@@ -6,7 +6,7 @@
 <title>Farmer Dashboard — AgroVision</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=9">
+<link rel="stylesheet" href="css/style.css?v=15">
 </head>
 <body class="dash-body">
 
@@ -534,6 +534,38 @@
             </div>
           </div>
 
+          <!-- Quick Test with Sample Leaves (1-Click Presets) -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-top:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:11.5px; font-weight:700; color:#0d3b2e;">⚡ Test with Real Sample Leaves:</span>
+              <span style="font-size:10px; color:#059669; font-weight:700; background:#ecfdf5; padding:1px 6px; border-radius:4px;">1-Click Load</span>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+              <button type="button" class="btn btn-outline" onclick="loadSampleLeaf('healthy')" style="padding:5px 9px; font-size:11px; font-weight:700; border-radius:6px; background:#f0fdf4; border-color:#bbf7d0; color:#166534;">
+                🍃 Healthy
+              </button>
+              <button type="button" class="btn btn-outline" onclick="loadSampleLeaf('water_stress')" style="padding:5px 9px; font-size:11px; font-weight:700; border-radius:6px; background:#fef2f2; border-color:#fecaca; color:#991b1b;">
+                💧 Water Stress
+              </button>
+              <button type="button" class="btn btn-outline" onclick="loadSampleLeaf('heat_stress')" style="padding:5px 9px; font-size:11px; font-weight:700; border-radius:6px; background:#fff7ed; border-color:#fed7aa; color:#9a3412;">
+                ☀️ Heat Stress
+              </button>
+              <button type="button" class="btn btn-outline" onclick="loadSampleLeaf('nutrient_deficiency')" style="padding:5px 9px; font-size:11px; font-weight:700; border-radius:6px; background:#fffbeb; border-color:#fde68a; color:#92400e;">
+                🍂 Nutrient Def.
+              </button>
+              <button type="button" class="btn btn-outline" onclick="loadSampleLeaf('pollution')" style="padding:5px 9px; font-size:11px; font-weight:700; border-radius:6px; background:#faf5ff; border-color:#e9d5ff; color:#6b21a8;">
+                🌫️ Pollution
+              </button>
+            </div>
+          </div>
+
+          <!-- Run CNN Only Direct Action -->
+          <div style="margin-top:10px;">
+            <button type="button" id="btnRunCnnOnly" onclick="runCNNInferenceOnly()" class="btn btn-outline" style="width:100%; padding:8px 12px; font-size:12px; font-weight:700; border-color:#059669; color:#059669; background:#ffffff; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+              🍃 Run CNN Visual Scan Only (Step 2)
+            </button>
+          </div>
+
           <!-- Collapsible Model Specs (CNN) -->
           <details class="model-details" style="margin-top:auto; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
             <summary style="font-size:11px; font-weight:700; color:#475569; cursor:pointer;">Model Specifications (CNN)</summary>
@@ -715,15 +747,30 @@
 
           </div>
 
+          <!-- Run SNN Only Direct Action -->
+          <div style="margin-top:10px;">
+            <button type="button" id="btnRunSnnOnly" onclick="runSNNInferenceOnly()" class="btn btn-outline" style="width:100%; padding:8px 12px; font-size:12px; font-weight:700; border-color:#0284c7; color:#0284c7; background:#ffffff; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+              ⛅ Run SNN Climate Simulation Only (Step 3)
+            </button>
+          </div>
+
           <!-- Main Actions Bar -->
           <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:auto; flex-wrap:wrap; gap:10px;">
             <button class="btn btn-outline" type="button" onclick="resetAnalysisState()" style="padding:9px 16px; font-size:12px; border-radius:8px; border-color:#cbd5e1; font-weight:600;">
               ↺ Reset Form
             </button>
-            <button class="btn btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="padding:10px 24px; font-size:13px; border-radius:8px; font-weight:700; display:flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(5,150,105,0.25);">
-              <span>Run Leaf &amp; Climate Analysis</span>
-              <span style="font-size:15px;">→</span>
-            </button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn btn-outline" type="button" onclick="runCNNInferenceOnly()" style="padding:9px 12px; font-size:11.5px; border-radius:8px; font-weight:700; color:#059669; border-color:#a7f3d0; background:#f0fdf4;">
+                🍃 CNN Only
+              </button>
+              <button class="btn btn-outline" type="button" onclick="runSNNInferenceOnly()" style="padding:9px 12px; font-size:11.5px; border-radius:8px; font-weight:700; color:#0284c7; border-color:#bae6fd; background:#f0f9ff;">
+                ⛅ SNN Only
+              </button>
+              <button class="btn btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="padding:10px 22px; font-size:12.5px; border-radius:8px; font-weight:700; display:flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(5,150,105,0.25);">
+                <span>🚀 Run Full Multimodal Assessment</span>
+                <span style="font-size:14px;">→</span>
+              </button>
+            </div>
           </div>
 
         </div>
@@ -824,13 +871,21 @@
         </details>
 
         <!-- Step Navigation Footer -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:6px;">
-          <button class="btn btn-outline" onclick="switchView('input')" style="padding:9px 16px; font-size:12px; border-radius:8px; font-weight:600;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:6px; flex-wrap:wrap; gap:8px;">
+          <button class="btn btn-outline" onclick="switchView('input')" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:600;">
             ← Back to Input
           </button>
-          <button class="btn btn-primary" onclick="switchView('snn')" style="padding:9px 20px; font-size:12.5px; border-radius:8px; font-weight:700;">
-            Proceed to Climate Analysis (Step 3) →
-          </button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-outline" onclick="runCNNInferenceOnly()" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:700; color:#059669; border-color:#a7f3d0; background:#f0fdf4;">
+              🔄 Re-Scan CNN
+            </button>
+            <button class="btn btn-outline" onclick="switchView('snn')" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:700; color:#0284c7; border-color:#bae6fd; background:#f0f9ff;">
+              Proceed to Climate (Step 3) →
+            </button>
+            <button class="btn btn-primary" onclick="runAnalysis()" style="padding:8px 18px; font-size:12px; border-radius:8px; font-weight:700;">
+              🚀 Full Multimodal Assessment →
+            </button>
+          </div>
         </div>
 
       </div>
@@ -991,13 +1046,18 @@
         </details>
 
         <!-- Step Navigation Footer -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:6px;">
-          <button class="btn btn-outline" onclick="switchView('cnn')" style="padding:9px 16px; font-size:12px; border-radius:8px; font-weight:600;">
-            ← Back to Leaf Diagnosis
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:6px; flex-wrap:wrap; gap:8px;">
+          <button class="btn btn-outline" onclick="switchView('cnn')" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:600;">
+            ← Back to Leaf Diagnosis (Step 2)
           </button>
-          <button class="btn btn-primary" onclick="switchView('combined')" style="padding:9px 20px; font-size:12.5px; border-radius:8px; font-weight:700;">
-            Proceed to Final Recommendation (Step 4) →
-          </button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-outline" onclick="runSNNInferenceOnly()" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:700; color:#0284c7; border-color:#bae6fd; background:#f0f9ff;">
+              🔄 Re-Run SNN Simulation
+            </button>
+            <button class="btn btn-primary" onclick="runAnalysis()" style="padding:8px 18px; font-size:12px; border-radius:8px; font-weight:700;">
+              🚀 Full Multimodal Assessment (Step 4) →
+            </button>
+          </div>
         </div>
 
       </div>
@@ -1359,14 +1419,17 @@
         <!-- Bottom Action Buttons -->
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:8px;">
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <a href="history.html" id="fig7ReportBtn" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:600; text-decoration:none;">
-              <span>📄</span> View Archive
-            </a>
-            <button onclick="saveCurrentAnalysis()" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:600; cursor:pointer;">
-              <span>💾</span> Save Session
+            <button onclick="runAnalysis()" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:700; color:#059669; border-color:#a7f3d0; background:#f0fdf4; cursor:pointer;">
+              <span>🔄</span> Re-Run Assessment
             </button>
+            <a href="reports.html" id="fig7ReportBtn" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:600; text-decoration:none;">
+              <span>📄</span> View Report
+            </a>
             <a href="assistant.html" id="fig7AskAIBtn" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:600; text-decoration:none;">
-              <span>💬</span> Ask AI Advice
+              <span>💬</span> Ask AI Advisor
+            </a>
+            <a href="history.html" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:600; text-decoration:none;">
+              <span>📜</span> Analysis History
             </a>
           </div>
           <button onclick="resetAnalysisState()" class="btn btn-primary" style="padding:9px 18px; font-size:12px; border-radius:8px; font-weight:700; display:flex; align-items:center; gap:6px;">
@@ -1429,11 +1492,11 @@
     </a>
   </nav>
 
-  <script src="js/config.js"></script>
-  <script src="js/auth.js?v=11"></script>
-  <script src="js/sync_bus.js"></script>
-  <script src="js/sidebar.js"></script>
-  <script src="js/header.js"></script>
-  <script src="js/dashboard.js?v=11"></script>
+  <script src="js/config.js?v=15"></script>
+  <script src="js/auth.js?v=15"></script>
+  <script src="js/sync_bus.js?v=15"></script>
+  <script src="js/sidebar.js?v=15"></script>
+  <script src="js/header.js?v=15"></script>
+  <script src="js/dashboard.js?v=15"></script>
 </body>
 </html>

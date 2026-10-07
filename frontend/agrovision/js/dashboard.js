@@ -318,6 +318,15 @@ function switchView(viewName) {
 
   updateStepperProgress();
   window.scrollTo({ top: 0, behavior: "smooth" });
+
+  // Reactive auto-inference on tab switch if data is pending
+  if (viewName === "cnn" && selectedFile && !latestCNNResult) {
+    runCNNInferenceOnly();
+  } else if (viewName === "snn" && !latestSNNResult) {
+    runSNNInferenceOnly();
+  } else if (viewName === "combined" && selectedFile && !latestCombinedData) {
+    runAnalysis();
+  }
 }
 
 // =========================================================
@@ -872,6 +881,138 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+// =========================================================
+// QUICK SAMPLE LEAF LOADER
+// =========================================================
+
+async function loadSampleLeaf(sampleKey) {
+  const sampleMap = {
+    healthy: { file: "images/samples/healthy_leaf.jpg", name: "healthy_leaf_sample.jpg", mime: "image/jpeg" },
+    water_stress: { file: "images/samples/water_stress_leaf.png", name: "water_stress_sample.png", mime: "image/png" },
+    heat_stress: { file: "images/samples/heat_stress_leaf.png", name: "heat_stress_sample.png", mime: "image/png" },
+    nutrient_deficiency: { file: "images/samples/nutrient_deficiency_leaf.jpg", name: "nutrient_deficiency_sample.jpg", mime: "image/jpeg" },
+    pollution: { file: "images/samples/pollution_leaf.jpg", name: "pollution_sample.jpg", mime: "image/jpeg" }
+  };
+
+  const sample = sampleMap[sampleKey];
+  if (!sample) return;
+
+  try {
+    const res = await fetch(sample.file);
+    if (!res.ok) throw new Error(`Could not load sample leaf: ${res.statusText}`);
+    const blob = await res.blob();
+    const file = new File([blob], sample.name, { type: sample.mime || blob.type || "image/jpeg" });
+    validateAndProcessFile(file);
+  } catch (err) {
+    console.warn("Failed to load sample leaf from assets:", err);
+    showUploadError("Sample Leaf Unavailable", `Could not load sample file (${err.message}). Please browse a photo from your device.`);
+  }
+}
+
+// =========================================================
+// RUN CNN INFERENCE ONLY (Step 2 Visual Scan)
+// =========================================================
+
+async function runCNNInferenceOnly() {
+  if (!selectedFile) {
+    showUploadError("Leaf Image Required", "Please upload or select a cotton leaf image first to run visual CNN diagnosis.");
+    const dropzone = document.getElementById("uploadDropzone");
+    if (dropzone) dropzone.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  const btn = document.getElementById("btnRunCnnOnly");
+  const origText = btn ? btn.innerHTML : "";
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="agro-spinner" style="width:12px; height:12px; border-width:2px; margin-right:4px;"></span> Running CNN ResNet-18…`;
+  }
+
+  updateDecisionTrace(1, "completed", "1. Ingestion", selectedFile.name);
+  updateDecisionTrace(2, "active", "2. CNN Visual", "ResNet-18 Scanning…");
+  const perfStart = performance.now();
+
+  try {
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    const res = await fetch(getApiUrl("/api/cnn/predict"), {
+      method: "POST",
+      body: formData
+    });
+
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.detail || `HTTP ${res.status}: Failed to execute CNN leaf inference.`);
+    }
+
+    const data = await res.json();
+    const duration = performance.now() - perfStart;
+
+    latestCNNResult = {
+      prediction: {
+        class: data.prediction?.class || data.predicted_class || "Healthy",
+        confidence: data.prediction?.confidence !== undefined ? data.prediction.confidence : (data.confidence || 0.95)
+      },
+      probabilities: data.probabilities || {},
+      inference_time_ms: data.inference_time_ms || duration,
+      image_url: data.image_url,
+      heatmap_url: data.heatmap_url,
+      architecture: "ResNet-18 Custom",
+      input_resolution: "224x224 RGB"
+    };
+
+    measuredLatencies.cnn_ms = Number(latestCNNResult.inference_time_ms) || duration;
+
+    const latBadgeCnn = document.getElementById("fig5LatencyBadge");
+    if (latBadgeCnn) latBadgeCnn.textContent = `⚡ ${measuredLatencies.cnn_ms.toFixed(1)}ms`;
+
+    const cnnClass = latestCNNResult.prediction.class;
+    const cnnConfPct = (latestCNNResult.prediction.confidence * 100).toFixed(1);
+    updateDecisionTrace(2, "completed", "2. CNN Visual", `${cnnClass} (${cnnConfPct}%)`);
+
+    renderFigure5(latestCNNResult);
+    updateStepperProgress();
+    switchView("cnn");
+
+    // If SNN result already exists, trigger combined synthesis in background
+    if (latestSNNResult && latestSNNPayload) {
+      runCombinedSynthesis();
+    }
+  } catch (err) {
+    console.error("CNN inference error:", err);
+    updateDecisionTrace(2, "pending", "2. CNN Visual", "Failed");
+    showUploadError("CNN Visual Inference Failed", err.message || "Could not complete visual CNN inference.");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origText || `🍃 Run CNN Visual Scan Only (Step 2)`;
+    }
+  }
+}
+
+// =========================================================
+// RUN SNN INFERENCE ONLY (Step 3 Climate Simulation)
+// =========================================================
+
+async function runSNNInferenceOnly() {
+  const btn = document.getElementById("btnRunSnnOnly");
+  const origText = btn ? btn.innerHTML : "";
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="agro-spinner" style="width:12px; height:12px; border-width:2px; margin-right:4px;"></span> Simulating SNN LIF…`;
+  }
+
+  try {
+    await runEnvironmentAnalysis(true);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origText || `⛅ Run SNN Climate Simulation Only (Step 3)`;
+    }
+  }
+}
 
 // =========================================================
 // 1. Unified Multimodal ML Inference Pipeline (POST /api/analysis)
