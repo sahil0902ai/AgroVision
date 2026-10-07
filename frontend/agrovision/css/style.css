@@ -8265,14 +8265,107 @@ body.dash-body {
   margin: 0;
 }
 
+/* Dual Analytics Grid in Combined View */
+.exact-analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.exact-factor-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 220px;
+}
+
+.exact-factor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* Expert Veto Card */
+.exact-expert-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #0284c7;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.exact-expert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exact-expert-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exact-expert-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.exact-expert-body {
+  font-size: 12.5px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.exact-expert-precaution {
+  font-size: 11.5px;
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 4px;
+}
+
+/* Action Buttons Group */
+.exact-action-buttons-group {
+  display: grid;
+  grid-template-columns: 1.8fr 1.4fr 1fr;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 4px;
+}
+
 .exact-btn-report {
   background: #ede9fe;
   color: #5b21b6;
   border: 1px solid #ddd6fe;
   border-radius: 14px;
-  padding: 16px 20px;
+  padding: 14px 20px;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13.5px;
   width: 100%;
   display: flex;
   align-items: center;
@@ -8288,6 +8381,128 @@ body.dash-body {
   background: #ddd6fe;
   color: #4c1d95;
   transform: translateY(-1px);
+}
+
+.exact-btn-assistant {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-weight: 700;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.exact-btn-assistant:hover {
+  background: #d1fae5;
+  color: #047857;
+  transform: translateY(-1px);
+}
+
+.exact-btn-save {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.exact-btn-save:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+/* Interactive Checklist */
+.exact-checklist-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exact-checklist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.exact-checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exact-check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.exact-check-row:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.exact-check-row.checked {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.exact-check-row input[type="checkbox"] {
+  accent-color: #059669;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.exact-check-text {
+  font-size: 12.5px;
+  color: #1e293b;
+  line-height: 1.45;
+}
+
+.exact-check-row.checked .exact-check-text {
+  text-decoration: line-through;
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .exact-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+  .exact-action-buttons-group {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {

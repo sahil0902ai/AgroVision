@@ -2154,7 +2154,44 @@ function renderFigure7(data) {
 
   renderExactDonutChart(data, fusion, cnnWeight, snnWeight, ruleWeight);
 
-  // 4. Key Insights
+  // Render 5-Class Stress Profile Bar Chart (Multi-Class Telemetry)
+  renderCombinedStressFactorChart(data);
+
+  // 4. Expert Rule Engine Safeguard Card
+  const expertBadge = document.getElementById("exactExpertRuleBadge");
+  const expertDesc = document.getElementById("exactExpertRuleDesc");
+  const expertPrecaution = document.getElementById("exactExpertPrecaution");
+
+  if (triggeredRules && triggeredRules.length > 0 && !(triggeredRules.length === 1 && triggeredRules[0].rule_id === "EVR-007")) {
+    const topRule = triggeredRules[0];
+    if (expertBadge) {
+      expertBadge.textContent = `${topRule.rule_id} · ${topRule.condition || "Safeguard Active"}`;
+      expertBadge.style.background = "#fef3c7";
+      expertBadge.style.color = "#92400e";
+      expertBadge.style.borderColor = "#fde68a";
+    }
+    if (expertDesc) {
+      expertDesc.textContent = topRule.why_triggered || "Environmental or foliar anomaly triggered a specialized agronomic veto rule.";
+    }
+    if (expertPrecaution) {
+      expertPrecaution.innerHTML = `<strong>Agronomic Precaution / Rule Impact:</strong> ${escapeHtml(topRule.precaution || "Proceed with caution and perform on-site field validation.")}`;
+    }
+  } else {
+    if (expertBadge) {
+      expertBadge.textContent = "EVR-007 · Standard Synthesis (Passed)";
+      expertBadge.style.background = "#ecfdf5";
+      expertBadge.style.color = "#065f46";
+      expertBadge.style.borderColor = "#a7f3d0";
+    }
+    if (expertDesc) {
+      expertDesc.textContent = "All visual symptoms and microclimate environmental variables have been cross-evaluated against 7 deterministic agronomic safety rules.";
+    }
+    if (expertPrecaution) {
+      expertPrecaution.innerHTML = "<strong>Agronomic Precaution:</strong> Multimodal concordance confirmed. Standard irrigation scheduling and regular pest scouting protocols apply.";
+    }
+  }
+
+  // 5. Key Insights
   const exactInsightsList = document.getElementById("exactInsightsList");
   if (exactInsightsList) {
     const insights = [];
@@ -2193,7 +2230,7 @@ function renderFigure7(data) {
     `).join("");
   }
 
-  // 5. Recommended Actions (3 Cards)
+  // 6. Recommended Actions (3 Cards)
   const exactActionsGrid = document.getElementById("exactActionsGrid");
   if (exactActionsGrid) {
     let actionItems = [];
@@ -2240,7 +2277,20 @@ function renderFigure7(data) {
     `).join("");
   }
 
-  // 6. View Full Report Button Link
+  // 7. Interactive What to Check Next Checklist
+  renderWhatToCheckNext({
+    visualClass,
+    environmentalSeverity: envClass,
+    triggeredRules,
+    soilMoisture: soilVal,
+    temperature: tempVal,
+    rainfall: rainVal,
+    aqi: aqiVal,
+    ozone: ozoneVal,
+    relationship
+  });
+
+  // 8. Action Buttons Links & AI Assistant Navigation
   const exactReportBtn = document.getElementById("exactReportBtn");
   if (exactReportBtn) {
     if (recUuid) {
@@ -2252,19 +2302,35 @@ function renderFigure7(data) {
     }
   }
 
-  // Weather Box in View 4
-  const weatherBox = document.getElementById("fig7WeatherBox");
-  if (weatherBox && weatherCtx && weatherCtx.current) {
-    weatherBox.style.display = "block";
-    const tempEl = document.getElementById("fig7WeatherTemp");
-    const humEl = document.getElementById("fig7WeatherHumidity");
-    const rainEl = document.getElementById("fig7WeatherRain");
-    const aqiEl = document.getElementById("fig7WeatherAqi");
+  const exactAssistantBtn = document.getElementById("exactAssistantBtn");
+  if (exactAssistantBtn) {
+    const aiPrompt = `Explain the diagnosis of ${visualClass} with ${envClass} environmental risk and provide tailored crop recovery recommendations.`;
+    exactAssistantBtn.href = `assistant.html?record_id=${encodeURIComponent(recUuid || "")}&q=${encodeURIComponent(aiPrompt)}`;
+  }
 
-    if (tempEl) tempEl.textContent = `${weatherCtx.current.temperature_c.toFixed(1)}°C`;
-    if (humEl) humEl.textContent = `${Math.round(weatherCtx.current.humidity_percent)}%`;
-    if (rainEl) rainEl.textContent = `${weatherCtx.current.rainfall_mm.toFixed(1)} mm`;
-    if (aqiEl) aqiEl.textContent = `${Math.round(weatherCtx.air_quality?.aqi || 84)} AQI`;
+  // 9. Collapsible Technical Details Drawer
+  const techLatency = document.getElementById("techLatencyBreakdown");
+  const techConcordance = document.getElementById("techConcordanceScore");
+  const techSnn = document.getElementById("techSnnSpikesSummary");
+  const techCnn = document.getElementById("techCnnSoftmaxSummary");
+  const techRules = document.getElementById("techRuleGateSummary");
+
+  if (techLatency) {
+    techLatency.textContent = `⚡ Total: ${measuredLatencies.total_ms.toFixed(1)}ms (CNN ${measuredLatencies.cnn_ms.toFixed(1)}ms · SNN ${measuredLatencies.snn_ms.toFixed(1)}ms · Fusion ${measuredLatencies.fusion_ms.toFixed(1)}ms)`;
+  }
+  if (techConcordance) {
+    techConcordance.textContent = `Concordance: ${scorePct}% · Relationship: ${(relationship || "ALIGNED").replace(/_/g, " ")}`;
+  }
+  if (techSnn) {
+    techSnn.textContent = `${totalSpk} spikes across T=10 timesteps (Low: ${rawSpkCounts.low || 0}, Mod: ${rawSpkCounts.medium || 0}, High: ${rawSpkCounts.high || 0})`;
+  }
+  if (techCnn) {
+    techCnn.textContent = `ResNet-18 Softmax: ${visualClass} (${visualConfStr})`;
+  }
+  if (techRules) {
+    techRules.textContent = triggeredRules && triggeredRules.length > 0
+      ? `${triggeredRules.length} Rule(s) Active (${triggeredRules.map(r => r.rule_id).join(", ")})`
+      : "7/7 Deterministic Safety Constraints Passed";
   }
 }
 
@@ -2460,12 +2526,13 @@ function generateWhatToCheckItems(ctx) {
 
 function renderWhatToCheckNext(ctx) {
   const panel = document.getElementById("whatToCheckPanel");
+  const exactItems = document.getElementById("exactChecklistItems");
   const listContainer = document.getElementById("whatToCheckList");
 
-  if (!panel || !listContainer) return;
+  if (!panel && !exactItems && !listContainer) return;
 
   currentWhatToCheckItems = generateWhatToCheckItems(ctx);
-  panel.style.display = "block";
+  if (panel) panel.style.display = "block";
 
   renderWhatToCheckList();
 }
@@ -2475,6 +2542,8 @@ function renderWhatToCheckList() {
   const countBadge = document.getElementById("whatToCheckCount");
   const col3List = document.getElementById("resColChecklist");
   const col3Count = document.getElementById("resColChecklistCount");
+  const exactItems = document.getElementById("exactChecklistItems");
+  const exactCount = document.getElementById("exactChecklistCount");
 
   const total = currentWhatToCheckItems.length;
   const completed = currentWhatToCheckItems.filter(i => i.checked).length;
@@ -2492,11 +2561,42 @@ function renderWhatToCheckList() {
     }
   }
 
+  if (exactCount) {
+    exactCount.textContent = `${completed} / ${total} Done`;
+    if (completed === total && total > 0) {
+      exactCount.style.background = "#dcfce7";
+      exactCount.style.color = "#15803d";
+      exactCount.style.borderColor = "#86efac";
+    } else {
+      exactCount.style.background = "#ecfdf5";
+      exactCount.style.color = "#059669";
+      exactCount.style.borderColor = "#a7f3d0";
+    }
+  }
+
   if (col3Count) {
     col3Count.textContent = `${completed} / ${total} Done`;
     col3Count.style.background = completed === total && total > 0 ? "#dcfce7" : "#ecfdf5";
     col3Count.style.color = completed === total && total > 0 ? "#15803d" : "#059669";
     col3Count.style.borderColor = completed === total && total > 0 ? "#86efac" : "#a7f3d0";
+  }
+
+  if (exactItems) {
+    exactItems.innerHTML = currentWhatToCheckItems.map((item, idx) => `
+      <div class="exact-check-row ${item.checked ? 'checked' : ''}" onclick="toggleCheckItem(${idx})">
+        <input
+          type="checkbox"
+          ${item.checked ? 'checked' : ''}
+          onclick="event.stopPropagation(); toggleCheckItem(${idx})"
+          aria-label="${escapeHtml(item.verb)} ${escapeHtml(item.category)}"
+        />
+        <div class="exact-check-text">
+          <strong style="color:${item.checked ? '#059669' : '#0f172a'};">${escapeHtml(item.verb)}</strong>
+          <span style="font-size:10.5px; background:#eff6ff; color:#2563eb; padding:1px 6px; border-radius:4px; margin:0 4px; font-weight:700;">${escapeHtml(item.category)}</span>:
+          ${escapeHtml(item.text)}
+        </div>
+      </div>
+    `).join("");
   }
 
   if (col3List) {

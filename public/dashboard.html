@@ -1045,56 +1045,95 @@
             </p>
           </div>
 
-          <!-- 3. Assessment Breakdown Card (Donut Chart & 3 Legend Items) -->
-          <div class="exact-section-card">
-            <div class="exact-section-title">Assessment Breakdown</div>
-            <div class="exact-breakdown-layout">
-              
-              <!-- Donut Chart with Center Value -->
-              <div class="exact-donut-wrap">
-                <canvas id="exactDonutChart"></canvas>
-                <div class="exact-donut-center">
-                  <div class="exact-donut-val" id="exactDonutScore">72%</div>
-                  <div class="exact-donut-sub">Overall Confidence</div>
-                </div>
-              </div>
-
-              <!-- 3-Item Legend -->
-              <div class="exact-breakdown-legend">
+          <!-- 3. Dual Analytics Grid (Assessment Breakdown Donut + 5-Class Stress Factor Bar Chart) -->
+          <div class="exact-analytics-grid">
+            
+            <!-- Left Chart Card: Assessment Breakdown Donut -->
+            <div class="exact-section-card" style="margin-bottom:0;">
+              <div class="exact-section-title">Assessment Breakdown</div>
+              <div class="exact-breakdown-layout">
                 
-                <!-- Legend Item 1: Visual Evidence (CNN) -->
-                <div class="exact-legend-row">
-                  <div class="exact-legend-left">
-                    <span class="exact-dot" style="background:#10b981;"></span>
-                    <span>Visual Evidence (CNN)</span>
+                <!-- Donut Chart with Center Value -->
+                <div class="exact-donut-wrap">
+                  <canvas id="exactDonutChart"></canvas>
+                  <div class="exact-donut-center">
+                    <div class="exact-donut-val" id="exactDonutScore">72%</div>
+                    <div class="exact-donut-sub">Overall Confidence</div>
                   </div>
-                  <span class="exact-legend-pct" id="exactLegendCnnPct">45%</span>
                 </div>
 
-                <!-- Legend Item 2: Environmental Evidence (SNN) -->
-                <div class="exact-legend-row">
-                  <div class="exact-legend-left">
-                    <span class="exact-dot" style="background:#3b82f6;"></span>
-                    <span>Environmental Evidence (SNN)</span>
+                <!-- 3-Item Legend -->
+                <div class="exact-breakdown-legend">
+                  
+                  <!-- Legend Item 1: Visual Evidence (CNN) -->
+                  <div class="exact-legend-row">
+                    <div class="exact-legend-left">
+                      <span class="exact-dot" style="background:#10b981;"></span>
+                      <span>Visual Evidence (CNN)</span>
+                    </div>
+                    <span class="exact-legend-pct" id="exactLegendCnnPct">45%</span>
                   </div>
-                  <span class="exact-legend-pct" id="exactLegendSnnPct">35%</span>
-                </div>
 
-                <!-- Legend Item 3: Rule & Context Check -->
-                <div class="exact-legend-row">
-                  <div class="exact-legend-left">
-                    <span class="exact-dot" style="background:#f59e0b;"></span>
-                    <span>Rule &amp; Context Check</span>
+                  <!-- Legend Item 2: Environmental Evidence (SNN) -->
+                  <div class="exact-legend-row">
+                    <div class="exact-legend-left">
+                      <span class="exact-dot" style="background:#3b82f6;"></span>
+                      <span>Environmental Evidence (SNN)</span>
+                    </div>
+                    <span class="exact-legend-pct" id="exactLegendSnnPct">35%</span>
                   </div>
-                  <span class="exact-legend-pct" id="exactLegendRulePct">20%</span>
+
+                  <!-- Legend Item 3: Rule & Context Check -->
+                  <div class="exact-legend-row">
+                    <div class="exact-legend-left">
+                      <span class="exact-dot" style="background:#f59e0b;"></span>
+                      <span>Rule &amp; Context Check</span>
+                    </div>
+                    <span class="exact-legend-pct" id="exactLegendRulePct">20%</span>
+                  </div>
+
                 </div>
 
               </div>
+            </div>
 
+            <!-- Right Chart Card: 5-Class Stress Factor Comparison (Power BI Bar Chart) -->
+            <div class="exact-factor-card">
+              <div class="exact-factor-header">
+                <div style="font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                  <span>📈</span>
+                  <span>Stress by Analysis (5-Class Profile)</span>
+                </div>
+                <span class="provenance-tag tag-cnn-model">REAL TELEMETRY</span>
+              </div>
+              <div style="font-size:11px; color:#64748b; margin-bottom:10px;">
+                Calibrated probabilities across all 5 discrete cotton foliar stress categories.
+              </div>
+              <div style="position:relative; height:160px; width:100%;">
+                <canvas id="combinedStressFactorChart"></canvas>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 4. Expert Rule Engine Safeguard Banner -->
+          <div class="exact-expert-card" id="exactExpertCard">
+            <div class="exact-expert-header">
+              <div class="exact-expert-title">
+                <span>🛡️</span>
+                <span>Expert Rule Engine Safeguard</span>
+              </div>
+              <span class="exact-expert-badge" id="exactExpertRuleBadge">EVR-007 · Standard Synthesis (Active)</span>
+            </div>
+            <div class="exact-expert-body" id="exactExpertRuleDesc">
+              All visual symptoms and microclimate environmental variables have been cross-evaluated against 7 deterministic agronomic safety rules.
+            </div>
+            <div class="exact-expert-precaution" id="exactExpertPrecaution">
+              <strong>Agronomic Precaution:</strong> Multimodal concordance confirmed. Standard irrigation scheduling and pest scouting protocols apply.
             </div>
           </div>
 
-          <!-- 4. Key Insights Card -->
+          <!-- 5. Key Insights Card -->
           <div class="exact-section-card">
             <div class="exact-section-title">Key Insights</div>
             <div class="exact-insights-list" id="exactInsightsList">
@@ -1117,7 +1156,7 @@
             </div>
           </div>
 
-          <!-- 5. Recommended Actions Card (3 Action Tiles) -->
+          <!-- 6. Recommended Actions Card (3 Action Guidance Tiles) -->
           <div class="exact-section-card">
             <div class="exact-section-title">Recommended Actions</div>
             <div class="exact-actions-grid" id="exactActionsGrid">
@@ -1149,11 +1188,73 @@
             </div>
           </div>
 
-          <!-- 6. View Full Report Button -->
-          <a href="reports.html" class="exact-btn-report" id="exactReportBtn">
-            <span>📄</span>
-            <span>View Full Report</span>
-          </a>
+          <!-- 7. Interactive Field Validation Checklist (What to Check Next) -->
+          <div class="exact-checklist-card" id="exactChecklistCard">
+            <div class="exact-checklist-header">
+              <div style="font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                <span>✅</span>
+                <span>What to Check Next (Field Validation Checklist)</span>
+              </div>
+              <span id="exactChecklistCount" style="font-size:11px; font-weight:700; color:#059669; background:#ecfdf5; padding:3px 10px; border-radius:999px; border:1px solid #a7f3d0;">
+                0 / 3 Done
+              </span>
+            </div>
+            <div class="exact-checklist-items" id="exactChecklistItems">
+              <!-- Populated dynamically with interactive checkboxes -->
+            </div>
+          </div>
+
+          <!-- 8. Action Options Buttons Group -->
+          <div class="exact-action-buttons-group">
+            
+            <a href="reports.html" class="exact-btn-report" id="exactReportBtn">
+              <span>📄</span>
+              <span>View Full Report</span>
+            </a>
+
+            <a href="assistant.html" class="exact-btn-assistant" id="exactAssistantBtn">
+              <span>🤖</span>
+              <span>Consult AI Advisor</span>
+            </a>
+
+            <button type="button" class="exact-btn-save" id="exactSaveBtn" onclick="saveCurrentAnalysis()">
+              <span>💾</span>
+              <span>Save to Field</span>
+            </button>
+
+          </div>
+
+          <!-- 9. Collapsible Technical Details Drawer (For Agronomists & Researchers) -->
+          <details class="tech-drawer-details" style="margin-top:8px;">
+            <summary class="tech-drawer-summary">
+              <span>🔬 Technical Details — Multimodal Latency, SNN Spikes &amp; Decision Trace</span>
+              <span>▾</span>
+            </summary>
+            <div class="tech-drawer-body">
+              <table class="tech-table">
+                <tr>
+                  <td style="width:35%; font-weight:700; color:#0f172a;">Pipeline Latency Breakdown</td>
+                  <td id="techLatencyBreakdown">⚡ Total: 26.7ms (CNN 24.5ms · SNN 1.8ms · Fusion 0.4ms)</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:700; color:#0f172a;">Multimodal Concordance</td>
+                  <td id="techConcordanceScore">Concordance: 95.0% · Relationship: ALIGNED</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:700; color:#0f172a;">SNN Spikes &amp; LIF Integration</td>
+                  <td id="techSnnSpikesSummary">8 spikes across T=10 timesteps (β = 0.95, V_th = 1.0)</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:700; color:#0f172a;">CNN Classifier Distribution</td>
+                  <td id="techCnnSoftmaxSummary">ResNet-18 Calibrated Softmax over 5 Stress Classes</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:700; color:#0f172a;">Deterministic Rule Gate</td>
+                  <td id="techRuleGateSummary">7/7 Expert Safety Constraints Verified</td>
+                </tr>
+              </table>
+            </div>
+          </details>
 
         </div>
 
