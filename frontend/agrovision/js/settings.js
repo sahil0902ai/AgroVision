@@ -11,6 +11,15 @@ function getApiUrl(endpoint) {
   if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
     return window.AGROVISION_CONFIG.getApiUrl(endpoint);
   }
+  if (typeof window !== "undefined") {
+    const isDifferentPort = window.location.port && window.location.port !== "8000";
+    const isFile = window.location.protocol === "file:";
+    if (isDifferentPort || isFile) {
+      const host = (window.location.hostname && window.location.hostname !== "localhost") ? window.location.hostname : "127.0.0.1";
+      const base = `http://${host}:8000`;
+      return endpoint.startsWith("/") ? base + endpoint : `${base}/${endpoint}`;
+    }
+  }
   return endpoint;
 }
 

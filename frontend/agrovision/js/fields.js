@@ -3,6 +3,22 @@
  * Handles real-time field listing, registration, editing, and deletion from SQLite database.
  */
 
+function getApiUrl(endpoint) {
+  if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
+    return window.AGROVISION_CONFIG.getApiUrl(endpoint);
+  }
+  if (typeof window !== "undefined") {
+    const isDifferentPort = window.location.port && window.location.port !== "8000";
+    const isFile = window.location.protocol === "file:";
+    if (isDifferentPort || isFile) {
+      const host = (window.location.hostname && window.location.hostname !== "localhost") ? window.location.hostname : "127.0.0.1";
+      const base = `http://${host}:8000`;
+      return endpoint.startsWith("/") ? base + endpoint : `${base}/${endpoint}`;
+    }
+  }
+  return endpoint;
+}
+
 let allUserFields = [];
 let currentEditingFieldId = null;
 
@@ -37,10 +53,9 @@ async function loadUserFields(silent = false) {
   }
 
   const userEmail = (typeof getAuthUserEmail === "function" ? getAuthUserEmail() : "") || "default_farmer@agrovision.org";
-  const apiBase = (typeof CONFIG !== "undefined" && CONFIG.API_BASE_URL) ? CONFIG.API_BASE_URL : "";
 
   try {
-    const res = await fetch(`${apiBase}/api/v1/fields?user_email=${encodeURIComponent(userEmail)}`);
+    const res = await fetch(getApiUrl(`/api/v1/fields?user_email=${encodeURIComponent(userEmail)}`));
     if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to fetch fields`);
 
     const fields = await res.json();
@@ -256,7 +271,6 @@ async function handleFieldFormSubmit(event) {
   }
 
   const userEmail = (typeof getAuthUserEmail === "function" ? getAuthUserEmail() : "") || "default_farmer@agrovision.org";
-  const apiBase = (typeof CONFIG !== "undefined" && CONFIG.API_BASE_URL) ? CONFIG.API_BASE_URL : "";
 
   const payload = {
     field_name: name,
@@ -277,15 +291,15 @@ async function handleFieldFormSubmit(event) {
   }
 
   try {
-    let url = `${apiBase}/api/v1/fields?user_email=${encodeURIComponent(userEmail)}`;
+    let endpoint = `/api/v1/fields?user_email=${encodeURIComponent(userEmail)}`;
     let method = "POST";
 
     if (currentEditingFieldId) {
-      url = `${apiBase}/api/v1/fields/${encodeURIComponent(currentEditingFieldId)}?user_email=${encodeURIComponent(userEmail)}`;
+      endpoint = `/api/v1/fields/${encodeURIComponent(currentEditingFieldId)}?user_email=${encodeURIComponent(userEmail)}`;
       method = "PUT";
     }
 
-    const res = await fetch(url, {
+    const res = await fetch(getApiUrl(endpoint), {
       method: method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -320,10 +334,9 @@ async function deleteField(fieldId, fieldName) {
   }
 
   const userEmail = (typeof getAuthUserEmail === "function" ? getAuthUserEmail() : "") || "default_farmer@agrovision.org";
-  const apiBase = (typeof CONFIG !== "undefined" && CONFIG.API_BASE_URL) ? CONFIG.API_BASE_URL : "";
 
   try {
-    const res = await fetch(`${apiBase}/api/v1/fields/${encodeURIComponent(fieldId)}?user_email=${encodeURIComponent(userEmail)}`, {
+    const res = await fetch(getApiUrl(`/api/v1/fields/${encodeURIComponent(fieldId)}?user_email=${encodeURIComponent(userEmail)}`), {
       method: "DELETE"
     });
 

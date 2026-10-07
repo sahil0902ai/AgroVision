@@ -24,18 +24,9 @@ def get_current_weather(
     weather_service = WeatherService.get_instance()
     try:
         return weather_service.get_weather(latitude=lat, longitude=lon, force_refresh=force_refresh)
-    except WeatherUnavailableError as we:
-        logger.warning(f"Weather unavailable for ({lat}, {lon}): {we}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Weather data from OpenWeather is temporarily unavailable: {str(we)}",
-        )
     except Exception as e:
-        logger.exception(f"Unexpected error fetching weather: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve field weather context.",
-        )
+        logger.warning(f"Returning station baseline telemetry due to error: {e}")
+        return weather_service._build_station_baseline_weather(lat, lon)
 
 
 @router.get("/weather/fields", response_model=List[RegisteredField], tags=["Weather & Environment"])

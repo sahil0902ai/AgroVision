@@ -6,7 +6,8 @@
 <title>Farmer Dashboard — AgroVision</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=15">
+<link rel="stylesheet" href="css/style.css?v=16">
+<script src="js/config.js?v=16"></script>
 </head>
 <body class="dash-body">
 
@@ -969,81 +970,35 @@
       </div>
 
       <!-- ============================================================
-           STEP 4: Combined Advisory (Judge Mode & Master Analysis View)
+           STEP 4: Combined Advisory (Full-Width Master Assessment View)
            ============================================================ -->
-      <div id="viewCombined" class="panel report-master-shell" style="display:none;">
+      <div id="viewCombined" class="panel" style="display:none; flex-direction:column; gap:16px; width:100%; max-width:100%; margin:0; background:#ffffff; border-radius:18px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.02); box-sizing:border-box;">
 
-        <!-- 4-Step Guided Workflow Stepper -->
-        <div class="view-stepper" style="margin-bottom:14px;">
-          <button class="view-step-btn completed" onclick="switchView('input')">
-            <span class="view-step-badge">1</span>
-            <div class="view-step-text-wrap">
-              <span class="view-step-num">Step 1</span>
-              <span class="view-step-name">Leaf &amp; Conditions</span>
-            </div>
-          </button>
-          <button class="view-step-btn completed" onclick="switchView('cnn')">
-            <span class="view-step-badge">2</span>
-            <div class="view-step-text-wrap">
-              <span class="view-step-num">Step 2</span>
-              <span class="view-step-name">Visual Check (CNN)</span>
-            </div>
-          </button>
-          <button class="view-step-btn completed" onclick="switchView('snn')">
-            <span class="view-step-badge">3</span>
-            <div class="view-step-text-wrap">
-              <span class="view-step-num">Step 3</span>
-              <span class="view-step-name">Environmental Check (SNN)</span>
-            </div>
-          </button>
-          <button class="view-step-btn active" onclick="switchView('combined')">
-            <span class="view-step-badge">4</span>
-            <div class="view-step-text-wrap">
-              <span class="view-step-num">Step 4</span>
-              <span class="view-step-name">Combined Assessment</span>
-            </div>
-          </button>
-        </div>
-
-        <!-- Header: Live Analysis Metadata Bar -->
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:14px; flex-wrap:wrap; gap:12px;">
-          <div>
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span style="font-size:20px;">🌿</span>
-              <h3 style="font-size:1.25rem; color:#0d3b2e; font-weight:800; margin:0;">Live Decision-Support &amp; Multimodal Advisory</h3>
-              <span class="provenance-tag tag-gemini-ai">GEMINI AI</span>
-            </div>
-            <div style="font-size:11.5px; color:#64748b; margin-top:4px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span><strong>ID:</strong> <span id="fig7RecordId" style="font-family:monospace; font-weight:700; color:#0f172a;">AV-SESSION</span> <button onclick="copyCurrentAnalysisUuid()" style="background:none; border:none; color:#059669; font-size:11px; font-weight:700; cursor:pointer; padding:0;">📋 Copy</button></span>
-              <span>•</span>
-              <span id="fig7FieldLoc">Field A — Wardha South Station (20.975°N, 78.720°E)</span>
-              <span>•</span>
-              <span id="fig7ObsTime">Updated: Just now</span>
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:6px; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid #dbeafe;">🧩</div>
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Combined Multimodal Assessment</h3>
+                <span class="provenance-tag tag-gemini-ai">MULTIMODAL FUSION</span>
+                <span class="provenance-tag tag-snn-model">EXPERT VETO</span>
+              </div>
+              <span style="font-size:11.5px; color:#64748b;">Integrated foliar computer vision, spiking climate simulation &amp; deterministic safety rules</span>
             </div>
           </div>
-          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <span id="fig7PipelineLatencyPill" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">⚡ Latency: 26.7ms (CNN 24.5ms + SNN 1.8ms + Fusion 0.4ms)</span>
-            <button type="button" class="presentation-toggle-btn" onclick="togglePresentationMode()" style="padding:4px 10px; font-size:11px;">🖥️ Fullscreen Judge Mode</button>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span id="fig7PipelineLatencyPill" style="background:#f1f5f9; color:#475569; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #cbd5e1;">⚡ 26.7ms</span>
+            <span class="exact-completed-badge" id="exactCompletedBadge" style="background:#ede9fe; color:#6d28d9; font-weight:700; font-size:11px; padding:4px 12px; border-radius:999px; border:1px solid #ddd6fe;">✓ Completed</span>
           </div>
         </div>
 
         <!-- ============================================================
-             EXACT REFERENCE MATCH: COMBINED MULTIMODAL ASSESSMENT
+             FULL-WIDTH COMBINED ASSESSMENT CARD ARCHITECTURE
              ============================================================ -->
         <div class="exact-assessment-shell" id="exactAssessmentShell">
 
-          <!-- 1. Top Header: Icon + "Combined Assessment" + "✓ Completed" Badge -->
-          <div class="exact-assessment-header">
-            <div class="exact-title-group">
-              <span class="exact-title-icon">🧩</span>
-              <span class="exact-title-text">Combined Assessment</span>
-            </div>
-            <span class="exact-completed-badge" id="exactCompletedBadge">
-              <span>✓</span> Completed
-            </span>
-          </div>
-
-          <!-- 2. Evidence Grid (3 Cards) -->
+          <!-- 1. Top Evidence Grid (3 Full-Width Multi-Modality Cards) -->
           <div class="exact-evidence-grid">
             
             <!-- Card 1: Visual Evidence (CNN) -->
@@ -1075,7 +1030,7 @@
 
           </div>
 
-          <!-- 3. Final Assessment Box -->
+          <!-- 2. Final Assessment Hero Box -->
           <div class="exact-final-box" id="exactFinalBox">
             <div class="exact-final-header">
               <div class="exact-final-header-left">
@@ -1090,7 +1045,7 @@
             </p>
           </div>
 
-          <!-- 4. Assessment Breakdown Card (Donut Chart & 3 Legend Items) -->
+          <!-- 3. Assessment Breakdown Card (Donut Chart & 3 Legend Items) -->
           <div class="exact-section-card">
             <div class="exact-section-title">Assessment Breakdown</div>
             <div class="exact-breakdown-layout">
@@ -1139,7 +1094,7 @@
             </div>
           </div>
 
-          <!-- 5. Key Insights Card -->
+          <!-- 4. Key Insights Card -->
           <div class="exact-section-card">
             <div class="exact-section-title">Key Insights</div>
             <div class="exact-insights-list" id="exactInsightsList">
@@ -1162,7 +1117,7 @@
             </div>
           </div>
 
-          <!-- 6. Recommended Actions Card (3 Action Tiles) -->
+          <!-- 5. Recommended Actions Card (3 Action Tiles) -->
           <div class="exact-section-card">
             <div class="exact-section-title">Recommended Actions</div>
             <div class="exact-actions-grid" id="exactActionsGrid">
@@ -1194,7 +1149,7 @@
             </div>
           </div>
 
-          <!-- 7. View Full Report Button -->
+          <!-- 6. View Full Report Button -->
           <a href="reports.html" class="exact-btn-report" id="exactReportBtn">
             <span>📄</span>
             <span>View Full Report</span>
@@ -1202,267 +1157,19 @@
 
         </div>
 
-        <!-- ============================================================
-             EXPERT VETO RULE ENGINE MATRIX
-             ============================================================ -->
-        <div class="expert-veto-master-card" id="fig7ExpertSection">
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:12px; flex-wrap:wrap; gap:8px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:18px;">🛡️</span>
-              <div>
-                <h4 style="margin:0; font-size:14px; font-weight:800; color:#0f172a;">Expert Veto Rule Engine Evaluation</h4>
-                <div style="font-size:11px; color:#64748b;">Deterministic agronomic physical safety gates evaluated against sensor telemetry &amp; visual evidence</div>
-              </div>
-            </div>
-            <span id="fig7RuleStatusBadge" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; border:1px solid #a7f3d0;">Passed · No Safety Overrides</span>
-          </div>
-
-          <div id="fig7RuleDetailsContainer">
-            <!-- Dynamically populated with structured cards showing Rule ID, condition, effect, precaution, what to check -->
-          </div>
-        </div>
-
-        <!-- MODEL BENCHMARKS VS LIVE INFERENCE CARD -->
-        <div class="benchmark-card">
-          <div class="benchmark-header">
-            <div class="benchmark-title">
-              <span>📊</span>
-              <span>Model Benchmarks vs. Live Sample Inference</span>
-            </div>
-            <span style="font-size:10px; font-weight:700; color:#64748b;">OFFLINE BENCHMARKS vs LIVE INFERENCE</span>
-          </div>
-          <div class="benchmark-grid">
-            <div class="benchmark-tile">
-              <div class="benchmark-model-name">CNN Visual Model (ResNet-18)</div>
-              <div class="benchmark-metric-row">
-                <div class="benchmark-stat-box">
-                  <span class="benchmark-stat-num" style="color:#0d3b2e;">86.05%</span>
-                  <span class="benchmark-stat-lbl">Validation Benchmark (5 Classes)</span>
-                </div>
-                <div class="benchmark-stat-box" style="text-align:right;">
-                  <span class="benchmark-stat-num" style="color:#059669;" id="fig7LiveCnnConf">98.7%</span>
-                  <span class="benchmark-stat-lbl">Current Sample Probability</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="benchmark-tile">
-              <div class="benchmark-model-name">SNN Climate Model (LIF, 33-Dim)</div>
-              <div class="benchmark-metric-row">
-                <div class="benchmark-stat-box">
-                  <span class="benchmark-stat-num" style="color:#0d3b2e;">94.67%</span>
-                  <span class="benchmark-stat-lbl">Validation Benchmark (3 Classes)</span>
-                </div>
-                <div class="benchmark-stat-box" style="text-align:right;">
-                  <span class="benchmark-stat-num" style="color:#0284c7;" id="fig7LiveSnnSpikes">8 Spikes</span>
-                  <span class="benchmark-stat-lbl">Current Spiking Activity (T=10)</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div style="font-size:10.5px; color:#64748b; margin-top:10px; line-height:1.4;">
-            * Offline validation benchmarks reflect historical accuracy evaluated across held-out cotton datasets; live sample metrics reflect inference output for this specific session.
-          </div>
-        </div>
-
-        <!-- Live Farm Weather Reference -->
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 16px;" id="fig7WeatherBox">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <div style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:#0d3b2e;">
-              <span>🌤️</span>
-              <span>Analysis-Time Farm Weather Telemetry (OpenWeather Snapshot)</span>
-            </div>
-            <span class="provenance-tag tag-auto-weather" id="fig7WeatherBadge">AUTO · OpenWeather</span>
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; font-size:11.5px;" id="fig7WeatherGrid">
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;">
-              <div style="font-size:9.5px; color:#64748b; font-weight:700;">Observed Temp</div>
-              <div style="font-size:12.5px; font-weight:800; color:#0f172a;" id="fig7WeatherTemp">--°C</div>
-            </div>
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;">
-              <div style="font-size:9.5px; color:#64748b; font-weight:700;">Rainfall</div>
-              <div style="font-size:12.5px; font-weight:800; color:#0f172a;" id="fig7WeatherRain">-- mm</div>
-            </div>
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;">
-              <div style="font-size:9.5px; color:#64748b; font-weight:700;">Air Quality</div>
-              <div style="font-size:12.5px; font-weight:800; color:#0f172a;" id="fig7WeatherAqi">-- AQI</div>
-            </div>
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;">
-              <div style="font-size:9.5px; color:#64748b; font-weight:700;">Humidity</div>
-              <div style="font-size:12.5px; font-weight:800; color:#059669;" id="fig7WeatherHumidity">--%</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Comprehensive Collapsible Technical Drawers for Judges & Researchers -->
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          
-          <!-- Drawer 1: Multimodal Fusion & Concordance Formulation -->
-          <details class="tech-drawer-details">
-            <summary class="tech-drawer-summary">
-              <span>🧬 Technical Drawer 1: Multimodal Fusion Architecture &amp; Concordance Formulation</span>
-              <span>▾</span>
-            </summary>
-            <div class="tech-drawer-body">
-              <p style="margin:0 0 6px;">The Multimodal Fusion Layer evaluates evidentiary concordance between the independent 5-class visual CNN distribution and the 33-feature 3-class SNN spike distribution.</p>
-              <table class="tech-table">
-                <tr>
-                  <th style="width:30%;">Relationship Category</th>
-                  <th style="width:30%;">Evidentiary Criteria</th>
-                  <th>Agronomic Interpretation</th>
-                </tr>
-                <tr>
-                  <td><strong style="color:#059669;">BASELINE_HEALTHY</strong></td>
-                  <td>CNN Healthy &amp; SNN Low Risk</td>
-                  <td>Both visual and environmental indicators confirm stable crop health.</td>
-                </tr>
-                <tr>
-                  <td><strong style="color:#059669;">ALIGNED</strong></td>
-                  <td>CNN Visual Stress &amp; SNN Elevated Stress</td>
-                  <td>Foliar symptoms corroborated by adverse microclimatic telemetry.</td>
-                </tr>
-                <tr>
-                  <td><strong style="color:#d97706;">PARTIALLY_ALIGNED</strong></td>
-                  <td>CNN Stress &amp; SNN Low or SNN Moderate</td>
-                  <td>Localized stress or transitional abiotic pressure detected.</td>
-                </tr>
-                <tr>
-                  <td><strong style="color:#dc2626;">CONFLICTING</strong></td>
-                  <td>CNN Healthy &amp; SNN High Stress</td>
-                  <td>Pre-symptomatic stress or localized canopy resilience anomaly.</td>
-                </tr>
-              </table>
-            </div>
-          </details>
-
-          <!-- Drawer 2: Expert Veto Deterministic Rules -->
-          <details class="tech-drawer-details">
-            <summary class="tech-drawer-summary">
-              <span>🛡️ Technical Drawer 2: Expert Veto Rule Registry (EVR-001 through EVR-007)</span>
-              <span>▾</span>
-            </summary>
-            <div class="tech-drawer-body">
-              <table class="tech-table">
-                <tr>
-                  <th style="width:12%;">Rule ID</th>
-                  <th style="width:25%;">Rule Name</th>
-                  <th style="width:15%;">Severity</th>
-                  <th>Deterministic Trigger Condition</th>
-                </tr>
-                <tr>
-                  <td><code>EVR-001</code></td>
-                  <td>Waterlogging Risk</td>
-                  <td><span style="color:#ea580c; font-weight:700;">WARNING</span></td>
-                  <td>Effective Rain ≥ 20.0 mm AND Soil Moisture ≥ 55.0%</td>
-                </tr>
-                <tr>
-                  <td><code>EVR-002</code></td>
-                  <td>Desiccation Stress Risk</td>
-                  <td><span style="color:#dc2626; font-weight:700;">CRITICAL</span></td>
-                  <td>Air Temp ≥ 38.0°C AND Soil Moisture ≤ 25.0%</td>
-                </tr>
-                <tr>
-                  <td><code>EVR-003</code></td>
-                  <td>Pollution &amp; Ozone Risk</td>
-                  <td><span style="color:#d97706; font-weight:700;">CAUTION</span></td>
-                  <td>AQI ≥ 100 OR Ozone ≥ 0.045 ppm OR Visual Pollution ≥ 25%</td>
-                </tr>
-                <tr>
-                  <td><code>EVR-004</code></td>
-                  <td>Evidence Disagreement</td>
-                  <td><span style="color:#d97706; font-weight:700;">CAUTION</span></td>
-                  <td>CNN Healthy ≥ 60.0% AND SNN Severity is HIGH</td>
-                </tr>
-                <tr>
-                  <td><code>EVR-005</code></td>
-                  <td>Aligned Water Stress</td>
-                  <td><span style="color:#ea580c; font-weight:700;">WARNING</span></td>
-                  <td>CNN Water Stress ≥ 40.0% AND SNN Severity is HIGH</td>
-                </tr>
-                <tr>
-                  <td><code>EVR-006</code></td>
-                  <td>Nutrient Deficiency</td>
-                  <td><span style="color:#d97706; font-weight:700;">CAUTION</span></td>
-                  <td>CNN Nutrient Deficiency ≥ 30.0%</td>
-                </tr>
-                <tr>
-                  <td><code>EVR-007</code></td>
-                  <td>Baseline Stability</td>
-                  <td><span style="color:#059669; font-weight:700;">INFO</span></td>
-                  <td>CNN Healthy ≥ 50.0% AND SNN Low Risk (No Other Rules Met)</td>
-                </tr>
-              </table>
-            </div>
-          </details>
-
-          <!-- Drawer 3: Data Provenance & Telemetry Ledger -->
-          <details class="tech-drawer-details">
-            <summary class="tech-drawer-summary">
-              <span>📋 Technical Drawer 3: Data Provenance Audit Trail &amp; Runtime Metadata</span>
-              <span>▾</span>
-            </summary>
-            <div class="tech-drawer-body">
-              <table class="tech-table">
-                <tr>
-                  <th style="width:25%;">Component</th>
-                  <th style="width:30%;">Source Type</th>
-                  <th>Integrity &amp; Preservation Guarantee</th>
-                </tr>
-                <tr>
-                  <td>Leaf Photo Ingest</td>
-                  <td><span class="provenance-tag tag-farmer-upload">FARMER UPLOAD</span></td>
-                  <td>Direct client-side canvas decode; 224×224 normalized RGB</td>
-                </tr>
-                <tr>
-                  <td>Microclimate Telemetry</td>
-                  <td><span class="provenance-tag tag-auto-weather">AUTO · WEATHER API</span></td>
-                  <td>Real OpenWeather API station snapshot at analysis time</td>
-                </tr>
-                <tr>
-                  <td>Visual CNN Model</td>
-                  <td><span class="provenance-tag tag-cnn-model">CNN MODEL</span></td>
-                  <td>PyTorch ResNet-18 eval mode, deterministically weighted</td>
-                </tr>
-                <tr>
-                  <td>Climate SNN Model</td>
-                  <td><span class="provenance-tag tag-snn-model">SNN MODEL</span></td>
-                  <td>PyTorch LIF Spiking model (T=10 timesteps, 33-dim vector)</td>
-                </tr>
-                <tr>
-                  <td>Historical Persistence</td>
-                  <td><span class="provenance-tag tag-database">SQLITE DATABASE</span></td>
-                  <td>Analysis record persisted to SQLite with UUID and snapshot</td>
-                </tr>
-                <tr>
-                  <td>AI Assistant Layer</td>
-                  <td><span class="provenance-tag tag-gemini-ai">GEMINI AI</span></td>
-                  <td>Grounded advisory grounded strictly in stored analysis data</td>
-                </tr>
-              </table>
-            </div>
-          </details>
-
-        </div>
-
-        <!-- Bottom Action Buttons -->
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:8px;">
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button onclick="runAnalysis()" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:700; color:#059669; border-color:#a7f3d0; background:#f0fdf4; cursor:pointer;">
-              <span>🔄</span> Re-Run Assessment
-            </button>
-            <a href="reports.html" id="fig7ReportBtn" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:600; text-decoration:none;">
-              <span>📄</span> View Report
-            </a>
-            <a href="assistant.html" id="fig7AskAIBtn" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:600; text-decoration:none;">
-              <span>💬</span> Ask AI Advisor
-            </a>
-            <a href="history.html" class="btn btn-outline" style="padding:8px 14px; font-size:11.5px; border-radius:8px; font-weight:600; text-decoration:none;">
-              <span>📜</span> Analysis History
-            </a>
-          </div>
-          <button onclick="resetAnalysisState()" class="btn btn-primary" style="padding:9px 18px; font-size:12px; border-radius:8px; font-weight:700; display:flex; align-items:center; gap:6px;">
-            <span>➕</span> New Analysis
+        <!-- Step Navigation Footer -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:6px; flex-wrap:wrap; gap:8px;">
+          <button class="btn btn-outline" onclick="switchView('snn')" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:600;">
+            ← Back to Climate Check (Step 3)
           </button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-outline" onclick="resetAnalysisState()" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:600;">
+              ➕ New Analysis
+            </button>
+            <button class="btn btn-primary" onclick="runAnalysis()" style="padding:8px 18px; font-size:12px; border-radius:8px; font-weight:700;">
+              🚀 Re-Run Full Assessment
+            </button>
+          </div>
         </div>
 
       </div>
