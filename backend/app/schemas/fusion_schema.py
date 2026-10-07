@@ -101,3 +101,96 @@ class CombinedAnalysisResponse(BaseModel):
     expert_veto: ExpertVetoDetails
     final_assessment: FinalAssessmentDetails
     provenance: ProvenanceMetadata = Field(default_factory=ProvenanceMetadata)
+
+
+# =========================================================
+# UNIFIED REAL ML PIPELINE SCHEMAS (/api/analysis)
+# =========================================================
+
+class CNNAnalysisOutput(BaseModel):
+    predicted_class: str
+    confidence: float
+    confidence_percentage: float
+    probabilities: dict[str, float]
+    image_url: str
+    heatmap_url: str | None = None
+    inference_time_ms: float = 0.0
+    architecture: str = "ResNet-18 Custom"
+    input_resolution: str = "224x224 RGB"
+    provenance: str = "CNN MODEL"
+
+
+class SNNAnalysisOutput(BaseModel):
+    predicted_severity: str
+    confidence: float
+    confidence_percentage: float
+    spike_counts: dict[str, int]
+    timesteps: int = 10
+    membrane_decay_beta: float = 0.95
+    feature_count: int = 33
+    inference_time_ms: float = 0.0
+    provenance: str = "SNN MODEL"
+
+
+class EnvironmentAnalysisOutput(BaseModel):
+    temperature: float
+    humidity: float
+    rainfall: float
+    soil_moisture: float
+    aqi: float
+    ozone: float
+    growth_stage: str
+    days_since_sowing: int = 60
+    weather_source: str = "AUTO · Weather API"
+    weather_context: dict[str, Any] | None = None
+    provenance: str = "AUTO · Weather API / MANUAL INPUT"
+
+
+class FusionAnalysisOutput(BaseModel):
+    relationship: str
+    alignment_score: float
+    summary: str
+    interpretation: str
+    visual_lead_evidence: str
+    environmental_lead_evidence: str
+    provenance: str = "FUSION ENGINE"
+
+
+class ExpertVetoAnalysisOutput(BaseModel):
+    overall_status: str
+    rule_count: int
+    triggered_rules: list[TriggeredRule] = Field(default_factory=list)
+    provenance: str = "RULE ENGINE"
+
+
+class FinalAssessmentOutput(BaseModel):
+    diagnosis: str
+    environmental_risk: str
+    relationship: str
+    summary: str
+    requires_immediate_action: bool = False
+    recommendations: list[str] = Field(default_factory=list)
+    what_to_check_next: list[str] = Field(default_factory=list)
+    provenance: str = "FINAL SYNTHESIS"
+
+
+class MetadataOutput(BaseModel):
+    record_uuid: str
+    user_email: str | None = None
+    field_name: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    data_provenance: dict[str, str] = Field(default_factory=dict)
+    latencies: dict[str, float] = Field(default_factory=dict)
+
+
+class UnifiedAnalysisResponse(BaseModel):
+    success: bool = True
+    record_uuid: str
+    cnn: CNNAnalysisOutput
+    snn: SNNAnalysisOutput
+    environment: EnvironmentAnalysisOutput
+    fusion: FusionAnalysisOutput
+    expert_veto: ExpertVetoAnalysisOutput
+    final_assessment: FinalAssessmentOutput
+    metadata: MetadataOutput
+
