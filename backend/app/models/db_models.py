@@ -59,3 +59,59 @@ class ChatMessageDB(Base):
     response = Column(Text, nullable=False)
     model_used = Column(String, default="gemini-2.5-flash")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class UserSettingsDB(Base):
+    __tablename__ = "user_settings"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    
+    # Profile & Account
+    full_name = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
+    account_role = Column(String, default="Lead Farmer")
+    farm_name = Column(String, nullable=True)
+    farm_location = Column(String, nullable=True)
+    total_acreage = Column(Float, nullable=True)
+    
+    # Field Preferences
+    default_field_name = Column(String, default="Field A — Wardha South Station")
+    default_field_lat = Column(Float, default=20.975)
+    default_field_lon = Column(Float, default=78.72)
+    soil_type = Column(String, default="Black Cotton Soil (Vertisol)")
+    irrigation_type = Column(String, default="Drip Irrigation")
+    temp_unit = Column(String, default="Celsius (°C)")
+    rainfall_unit = Column(String, default="Millimeters (mm)")
+    moisture_unit = Column(String, default="Percentage (%)")
+    
+    # Notifications
+    email_alerts = Column(Integer, default=1)  # 1=True, 0=False
+    sms_alerts = Column(Integer, default=0)
+    expert_veto_alerts = Column(Integer, default=1)
+    daily_weather_digest = Column(Integer, default=1)
+    weekly_report = Column(Integer, default=1)
+    
+    # Data Preferences
+    auto_telemetry_sync = Column(Integer, default=1)
+    sqlite_caching = Column(Integer, default=1)
+    data_retention_days = Column(Integer, default=365)
+    low_bandwidth_mode = Column(Integer, default=0)
+    
+    # AI Assistant
+    gemini_model = Column(String, default="gemini-2.5-flash")
+    ai_depth = Column(String, default="Technical Agronomic")
+    ai_grounding = Column(String, default="Strict Deterministic Model & Veto Grounding")
+    auto_suggest_questions = Column(Integer, default=1)
+    
+    # Language & Region
+    language = Column(String, default="English (Default)")
+    timezone = Column(String, default="Asia/Kolkata (IST - UTC+5:30)")
+    date_format = Column(String, default="DD/MM/YYYY")
+    
+    # Security Preferences
+    two_factor_enabled = Column(Integer, default=0)
+    session_timeout_minutes = Column(Integer, default=60)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+

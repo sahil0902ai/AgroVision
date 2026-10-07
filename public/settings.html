@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings &amp; Preferences — AgroVision</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="dash-body">
+
+  <!-- Mobile Top Navigation Bar -->
+  <div class="mobile-top-bar">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:20px;">🌿</span>
+      <strong style="color:#ffffff; font-size:14px; letter-spacing:-0.01em;">AgroVision</strong>
+    </div>
+    <button class="mobile-toggle-btn" onclick="toggleMobileSidebar()" aria-label="Toggle Navigation">
+      ☰ Menu
+    </button>
+  </div>
+
+  <div class="dash-shell">
+
+    <!-- ============ PROFESSIONAL ENTERPRISE SIDEBAR ============ -->
+    <aside class="sidebar">
+      <a href="overview.html" class="brand">
+        <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="23" fill="rgba(255,255,255,0.12)"/>
+          <path d="M24 34c-6-2-10-8-9-16 8-1 14 3 16 9 1 3 0 5-1 7-2-4-6-6-10-7" fill="#ffffff"/>
+          <path d="M24 34c6-2 10-8 9-16-8-1-14 3-16 9-1 3 0 5 1 7 2-4 6-6 10-7" fill="#bfe6cc"/>
+        </svg>
+        <div>
+          <div class="brand-name">AgroVision</div>
+          <div class="brand-tag">Smart Cotton Farming</div>
+        </div>
+      </a>
+
+      <ul class="side-links">
+        <li>
+          <a href="overview.html" class="side-nav-item">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Overview</span>
+          </a>
+        </li>
+        <li>
+          <a href="dashboard.html" class="side-nav-item">
+            <span class="nav-icon">🌿</span>
+            <span class="nav-label">New Analysis</span>
+          </a>
+        </li>
+        <li>
+          <a href="history.html" class="side-nav-item">
+            <span class="nav-icon">📜</span>
+            <span class="nav-label">History</span>
+          </a>
+        </li>
+        <li>
+          <a href="reports.html" class="side-nav-item">
+            <span class="nav-icon">📄</span>
+            <span class="nav-label">Reports</span>
+          </a>
+        </li>
+        <li>
+          <a href="assistant.html" class="side-nav-item">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-label">AI Assistant</span>
+          </a>
+        </li>
+        <li>
+          <a href="settings.html" class="side-nav-item active">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Settings</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">
+          <span style="font-size:14px;">↩</span>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN CONTENT AREA ============ -->
+    <main class="dash-main">
+
+      <!-- Top Analytics Header Bar -->
+      <header class="analytics-header">
+        <div class="analytics-header-left">
+          <h1 class="analytics-page-title">Settings &amp; Preferences</h1>
+          <p class="analytics-page-subtitle">Configure account, field telemetry, AI assistant, and operational preferences</p>
+        </div>
+
+        <div class="analytics-header-right">
+          <!-- Live Date & Station Context -->
+          <div class="context-pill" style="display:flex; align-items:center; gap:6px; background:#ffffff; border:1px solid #e2e8f0; padding:6px 12px; border-radius:999px; font-size:11.5px; font-weight:600; color:#475569;">
+            <span>📅</span>
+            <span id="todayDate">Today</span>
+          </div>
+
+          <div class="context-pill" style="display:flex; align-items:center; gap:6px; background:#ffffff; border:1px solid #e2e8f0; padding:6px 12px; border-radius:999px; font-size:11.5px; font-weight:600; color:#0d3b2e;">
+            <span>📍</span>
+            <span id="headerStationName">Wardha Farm Station</span>
+          </div>
+
+          <!-- Authenticated User Profile -->
+          <div class="user-profile-wrap">
+            <div class="user-profile-widget" id="userProfileWidget" onclick="toggleProfileDropdown(event)" aria-label="User Profile Menu">
+              <div class="user-avatar-circle" id="headerUserAvatar">U</div>
+              <div class="user-profile-info">
+                <span class="user-profile-name" id="headerUserName">Operator</span>
+                <span class="user-profile-role" id="headerUserRole">Operator</span>
+              </div>
+              <span class="user-profile-chevron">▾</span>
+            </div>
+
+            <!-- Profile Dropdown Menu -->
+            <div class="header-dropdown-menu" id="profileDropdownMenu" style="width:230px;">
+              <div style="padding:4px 6px 10px; border-bottom:1px solid #f1f5f9; margin-bottom:6px;">
+                <div style="font-size:12.5px; font-weight:700; color:#0f172a;" id="profileMenuUserName">Operator</div>
+                <div style="font-size:11px; color:#64748b; text-overflow:ellipsis; overflow:hidden;" id="headerUserEmail">user@agrovision.org</div>
+                <div style="margin-top:6px;"><span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;" id="profileVerifiedBadge">Verified Operator</span></div>
+              </div>
+              <a href="overview.html" class="profile-menu-link">
+                <span>🏠</span> <span>Overview Dashboard</span>
+              </a>
+              <a href="dashboard.html" class="profile-menu-link">
+                <span>🌿</span> <span>New Analysis</span>
+              </a>
+              <a href="reports.html" class="profile-menu-link">
+                <span>📄</span> <span>Agronomic Reports</span>
+              </a>
+              <a href="settings.html" class="profile-menu-link">
+                <span>⚙️</span> <span>Farm Preferences</span>
+              </a>
+              <div style="border-top:1px solid #f1f5f9; margin-top:6px; padding-top:6px;">
+                <a href="javascript:void(0)" onclick="logout()" class="profile-menu-link" style="color:#ef4444;">
+                  <span>↩</span> <span>Log Out</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- Global Alert / Status Container -->
+      <div id="settingsAlertBox" style="display:none; margin-bottom:18px; padding:12px 18px; border-radius:12px; font-size:12.5px; font-weight:600;">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span id="settingsAlertIcon" style="font-size:16px;">✓</span>
+            <span id="settingsAlertText">Settings updated successfully.</span>
+          </div>
+          <button onclick="dismissAlert()" style="background:none; border:none; cursor:pointer; font-size:14px; color:inherit; opacity:0.7;">✕</button>
+        </div>
+      </div>
+
+      <!-- Main Settings Grid Layout -->
+      <div class="settings-page-layout">
+
+        <!-- LEFT: Sticky Navigation Submenu -->
+        <nav class="settings-sidebar-nav" aria-label="Settings Categories">
+          <a href="#sectionAccount" class="settings-nav-item active" onclick="activateNav(this, event)">
+            <span><span class="nav-icon">👤</span> Account</span>
+            <span class="nav-badge">Core</span>
+          </a>
+          <a href="#sectionProfile" class="settings-nav-item" onclick="activateNav(this, event)">
+            <span><span class="nav-icon">🌾</span> Profile &amp; Farm</span>
+          </a>
+          <a href="#sectionField" class="settings-nav-item" onclick="activateNav(this, event)">
+            <span><span class="nav-icon">📍</span> Field Preferences</span>
+          </a>
+          <a href="#sectionNotifications" class="settings-nav-item" onclick="activateNav(this, event)">
+            <span><span class="nav-icon">🔔</span> Notifications</span>
+          </a>
+          <a href="#sectionData" class="settings-nav-item" onclick="activateNav(this, event)">
+            <span><span class="nav-icon">🗄️</span> Data Preferences</span>
+          </a>
+          <a href="#sectionAI" class="settings-nav-item" onclick="activateNav(this, event)">
+            <span><span class="nav-icon">🤖</span> AI Assistant</span>
+          </a>
+          <a href="#sectionLanguage" class="settings-nav-item" onclick="activateNav(this, event)">
+            <span><span class="nav-icon">🌐</span> Language &amp; Region</span>
+          </a>
+          <a href="#sectionSecurity" class="settings-nav-item" onclick="activateNav(this, event)">
+            <span><span class="nav-icon">🔒</span> Security</span>
+          </a>
+        </nav>
+
+        <!-- RIGHT: Settings Form Sections -->
+        <form id="settingsForm" onsubmit="handleSaveSettings(event)" class="settings-content-column">
+
+          <!-- 1. ACCOUNT SECTION -->
+          <div class="settings-section-card" id="sectionAccount">
+            <div class="settings-section-header">
+              <div class="settings-header-left">
+                <div class="settings-section-icon">👤</div>
+                <div>
+                  <h2 class="settings-section-title">Account Identity</h2>
+                  <p class="settings-section-desc">Authenticated account credentials and operator permissions</p>
+                </div>
+              </div>
+              <span class="provenance-tag tag-database">DATABASE PERSISTED</span>
+            </div>
+
+            <div class="settings-form-grid-2">
+              <div class="settings-form-group">
+                <label class="settings-label" for="accEmail">
+                  <span>Authenticated Email Address</span>
+                  <span style="font-size:10px; color:#059669; font-weight:700;">Verified Session</span>
+                </label>
+                <input type="email" id="accEmail" class="settings-input" readonly />
+                <span class="settings-help">Linked to your authenticated operator login session.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="accRole">
+                  <span>Operator Role / Permission Level</span>
+                </label>
+                <select id="accRole" class="settings-select">
+                  <option value="Lead Farmer">Lead Farmer (Full Analysis &amp; Field Operations)</option>
+                  <option value="Lead Agronomist">Lead Agronomist (Expert Evaluation &amp; Prescriptions)</option>
+                  <option value="Farm Manager">Farm Manager (Multi-Field Oversight &amp; Reports)</option>
+                  <option value="Agricultural Researcher">Agricultural Researcher (Model &amp; Data Inspection)</option>
+                </select>
+                <span class="settings-help">Defines available advisory detail levels and reporting privileges.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="accStatus">
+                  <span>Account Status</span>
+                </label>
+                <input type="text" id="accStatus" class="settings-input" value="Active · Operator Verified" readonly />
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="accMemberSince">
+                  <span>Session Registration</span>
+                </label>
+                <input type="text" id="accMemberSince" class="settings-input" value="Active AgroVision Session" readonly />
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. PROFILE & FARM SECTION -->
+          <div class="settings-section-card" id="sectionProfile">
+            <div class="settings-section-header">
+              <div class="settings-header-left">
+                <div class="settings-section-icon">🌾</div>
+                <div>
+                  <h2 class="settings-section-title">Profile &amp; Farm Details</h2>
+                  <p class="settings-section-desc">Personal agronomist identity and registered agricultural acreage</p>
+                </div>
+              </div>
+              <span class="provenance-tag tag-farmer-upload">OPERATOR PROFILE</span>
+            </div>
+
+            <div class="settings-form-grid-2">
+              <div class="settings-form-group">
+                <label class="settings-label" for="profFullName">
+                  <span>Full Name</span>
+                </label>
+                <input type="text" id="profFullName" class="settings-input" placeholder="Not provided" />
+                <span class="settings-help">Your display name for generated reports and farm summaries.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="profPhone">
+                  <span>Mobile / Phone Number</span>
+                </label>
+                <input type="tel" id="profPhone" class="settings-input" placeholder="Not provided" />
+                <span class="settings-help">Used for critical SMS climate risk alerts when enabled.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="profFarmName">
+                  <span>Farm / Agricultural Entity Name</span>
+                </label>
+                <input type="text" id="profFarmName" class="settings-input" placeholder="Not provided" />
+                <span class="settings-help">Identifies your monitored plots and agronomic records.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="profLocation">
+                  <span>District / Agricultural Zone</span>
+                </label>
+                <input type="text" id="profLocation" class="settings-input" placeholder="Not provided" />
+                <span class="settings-help">e.g., Wardha District, Maharashtra (Vidarbha Belt).</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="profAcreage">
+                  <span>Total Cultivated Acreage (Acres)</span>
+                </label>
+                <input type="number" step="0.1" min="0" id="profAcreage" class="settings-input" placeholder="Not provided" />
+                <span class="settings-help">Enables crop scale estimation for irrigation planning.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="profCrop">
+                  <span>Primary Crop Focus</span>
+                </label>
+                <input type="text" id="profCrop" class="settings-input" value="Bt Cotton (Gossypium hirsutum)" readonly />
+                <span class="settings-help">Optimized for multimodal cotton stress detection models.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. FIELD PREFERENCES SECTION -->
+          <div class="settings-section-card" id="sectionField">
+            <div class="settings-section-header">
+              <div class="settings-header-left">
+                <div class="settings-section-icon">📍</div>
+                <div>
+                  <h2 class="settings-section-title">Field Preferences &amp; Units</h2>
+                  <p class="settings-section-desc">Default field telemetry parameters, soil profiles, and measurement units</p>
+                </div>
+              </div>
+              <span class="provenance-tag tag-auto-weather">TELEMETRY DEFAULTS</span>
+            </div>
+
+            <div class="settings-form-grid-2">
+              <div class="settings-form-group full-width">
+                <label class="settings-label" for="fieldDefName">
+                  <span>Default Monitoring Station / Field Name</span>
+                </label>
+                <input type="text" id="fieldDefName" class="settings-input" placeholder="Field A — Wardha South Station" />
+                <span class="settings-help">Default station selected on analysis initialization.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="fieldLat">
+                  <span>Default Latitude (°N)</span>
+                </label>
+                <input type="number" step="0.0001" id="fieldLat" class="settings-input" placeholder="20.9750" />
+                <span class="settings-help">GPS coordinates for live OpenWeather telemetry stream.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="fieldLon">
+                  <span>Default Longitude (°E)</span>
+                </label>
+                <input type="number" step="0.0001" id="fieldLon" class="settings-input" placeholder="78.7200" />
+                <span class="settings-help">GPS coordinates for live OpenWeather telemetry stream.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="fieldSoilType">
+                  <span>Soil Profile Classification</span>
+                </label>
+                <select id="fieldSoilType" class="settings-select">
+                  <option value="Black Cotton Soil (Vertisol)">Black Cotton Soil (Vertisol / Heavy Clay)</option>
+                  <option value="Medium Black Soil">Medium Black Soil (Alluvial / Clay Loam)</option>
+                  <option value="Red Sandy Loam">Red Sandy Loam (Alfisol)</option>
+                  <option value="Laterite Soil">Laterite Soil</option>
+                </select>
+                <span class="settings-help">Calibrates soil moisture thresholds in Expert Veto engine.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="fieldIrrigation">
+                  <span>Irrigation Methodology</span>
+                </label>
+                <select id="fieldIrrigation" class="settings-select">
+                  <option value="Drip Irrigation">Drip Irrigation (Micro-drip fertigation)</option>
+                  <option value="Furrow Irrigation">Furrow / Ridge &amp; Furrow</option>
+                  <option value="Sprinkler System">Sprinkler System</option>
+                  <option value="Rainfed / Dryland">Rainfed / Dryland (No supplemental)</option>
+                </select>
+                <span class="settings-help">Informs watering and soil moisture recommendations.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="unitTemp">
+                  <span>Temperature Unit</span>
+                </label>
+                <select id="unitTemp" class="settings-select">
+                  <option value="Celsius (°C)">Celsius (°C)</option>
+                  <option value="Fahrenheit (°F)">Fahrenheit (°F)</option>
+                </select>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="unitRain">
+                  <span>Rainfall Unit</span>
+                </label>
+                <select id="unitRain" class="settings-select">
+                  <option value="Millimeters (mm)">Millimeters (mm)</option>
+                  <option value="Inches (in)">Inches (in)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. NOTIFICATIONS SECTION -->
+          <div class="settings-section-card" id="sectionNotifications">
+            <div class="settings-section-header">
+              <div class="settings-header-left">
+                <div class="settings-section-icon">🔔</div>
+                <div>
+                  <h2 class="settings-section-title">Notifications &amp; Alerts</h2>
+                  <p class="settings-section-desc">Automated alerts for high-risk environmental conditions and expert overrides</p>
+                </div>
+              </div>
+              <span class="provenance-tag tag-rule-engine">AUTOMATED DISPATCH</span>
+            </div>
+
+            <div class="settings-toggle-list">
+              <div class="settings-toggle-card">
+                <div class="settings-toggle-text">
+                  <span class="settings-toggle-title">📧 Critical Stress Email Alerts</span>
+                  <p class="settings-toggle-desc">Receive immediate email alerts when CNN or SNN detects High severity stress or waterlogging risk.</p>
+                </div>
+                <label class="agro-switch">
+                  <input type="checkbox" id="notifEmailAlerts" checked />
+                  <span class="agro-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-toggle-card">
+                <div class="settings-toggle-text">
+                  <span class="settings-toggle-title">📱 SMS Mobile Alerts</span>
+                  <p class="settings-toggle-desc">Send urgent SMS alerts to your registered mobile phone for extreme heatwaves or desiccation risks.</p>
+                </div>
+                <label class="agro-switch">
+                  <input type="checkbox" id="notifSmsAlerts" />
+                  <span class="agro-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-toggle-card">
+                <div class="settings-toggle-text">
+                  <span class="settings-toggle-title">🛡️ Expert Veto Safety Alerts</span>
+                  <p class="settings-toggle-desc">Notify when deterministic safety rules (EVR-001 through EVR-007) qualify or override model recommendations.</p>
+                </div>
+                <label class="agro-switch">
+                  <input type="checkbox" id="notifVetoAlerts" checked />
+                  <span class="agro-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-toggle-card">
+                <div class="settings-toggle-text">
+                  <span class="settings-toggle-title">🌤️ Daily Microclimate Digest (6:00 AM)</span>
+                  <p class="settings-toggle-desc">Receive daily morning weather, humidity, and soil probe forecasts for your primary field.</p>
+                </div>
+                <label class="agro-switch">
+                  <input type="checkbox" id="notifDailyDigest" checked />
+                  <span class="agro-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-toggle-card">
+                <div class="settings-toggle-text">
+                  <span class="settings-toggle-title">📊 Weekly Agronomic Health Summary</span>
+                  <p class="settings-toggle-desc">Comprehensive weekly digest summarizing leaf scan trends, stress incidence, and action items.</p>
+                </div>
+                <label class="agro-switch">
+                  <input type="checkbox" id="notifWeeklyReport" checked />
+                  <span class="agro-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. DATA PREFERENCES SECTION -->
+          <div class="settings-section-card" id="sectionData">
+            <div class="settings-section-header">
+              <div class="settings-header-left">
+                <div class="settings-section-icon">🗄️</div>
+                <div>
+                  <h2 class="settings-section-title">Data Preferences &amp; Storage</h2>
+                  <p class="settings-section-desc">Manage analytical telemetry synchronization, caching, and export</p>
+                </div>
+              </div>
+              <span class="provenance-tag tag-database">SQLITE ENGINE</span>
+            </div>
+
+            <div class="settings-toggle-list">
+              <div class="settings-toggle-card">
+                <div class="settings-toggle-text">
+                  <span class="settings-toggle-title">⚡ Auto Weather Telemetry Sync</span>
+                  <p class="settings-toggle-desc">Automatically fetch real-time OpenWeather microclimate data and air quality upon analysis launch.</p>
+                </div>
+                <label class="agro-switch">
+                  <input type="checkbox" id="dataAutoSync" checked />
+                  <span class="agro-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-toggle-card">
+                <div class="settings-toggle-text">
+                  <span class="settings-toggle-title">💾 Persistent Database Caching</span>
+                  <p class="settings-toggle-desc">Retain full multimodal records (CNN probabilities, SNN spike rasters, weather snapshots) in SQLite.</p>
+                </div>
+                <label class="agro-switch">
+                  <input type="checkbox" id="dataSqliteCache" checked />
+                  <span class="agro-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-toggle-card">
+                <div class="settings-toggle-text">
+                  <span class="settings-toggle-title">📶 Rural Low-Bandwidth Mode</span>
+                  <p class="settings-toggle-desc">Compress leaf image uploads to reduce upload time on 2G/3G edge farm networks.</p>
+                </div>
+                <label class="agro-switch">
+                  <input type="checkbox" id="dataLowBandwidth" />
+                  <span class="agro-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-form-grid-2" style="margin-top:8px;">
+              <div class="settings-form-group">
+                <label class="settings-label" for="dataRetention">
+                  <span>Analytical History Retention</span>
+                </label>
+                <select id="dataRetention" class="settings-select">
+                  <option value="90">90 Days</option>
+                  <option value="180">180 Days (6 Months)</option>
+                  <option value="365" selected>1 Year (365 Days — Recommended)</option>
+                  <option value="730">2 Years</option>
+                  <option value="0">Indefinite (Keep All Records)</option>
+                </select>
+                <span class="settings-help">Defines how long completed crop assessments are preserved.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label">
+                  <span>Analytical Data Export</span>
+                </label>
+                <div style="display:flex; gap:10px; margin-top:2px;">
+                  <a href="/api/v1/records/export.csv" download class="btn btn-outline" style="flex:1; padding:9px 12px; font-size:12px; text-align:center; font-weight:700;">
+                    📥 Export CSV
+                  </a>
+                  <a href="reports.html" class="btn btn-outline" style="flex:1; padding:9px 12px; font-size:12px; text-align:center; font-weight:700;">
+                    📄 View Reports
+                  </a>
+                </div>
+                <span class="settings-help">Download all historical assessments for offline agronomic record-keeping.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. AI ASSISTANT SECTION -->
+          <div class="settings-section-card" id="sectionAI">
+            <div class="settings-section-header">
+              <div class="settings-header-left">
+                <div class="settings-section-icon">🤖</div>
+                <div>
+                  <h2 class="settings-section-title">AI Assistant &amp; Gemini Rationale</h2>
+                  <p class="settings-section-desc">Grounding policy, explanation depth, and reasoning engine settings</p>
+                </div>
+              </div>
+              <span class="provenance-tag tag-gemini-ai">GEMINI INTEGRATION</span>
+            </div>
+
+            <div class="settings-form-grid-2">
+              <div class="settings-form-group">
+                <label class="settings-label" for="aiModel">
+                  <span>AI Reasoning Model</span>
+                </label>
+                <select id="aiModel" class="settings-select">
+                  <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Fast, Grounded Agronomic Reasoning)</option>
+                  <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Research &amp; Multi-turn Dialogue)</option>
+                </select>
+                <span class="settings-help">Integrated through Google Generative AI Python SDK.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="aiDepth">
+                  <span>Advisory Explanation Depth</span>
+                </label>
+                <select id="aiDepth" class="settings-select">
+                  <option value="Technical Agronomic" selected>Technical Agronomic (Physiological &amp; Veto Detail)</option>
+                  <option value="Farmer Simplified">Farmer Simplified (Action-Oriented, Simple Terms)</option>
+                  <option value="Executive Summary">Executive Summary (Brief Overview)</option>
+                </select>
+                <span class="settings-help">Tailors chat advice complexity to your preference.</span>
+              </div>
+
+              <div class="settings-form-group full-width">
+                <label class="settings-label" for="aiGrounding">
+                  <span>Context Grounding Policy</span>
+                </label>
+                <input type="text" id="aiGrounding" class="settings-input" value="Strict Deterministic Model &amp; Veto Grounding (Zero Hallucination)" readonly />
+                <span class="settings-help">Gemini is strictly grounded on PyTorch CNN/SNN outputs, OpenWeather snapshots, and deterministic EVR-001..007 rules.</span>
+              </div>
+            </div>
+
+            <div class="settings-toggle-card">
+              <div class="settings-toggle-text">
+                <span class="settings-toggle-title">💡 Contextual Prompt Suggestions</span>
+                <p class="settings-toggle-desc">Display dynamic recommended questions in the AI Assistant based on your latest leaf screening result.</p>
+              </div>
+              <label class="agro-switch">
+                <input type="checkbox" id="aiAutoSuggest" checked />
+                <span class="agro-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 7. LANGUAGE & REGION SECTION -->
+          <div class="settings-section-card" id="sectionLanguage">
+            <div class="settings-section-header">
+              <div class="settings-header-left">
+                <div class="settings-section-icon">🌐</div>
+                <div>
+                  <h2 class="settings-section-title">Language &amp; Regional Localization</h2>
+                  <p class="settings-section-desc">Regional language support for rural agronomists and timezone synchronization</p>
+                </div>
+              </div>
+              <span class="provenance-tag tag-snn-model">LOCALIZATION</span>
+            </div>
+
+            <div class="settings-form-grid-3">
+              <div class="settings-form-group">
+                <label class="settings-label" for="langSelect">
+                  <span>Primary Language</span>
+                </label>
+                <select id="langSelect" class="settings-select">
+                  <option value="English (Default)" selected>English (Default)</option>
+                  <option value="Marathi (मराठी)">Marathi (मराठी — विदर्भ/महाराष्ट्र)</option>
+                  <option value="Hindi (हिन्दी)">Hindi (हिन्दी)</option>
+                  <option value="Gujarati (ગુજરાતી)">Gujarati (ગુજરાતી)</option>
+                  <option value="Telugu (తెలుగు)">Telugu (తెలుగు)</option>
+                </select>
+                <span class="settings-help">Interface and generated advisory language.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="tzSelect">
+                  <span>Station Timezone</span>
+                </label>
+                <select id="tzSelect" class="settings-select">
+                  <option value="Asia/Kolkata (IST - UTC+5:30)" selected>Asia/Kolkata (IST - UTC+5:30)</option>
+                  <option value="UTC">UTC (Coordinated Universal Time)</option>
+                </select>
+                <span class="settings-help">Synchronizes telemetry timestamps.</span>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="dateFormatSelect">
+                  <span>Date Display Format</span>
+                </label>
+                <select id="dateFormatSelect" class="settings-select">
+                  <option value="DD/MM/YYYY" selected>DD/MM/YYYY (e.g. 07/10/2026)</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY (e.g. 10/07/2026)</option>
+                  <option value="YYYY-MM-DD">YYYY-MM-DD (ISO Format)</option>
+                </select>
+                <span class="settings-help">Applies across all reports and tables.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 8. SECURITY & SESSION SECTION -->
+          <div class="settings-section-card" id="sectionSecurity">
+            <div class="settings-section-header">
+              <div class="settings-header-left">
+                <div class="settings-section-icon">🔒</div>
+                <div>
+                  <h2 class="settings-section-title">Security &amp; Credentials</h2>
+                  <p class="settings-section-desc">Manage operator access credentials, salted password hashes, and session policy</p>
+                </div>
+              </div>
+              <span class="provenance-tag tag-database">SHA-256 SALTED</span>
+            </div>
+
+            <!-- Password Change Sub-form -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px 20px;">
+              <h4 style="font-size:13px; font-weight:800; color:#0d3b2e; margin:0 0 12px; display:flex; align-items:center; gap:8px;">
+                <span>🔑</span> Update Operator Password
+              </h4>
+              <div class="settings-form-grid-3">
+                <div class="settings-form-group">
+                  <label class="settings-label" for="pwdCurrent">
+                    <span>Current Password</span>
+                  </label>
+                  <input type="password" id="pwdCurrent" class="settings-input" placeholder="••••••••" autocomplete="current-password" />
+                </div>
+
+                <div class="settings-form-group">
+                  <label class="settings-label" for="pwdNew">
+                    <span>New Password</span>
+                  </label>
+                  <input type="password" id="pwdNew" class="settings-input" placeholder="Min. 6 characters" autocomplete="new-password" />
+                </div>
+
+                <div class="settings-form-group">
+                  <label class="settings-label" for="pwdConfirm">
+                    <span>Confirm New Password</span>
+                  </label>
+                  <input type="password" id="pwdConfirm" class="settings-input" placeholder="Re-enter password" autocomplete="new-password" />
+                </div>
+              </div>
+              <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+                <button type="button" onclick="handleChangePassword(event)" id="btnChangePassword" class="btn btn-outline" style="padding:8px 16px; font-size:12px; font-weight:700;">
+                  Update Password
+                </button>
+              </div>
+            </div>
+
+            <!-- 2FA and Session Timeout -->
+            <div class="settings-form-grid-2">
+              <div class="settings-toggle-card">
+                <div class="settings-toggle-text">
+                  <span class="settings-toggle-title">🛡️ Two-Factor Verification (2FA)</span>
+                  <p class="settings-toggle-desc">Require email OTP verification on login from unrecognized devices.</p>
+                </div>
+                <label class="agro-switch">
+                  <input type="checkbox" id="sec2FA" />
+                  <span class="agro-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="secTimeout">
+                  <span>Session Idle Timeout</span>
+                </label>
+                <select id="secTimeout" class="settings-select">
+                  <option value="15">15 Minutes</option>
+                  <option value="30">30 Minutes</option>
+                  <option value="60" selected>60 Minutes (1 Hour)</option>
+                  <option value="240">4 Hours</option>
+                  <option value="0">Never (Stay Logged In)</option>
+                </select>
+                <span class="settings-help">Automatically locks active operator session after inactivity.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FLOATING / STICKY ACTION BAR -->
+          <div class="settings-action-bar">
+            <div class="settings-action-status">
+              <span class="settings-status-pill saved" id="settingsSaveStatusPill">✓ All settings synced</span>
+              <span id="settingsLastSavedText" style="font-size:11.5px; color:#64748b;">Ready to update</span>
+            </div>
+
+            <div class="settings-action-buttons">
+              <button type="button" onclick="handleResetSettings()" class="btn-reset-settings" title="Discard unsaved changes and reload from database">
+                ↺ Reset Changes
+              </button>
+              <button type="submit" id="btnSaveSettings" class="btn-save-settings">
+                <span id="btnSaveSpinner" style="display:none;">⌛</span>
+                <span id="btnSaveText">💾 Save Changes</span>
+              </button>
+            </div>
+          </div>
+
+        </form>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/settings.js"></script>
+</body>
+</html>

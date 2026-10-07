@@ -7,6 +7,7 @@ from .api.snn import router as snn_router
 from .api.analysis import router as analysis_router
 from .api.weather import router as weather_router
 from .api.chat import router as chat_router
+from .api.settings import router as settings_router
 from .api.v1.api import api_router
 from .core.config import settings
 from .core.database import init_db
@@ -78,6 +79,7 @@ app.include_router(snn_router, prefix="/api", tags=["SNN Environmental Analysis"
 app.include_router(analysis_router, prefix="/api", tags=["Multimodal Analysis & Expert Veto"])
 app.include_router(weather_router, prefix="/api", tags=["Weather & Environment"])
 app.include_router(chat_router, prefix="/api", tags=["AI Assistant (Gemini)"])
+app.include_router(settings_router, prefix="/api", tags=["Settings & Preferences"])
 app.include_router(api_router, prefix="/api/v1", tags=["v1"])
 
 
