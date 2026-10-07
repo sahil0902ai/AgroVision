@@ -4,9 +4,14 @@ import json
 from datetime import datetime
 from typing import Any
 
-from app.core.database import get_db
-from app.models.db_models import AnalysisRecordDB
-from app.models.schemas import AnalysisRecordResponseSchema
+try:
+    from app.core.database import get_db
+    from app.models.db_models import AnalysisRecordDB
+    from app.models.schemas import AnalysisRecordResponseSchema
+except (ImportError, ModuleNotFoundError):
+    from ....core.database import get_db
+    from ....models.db_models import AnalysisRecordDB
+    from ....models.schemas import AnalysisRecordResponseSchema
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import HTMLResponse, StreamingResponse
 from sqlalchemy.orm import Session

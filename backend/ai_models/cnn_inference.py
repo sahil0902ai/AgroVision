@@ -3,8 +3,10 @@ from io import BytesIO
 from pathlib import Path
 
 import torch
-import torch.nn.functional as F
-from ai_models.agrovision_cnn import CLASS_LABELS_MAP, CLASSES, AgroVisionCNN
+try:
+    from ai_models.agrovision_cnn import CLASS_LABELS_MAP, CLASSES, AgroVisionCNN
+except ImportError:
+    from backend.ai_models.agrovision_cnn import CLASS_LABELS_MAP, CLASSES, AgroVisionCNN
 from PIL import Image, UnidentifiedImageError
 from torchvision import transforms
 

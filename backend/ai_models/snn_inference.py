@@ -20,12 +20,20 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 
-from ai_models.agrovision_snn import SNN_CLASSES, AgroVisionSNN
-from ai_models.snn_preprocessing import (
-    SNN_CAT_COLUMNS,
-    SNN_NUMERIC_FEATURES,
-    SNNPreprocessor,
-)
+try:
+    from ai_models.agrovision_snn import SNN_CLASSES, AgroVisionSNN
+    from ai_models.snn_preprocessing import (
+        SNN_CAT_COLUMNS,
+        SNN_NUMERIC_FEATURES,
+        SNNPreprocessor,
+    )
+except ImportError:
+    from backend.ai_models.agrovision_snn import SNN_CLASSES, AgroVisionSNN
+    from backend.ai_models.snn_preprocessing import (
+        SNN_CAT_COLUMNS,
+        SNN_NUMERIC_FEATURES,
+        SNNPreprocessor,
+    )
 
 logger = logging.getLogger("agrovision.snn_inference")
 

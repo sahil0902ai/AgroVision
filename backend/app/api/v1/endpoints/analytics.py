@@ -2,8 +2,12 @@ import json
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
-from app.core.database import get_db
-from app.models.db_models import AnalysisRecordDB
+try:
+    from app.core.database import get_db
+    from app.models.db_models import AnalysisRecordDB
+except ImportError:
+    from ....core.database import get_db
+    from ....models.db_models import AnalysisRecordDB
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session

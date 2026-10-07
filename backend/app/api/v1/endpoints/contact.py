@@ -2,9 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from app.models.db_models import Lead
-from app.schemas.contact_schema import ContactRequest, ContactResponse
-from app.core.database import get_db
+try:
+    from app.models.db_models import Lead
+    from app.schemas.contact_schema import ContactRequest, ContactResponse
+    from app.core.database import get_db
+except ImportError:
+    from ....models.db_models import Lead
+    from ....schemas.contact_schema import ContactRequest, ContactResponse
+    from ....core.database import get_db
 
 router = APIRouter()
 

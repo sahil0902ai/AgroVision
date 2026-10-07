@@ -1,10 +1,17 @@
 import json
 
-from app.core.config import settings
-from app.core.database import get_db
-from app.models.db_models import AnalysisRecordDB
-from app.models.schemas import PredictResponseSchema
-from app.services.ai_pipeline import AIPipelineService
+try:
+    from app.core.config import settings
+    from app.core.database import get_db
+    from app.models.db_models import AnalysisRecordDB
+    from app.models.schemas import PredictResponseSchema
+    from app.services.ai_pipeline import AIPipelineService
+except ImportError:
+    from ....core.config import settings
+    from ....core.database import get_db
+    from ....models.db_models import AnalysisRecordDB
+    from ....models.schemas import PredictResponseSchema
+    from ....services.ai_pipeline import AIPipelineService
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
