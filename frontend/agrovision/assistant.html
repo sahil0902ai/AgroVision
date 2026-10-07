@@ -19,24 +19,22 @@
   .dash-main {
     flex: 1;
     min-width: 0;
-    padding: 24px 32px 40px;
+    padding: 24px 32px 60px;
     background: #f8faf9;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
   }
   .assistant-container {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1440px;
     margin: 0 auto;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-height: 0;
-    gap: 12px;
+    gap: 16px;
   }
 
   /* Context Anchor Banner */
@@ -81,8 +79,8 @@
     border-radius: 16px;
     display: flex;
     flex-direction: column;
-    flex: 1;
-    min-height: 0;
+    min-height: 540px;
+    height: calc(100vh - 280px);
     box-shadow: 0 4px 16px rgba(13, 59, 46, 0.04);
     overflow: hidden;
   }
@@ -408,6 +406,12 @@
           <a href="reports.html" class="side-nav-item">
             <span class="nav-icon">📄</span>
             <span class="nav-label">Reports</span>
+          </a>
+        </li>
+        <li>
+          <a href="fields.html" class="side-nav-item">
+            <span class="nav-icon">🌾</span>
+            <span class="nav-label">My Fields</span>
           </a>
         </li>
         <li>

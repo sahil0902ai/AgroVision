@@ -7019,12 +7019,160 @@ body.dash-body {
 }
 
 /* =========================================================
-   AgroVision — Shared Global Footer Component
+   AGROVISION — UNIFIED DASHBOARD PAGE-SHELL & LAYOUT SYSTEM
    ========================================================= */
+
+.dash-body {
+  background: #f8faf9;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1e293b;
+}
+
+.dash-shell {
+  display: flex;
+  flex: 1;
+  min-height: 100vh;
+  background: #f8faf9;
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Fixed/Sticky Desktop Sidebar (Full Viewport Height) */
+.sidebar {
+  width: 250px;
+  min-width: 250px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: #092c22;
+  color: #cfe4d7;
+  padding: 20px 14px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.06);
+  z-index: 100;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+/* Main Content Area */
+.dash-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px 32px;
+  background: #f8faf9;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Unified Page Containers (Natural Auto Sizing, No Blank Voids) */
+.dash-container,
+.overview-container,
+.analytics-container,
+.analytics-shell,
+.history-container,
+.reports-container,
+.fields-container,
+.assistant-container,
+.detail-container,
+.settings-container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+/* Card & Panel Natural Sizing (Never Stretch Artificially) */
+.panel,
+.card,
+.dash-card,
+.kpi-card,
+.analytics-kpi-card,
+.visual-dist-card,
+.report-section-card,
+.chart-panel,
+.env-analytics-card,
+.upload-panel {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none;
+  box-sizing: border-box;
+}
+
+/* Grid Alignments (Natural Start Alignment) */
+.dash-grid,
+.overview-main-grid,
+.chart-grid-2,
+.grid-2col,
+.grid-2,
+.image-compare-grid,
+.weather-intel-grid {
+  align-items: start !important;
+}
+
+/* Compact Non-Stretched Empty States */
+.agro-empty-state {
+  padding: 32px 20px;
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.agro-empty-state .empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.agro-empty-state .empty-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.agro-empty-state .empty-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.45;
+  margin: 0 0 12px 0;
+  max-width: 360px;
+}
+
+/* Shared Global Footer (Follows Naturally After Content) */
 .dash-footer {
   width: 100%;
-  margin-top: 40px;
-  padding: 20px 0 10px;
+  margin-top: auto;
+  padding-top: 32px;
+  padding-bottom: 16px;
   border-top: 1px solid #e2e8f0;
   background: transparent;
   box-sizing: border-box;
@@ -7036,7 +7184,7 @@ body.dash-body {
   align-items: center;
   flex-wrap: wrap;
   gap: 14px;
-  max-width: 1380px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 0 4px;
   font-size: 11.5px;
@@ -7125,5 +7273,119 @@ body.dash-body {
   background: #f1f5f9;
   padding: 2px 7px;
   border-radius: 6px;
+}
+
+/* =========================================================
+   AgroVision — Multi-Screen Responsive Layout Refinements
+   (1920x1080, 1440x900, 1366x768, 1024x768, 768x1024, 390x844)
+   ========================================================= */
+
+/* Desktop Widescreen (1400px and up) */
+@media (min-width: 1400px) {
+  .kpi-grid-4,
+  .analytics-kpi-grid,
+  .header-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Standard Desktop (1025px - 1399px) */
+@media (min-width: 1025px) and (max-width: 1399px) {
+  .dash-main {
+    padding: 20px 24px 28px;
+  }
+  .kpi-grid-4,
+  .analytics-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Tablet Landscape / Small Desktop (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dash-main {
+    padding: 18px 20px 24px;
+  }
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+  }
+  .kpi-grid-4,
+  .analytics-kpi-grid,
+  .header-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .overview-main-grid,
+  .chart-grid-2,
+  .image-compare-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Mobile & Tablet Portrait (768px and down) */
+@media (max-width: 768px) {
+  .mobile-top-bar {
+    display: flex !important;
+  }
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+  body.dash-body {
+    padding-bottom: 64px !important;
+  }
+  .dash-main {
+    padding: 14px 12px 64px !important;
+  }
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    bottom: 0;
+    width: 260px;
+    z-index: 1001;
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .sidebar.mobile-open,
+  .sidebar.open {
+    left: 0 !important;
+  }
+  .kpi-grid-4,
+  .analytics-kpi-grid,
+  .header-kpi-grid,
+  .overview-main-grid,
+  .chart-grid-2,
+  .grid-2col,
+  .image-compare-grid,
+  .weather-intel-grid,
+  .dash-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .table-container,
+  .history-table-wrap,
+  .reports-table-wrap,
+  .analytics-table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+  }
+  .analytics-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .header-search-wrap {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .header-right-group {
+    width: 100% !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+  }
+  .dash-footer-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+  }
 }
 
