@@ -6705,6 +6705,271 @@ body.dash-body {
   to { transform: rotate(360deg); }
 }
 
+/* =========================================================
+   AgroVision — Environmental Factor Bars Analytical Panel
+   Compact Power BI-style factor monitoring with Veto thresholds
+   ========================================================= */
+.env-factor-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
+.env-factor-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
 
+.env-factor-panel-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: -0.01em;
+}
 
+.env-factors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.env-factor-row {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.env-factor-row:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.env-factor-meta-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.env-factor-name-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.env-factor-val-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.env-factor-value {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.env-factor-status-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.env-factor-status-pill.status-optimal {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.env-factor-status-pill.status-warning {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.env-factor-status-pill.status-hazard {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.env-factor-bar-track {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.env-factor-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease, background 0.4s ease;
+}
+
+.env-factor-bar-fill.fill-optimal {
+  background: #059669;
+}
+
+.env-factor-bar-fill.fill-warning {
+  background: #d97706;
+}
+
+.env-factor-bar-fill.fill-hazard {
+  background: #dc2626;
+}
+
+/* =========================================================
+   AgroVision — Universal Mobile Bottom Navigation Bar
+   Touch-friendly bottom bar for mobile screens (< 768px)
+   ========================================================= */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+  z-index: 999;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  height: 100%;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 600;
+  transition: color 0.15s ease;
+  padding: 4px 0;
+  min-width: 0;
+}
+
+.bottom-nav-item .nav-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.bottom-nav-item .nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.bottom-nav-item:hover,
+.bottom-nav-item.active {
+  color: #059669;
+}
+
+.bottom-nav-item.active .nav-icon {
+  transform: scale(1.1);
+}
+
+/* =========================================================
+   AgroVision — Global Responsive Breakpoints Refinement
+   ========================================================= */
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+  }
+  
+  body.dash-body {
+    padding-bottom: 60px; /* Leave room for mobile bottom nav */
+  }
+
+  .dash-main {
+    padding: 14px 12px 60px;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    bottom: 0;
+    width: 260px;
+    z-index: 1001;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar.mobile-open,
+  .sidebar.open {
+    left: 0;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.25);
+  }
+
+  /* Responsive 1-column reflow for charts and forms */
+  .chart-grid-2,
+  .grid-2col,
+  .kpi-grid-4,
+  .analytics-kpi-grid,
+  .env-cards-grid,
+  .image-compare-grid,
+  .overview-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Horizontally scrollable tables with smooth touch physics */
+  .table-container,
+  .reports-table-wrap,
+  .history-table-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  /* Header compacting */
+  .analytics-header,
+  .analytics-header-ribbon {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1080px) {
+  .chart-grid-2,
+  .kpi-grid-4,
+  .analytics-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

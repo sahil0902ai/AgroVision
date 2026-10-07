@@ -1305,39 +1305,173 @@ function renderFigure6(data, payload) {
     spikesDetail.innerHTML = `<strong>Climate Summary:</strong> ${summaries[stressLevel] || summaries["Low"]}`;
   }
 
-  // Environmental factors list with simple, friendly badges
+  // Environmental factors list with documented Expert Veto status, sources, units, and horizontal bars
   if (factorsList && payload) {
-    const temp = Number(payload.temperature || 31.0);
-    const hum = Number(payload.humidity || 72.0);
-    const rain = Number(payload.rainfall !== undefined ? payload.rainfall : (payload.rainfall_mm || 18.0));
-    const soilRaw = Number(payload.soil_moisture || 0.68);
+    const temp = Number(payload.temperature !== undefined ? payload.temperature : 31.0);
+    const hum = Number(payload.humidity !== undefined ? payload.humidity : 72.0);
+    const rain = Number(payload.rainfall !== undefined ? payload.rainfall : (payload.rainfall_mm !== undefined ? payload.rainfall_mm : 18.0));
+    const soilRaw = Number(payload.soil_moisture !== undefined ? payload.soil_moisture : 0.68);
     const soil = soilRaw <= 1.0 ? (soilRaw * 100) : soilRaw;
-    const aqi = Number(payload.aqi || 84.0);
-    const ozoneRaw = Number(payload.ozone || 0.041);
+    const aqi = Number(payload.aqi !== undefined ? payload.aqi : 84.0);
+    const ozoneRaw = Number(payload.ozone !== undefined ? payload.ozone : 0.041);
     const ozone = ozoneRaw <= 1.0 ? (ozoneRaw * 1000) : ozoneRaw;
 
-    const tempStatus = temp >= 20 && temp <= 34 ? { text: "Good Temperature", bg: "#ecfdf5", color: "#059669", bar: "#059669" }
-      : (temp <= 38 ? { text: "Warm Weather", bg: "#fef3c7", color: "#d97706", bar: "#d97706" } : { text: "Excess Heat", bg: "#fee2e2", color: "#dc2626", bar: "#dc2626" });
-    const tempWidth = Math.min(100, Math.max(5, (temp / 50.0) * 100)).toFixed(1);
+    const weatherSrc = payload.weather_source || (envSourceMode === "auto" ? "AUTO · WEATHER API" : "MANUAL INPUT");
+    const soilSrc = "MANUAL INPUT";
 
-    const humStatus = hum >= 50 && hum <= 80 ? { text: "Good Humidity", bg: "#ecfdf5", color: "#059669", bar: "#059669" }
-      : (hum < 50 ? { text: "Dry Air", bg: "#fef3c7", color: "#d97706", bar: "#d97706" } : { text: "High Moisture", bg: "#fef3c7", color: "#d97706", bar: "#d97706" });
-    const humWidth = Math.min(100, Math.max(5, hum)).toFixed(1);
+    // 1. Temperature: Optimal (21-35°C), Moderate Heat (35-38°C), Critical Heat Hazard (>38°C EVR-005/EVR-002), Chilling (<15°C)
+    let tempStatus = "Optimal";
+    let tempBg = "#ecfdf5";
+    let tempColor = "#059669";
+    let tempBar = "#059669";
+    if (temp > 38.0) {
+      tempStatus = "Critical Heat Hazard";
+      tempBg = "#fee2e2";
+      tempColor = "#dc2626";
+      tempBar = "#dc2626";
+    } else if (temp >= 35.0) {
+      tempStatus = "Moderate Heat";
+      tempBg = "#fffbeb";
+      tempColor = "#d97706";
+      tempBar = "#d97706";
+    } else if (temp < 15.0) {
+      tempStatus = "Chilling Stress";
+      tempBg = "#fffbeb";
+      tempColor = "#d97706";
+      tempBar = "#d97706";
+    }
+    const tempPct = Math.min(100, Math.max(5, ((temp - 10) / 40) * 100)).toFixed(1);
 
-    const soilStatus = soil >= 50 && soil <= 80 ? { text: "Optimal Soil Moisture", bg: "#ecfdf5", color: "#059669", bar: "#059669" }
-      : (soil < 50 ? { text: "Dry Soil (Needs Water)", bg: "#fee2e2", color: "#dc2626", bar: "#dc2626" } : { text: "Very Wet", bg: "#fef3c7", color: "#d97706", bar: "#d97706" });
-    const soilWidth = Math.min(100, Math.max(5, soil)).toFixed(1);
+    // 2. Humidity: Optimal (50-80%), Dry Air (<40%), High Foliar Moisture (>85%)
+    let humStatus = "Optimal";
+    let humBg = "#ecfdf5";
+    let humColor = "#059669";
+    let humBar = "#059669";
+    if (hum < 40.0) {
+      humStatus = "Dry Air";
+      humBg = "#fffbeb";
+      humColor = "#d97706";
+      humBar = "#d97706";
+    } else if (hum > 85.0) {
+      humStatus = "High Moisture";
+      humBg = "#fffbeb";
+      humColor = "#d97706";
+      humBar = "#d97706";
+    }
+    const humPct = Math.min(100, Math.max(5, hum)).toFixed(1);
 
-    const rainStatus = rain < 2 ? { text: "No Rain Today", bg: "#f1f5f9", color: "#475569", bar: "#94a3b8" }
-      : (rain <= 40 ? { text: "Light Rain", bg: "#ecfdf5", color: "#059669", bar: "#059669" } : { text: "Heavy Rain", bg: "#fef3c7", color: "#d97706", bar: "#d97706" });
-    const rainWidth = Math.min(100, Math.max(5, (rain / 100.0) * 100)).toFixed(1);
+    // 3. Rainfall: Normal (<25mm), Moderate (25-50mm), Waterlogging Hazard (>=50mm or >=20mm + soil>=55% EVR-001)
+    let rainStatus = "Normal";
+    let rainBg = "#ecfdf5";
+    let rainColor = "#059669";
+    let rainBar = "#059669";
+    if (rain >= 50.0 || (rain >= 20.0 && soil >= 55.0)) {
+      rainStatus = "Waterlogging Hazard";
+      rainBg = "#fee2e2";
+      rainColor = "#dc2626";
+      rainBar = "#dc2626";
+    } else if (rain > 25.0) {
+      rainStatus = "Moderate";
+      rainBg = "#fffbeb";
+      rainColor = "#d97706";
+      rainBar = "#d97706";
+    } else if (rain < 2.0) {
+      rainStatus = "Dry Period";
+      rainBg = "#f1f5f9";
+      rainColor = "#475569";
+      rainBar = "#94a3b8";
+    }
+    const rainPct = Math.min(100, Math.max(5, (rain / 100.0) * 100)).toFixed(1);
 
-    const aqiStatus = aqi <= 50 ? { text: "Clean Air", bg: "#ecfdf5", color: "#059669", bar: "#059669" }
-      : (aqi <= 100 ? { text: "Moderate Air", bg: "#fef3c7", color: "#d97706", bar: "#d97706" } : { text: "Dust / Smoke", bg: "#fee2e2", color: "#dc2626", bar: "#dc2626" });
-    const aqiWidth = Math.min(100, Math.max(5, (aqi / 250.0) * 100)).toFixed(1);
+    // 4. Soil Moisture: Optimal (50-75%), Deficit (30-50%), Severe Desiccation (<30% EVR-002), Saturated (>80% EVR-001)
+    let soilStatus = "Optimal";
+    let soilBg = "#ecfdf5";
+    let soilColor = "#059669";
+    let soilBar = "#059669";
+    if (soil < 30.0) {
+      soilStatus = "Severe Desiccation Hazard";
+      soilBg = "#fee2e2";
+      soilColor = "#dc2626";
+      soilBar = "#dc2626";
+    } else if (soil < 50.0) {
+      soilStatus = "Moisture Deficit";
+      soilBg = "#fffbeb";
+      soilColor = "#d97706";
+      soilBar = "#d97706";
+    } else if (soil > 80.0) {
+      soilStatus = "Saturated / Waterlogged";
+      soilBg = "#fee2e2";
+      soilColor = "#dc2626";
+      soilBar = "#dc2626";
+    }
+    const soilPct = Math.min(100, Math.max(5, soil)).toFixed(1);
 
-    const ozoneStatus = ozone <= 45 ? { text: "Normal", bg: "#ecfdf5", color: "#059669", bar: "#059669" }
-      : { text: "Elevated", bg: "#fee2e2", color: "#dc2626", bar: "#dc2626" };
+    // 5. AQI: Good (0-50), Moderate (51-100), Pollution Hazard (>100 EVR-003)
+    let aqiStatus = "Good";
+    let aqiBg = "#ecfdf5";
+    let aqiColor = "#059669";
+    let aqiBar = "#059669";
+    if (aqi > 100.0) {
+      aqiStatus = "Pollution Hazard";
+      aqiBg = "#fee2e2";
+      aqiColor = "#dc2626";
+      aqiBar = "#dc2626";
+    } else if (aqi > 50.0) {
+      aqiStatus = "Moderate";
+      aqiBg = "#fffbeb";
+      aqiColor = "#d97706";
+      aqiBar = "#d97706";
+    }
+    const aqiPct = Math.min(100, Math.max(5, (aqi / 250.0) * 100)).toFixed(1);
+
+    // 6. Ozone: Safe Baseline (<40 ppb), Elevated (40-50 ppb), Critical Hazard (>=50 ppb EVR-003)
+    let ozoneStatus = "Safe Baseline";
+    let ozoneBg = "#ecfdf5";
+    let ozoneColor = "#059669";
+    let ozoneBar = "#059669";
+    if (ozone >= 50.0) {
+      ozoneStatus = "Critical Oxidant Hazard";
+      ozoneBg = "#fee2e2";
+      ozoneColor = "#dc2626";
+      ozoneBar = "#dc2626";
+    } else if (ozone >= 40.0) {
+      ozoneStatus = "Elevated";
+      ozoneBg = "#fffbeb";
+      ozoneColor = "#d97706";
+      ozoneBar = "#d97706";
+    }
+    const ozonePct = Math.min(100, Math.max(5, (ozone / 100.0) * 100)).toFixed(1);
+
+    const factors = [
+      { name: "Air Temperature", val: `${temp.toFixed(1)}`, unit: "°C", source: weatherSrc, status: tempStatus, bg: tempBg, color: tempColor, bar: tempBar, pct: tempPct, icon: "🌡️" },
+      { name: "Relative Humidity", val: `${Math.round(hum)}`, unit: "%", source: weatherSrc, status: humStatus, bg: humBg, color: humColor, bar: humBar, pct: humPct, icon: "💧" },
+      { name: "7-Day Rainfall", val: `${rain.toFixed(1)}`, unit: "mm", source: weatherSrc, status: rainStatus, bg: rainBg, color: rainColor, bar: rainBar, pct: rainPct, icon: "🌧️" },
+      { name: "Soil Moisture", val: `${Math.round(soil)}`, unit: "%", source: soilSrc, status: soilStatus, bg: soilBg, color: soilColor, bar: soilBar, pct: soilPct, icon: "🌱" },
+      { name: "Air Quality Index (AQI)", val: `${Math.round(aqi)}`, unit: "AQI", source: weatherSrc, status: aqiStatus, bg: aqiBg, color: aqiColor, bar: aqiBar, pct: aqiPct, icon: "🫧" },
+      { name: "Tropospheric Ozone", val: `${Math.round(ozone)}`, unit: "ppb", source: weatherSrc, status: ozoneStatus, bg: ozoneBg, color: ozoneColor, bar: ozoneBar, pct: ozonePct, icon: "☀️" }
+    ];
+
+    factorsList.innerHTML = factors.map(f => `
+      <div class="env-factor-row">
+        <div class="env-factor-meta-top">
+          <div class="env-factor-name-group">
+            <span>${f.icon}</span>
+            <span>${f.name}</span>
+            <span class="source-tag" style="font-size:9.5px; padding:1px 6px;">${f.source}</span>
+          </div>
+          <div class="env-factor-val-group">
+            <span class="env-factor-value">${f.val} <span style="font-size:11px; font-weight:600; color:#64748b;">${f.unit}</span></span>
+            <span class="env-factor-status-pill" style="background:${f.bg}; color:${f.color}; border:1px solid ${f.color}40;">
+              ● ${f.status}
+            </span>
+          </div>
+        </div>
+        <div class="env-factor-bar-track">
+          <div class="env-factor-bar-fill" style="width:${f.pct}%; background:${f.bar};"></div>
+        </div>
+      </div>
+    `).join("");
+  }
     const ozoneWidth = Math.min(100, Math.max(5, (ozone / 120.0) * 100)).toFixed(1);
 
     const rows = [
