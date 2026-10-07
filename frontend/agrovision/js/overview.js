@@ -29,6 +29,13 @@ function getApiUrl(endpoint) {
   return endpoint;
 }
 
+function escapeHtml(text) {
+  if (!text) return "";
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 function openLatestOverviewReport() {
   if (latestRecordUuid) {
     window.open(getApiUrl(`/api/v1/records/${latestRecordUuid}/report`), "_blank");
@@ -362,11 +369,26 @@ function renderOverviewDashboard() {
 }
 
 async function loadOverviewData() {
+  const tbody = document.getElementById("overviewRecentTbody");
+  if (tbody && (!rawAllRecords || rawAllRecords.length === 0)) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="padding:16px 20px;">
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div class="agro-skeleton" style="height:24px; width:100%;"></div>
+            <div class="agro-skeleton" style="height:24px; width:92%;"></div>
+            <div class="agro-skeleton" style="height:24px; width:96%;"></div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
   try {
     const user = typeof requireLogin === "function" ? requireLogin() : null;
     const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
     const response = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
-    if (!response.ok) throw new Error("API response error");
+    if (!response.ok) throw new Error("Could not retrieve analysis records from database.");
 
     const data = await response.json();
     rawAllRecords = Array.isArray(data) ? data : (data.records || []);
@@ -376,6 +398,22 @@ async function loadOverviewData() {
     fetchEnvironmentalDistribution(userEmailParam);
   } catch (err) {
     console.error("Error loading farm overview data:", err);
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" style="padding:24px 16px;">
+            <div class="agro-error-banner" style="margin:0;">
+              <div class="agro-error-icon">⚠️</div>
+              <div class="agro-error-body">
+                <h4 class="agro-error-title">Unable to load analysis history</h4>
+                <p class="agro-error-desc">${escapeHtml(err.message || "Failed to connect to backend database service.")}</p>
+                <button type="button" class="agro-retry-btn agro-retry-btn-primary" onclick="loadOverviewData()">🔄 Retry Connection</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
   }
 }
 
@@ -481,7 +519,9 @@ async function fetchOverviewWeather(lat, lon, forceRefresh = false) {
     console.warn("Overview weather error:", err);
     if (errorBox) {
       errorBox.style.display = "block";
-      if (errorMsg) errorMsg.textContent = `${err.message || "Weather telemetry unavailable"}. Check internet connection or API settings and click Refresh.`;
+      const errTitle = document.getElementById("overviewWeatherErrorTitle") || errorBox.querySelector("strong");
+      if (errTitle) errTitle.textContent = "Weather data unavailable";
+      if (errorMsg) errorMsg.textContent = `${err.message || "Weather data unavailable"}. Check internet connection or station telemetry and click Refresh.`;
     }
     const tEl = document.getElementById("ovTemp");
     const hEl = document.getElementById("ovHum");

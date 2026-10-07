@@ -24,6 +24,13 @@ function getApiUrl(endpoint) {
   return endpoint;
 }
 
+function escapeHtml(text) {
+  if (!text) return "";
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 // Populate current date in header
 const today = new Date();
 const formattedDate = today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -626,8 +633,10 @@ async function fetchFieldWeather(lat = currentFieldLat, lon = currentFieldLon, f
     console.warn("OpenWeather fetch error:", err);
     if (errorBox) {
       errorBox.style.display = "block";
+      const errorTitle = errorBox.querySelector(".weather-error-title span:last-child");
+      if (errorTitle) errorTitle.textContent = "Weather data unavailable";
       if (errorMsg) {
-        errorMsg.textContent = `${err.message || "Weather telemetry unavailable"}. Please verify connection or API credentials and click Refresh.`;
+        errorMsg.textContent = `${err.message || "Weather data unavailable"}. Please verify connection or API credentials and click Refresh.`;
       }
     }
     const tempEl = document.getElementById("wCardTemp");
@@ -908,7 +917,7 @@ async function runAnalysis() {
   } catch (err) {
     console.error("CNN inference error:", err);
     updateDecisionTrace(2, "pending", "2. CNN Visual", "Failed");
-    showUploadError("Inference Execution Failed", err.message || "Error running visual leaf analysis.");
+    showUploadError("Visual analysis unavailable", err.message || "Visual analysis could not be completed. Please check backend model services and retry.");
   } finally {
     if (analyzeBtn) {
       analyzeBtn.disabled = false;
@@ -1116,6 +1125,19 @@ async function runEnvironmentAnalysis(switchToSNN = true) {
   } catch (err) {
     console.error("SNN inference error:", err);
     updateDecisionTrace(3, "pending", "3. SNN Climate", "Failed");
+    const spikesDetail = document.getElementById("fig6SpikesDetail");
+    if (spikesDetail) {
+      spikesDetail.innerHTML = `
+        <div class="agro-error-banner" style="margin: 8px 0;">
+          <div class="agro-error-icon">⚠️</div>
+          <div class="agro-error-body">
+            <h4 class="agro-error-title">Environmental assessment unavailable</h4>
+            <p class="agro-error-desc">${escapeHtml(err.message || "Could not complete SNN environmental assessment. Please verify backend services.")}</p>
+            <button type="button" class="agro-retry-btn agro-retry-btn-primary" onclick="runEnvironmentAnalysis(true)">🔄 Retry Environmental Analysis</button>
+          </div>
+        </div>
+      `;
+    }
   }
 }
 

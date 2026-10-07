@@ -18,6 +18,13 @@ function getApiUrl(endpoint) {
   return endpoint;
 }
 
+function escapeHtml(text) {
+  if (!text) return "";
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const recordIdentifier = urlParams.get("uuid") || urlParams.get("id");
@@ -43,10 +50,17 @@ function showDetailError(msg) {
   const loading = document.getElementById("loadingState");
   if (loading) {
     loading.innerHTML = `
-      <div style="font-size:32px; margin-bottom:12px;">⚠️</div>
-      <strong style="color:#b91c1c; font-size:16px;">Record Not Found</strong>
-      <p style="margin:4px 0 16px; font-size:13px; color:#4b5563;">${msg}</p>
-      <a href="history.html" class="btn btn-primary" style="text-decoration:none;">← Return to History Archive</a>
+      <div class="agro-error-banner" style="margin: 20px auto; max-width: 620px;">
+        <div class="agro-error-icon">⚠️</div>
+        <div class="agro-error-body">
+          <h4 class="agro-error-title">Unable to load analysis record</h4>
+          <p class="agro-error-desc">${escapeHtml(msg || "The requested analysis record could not be retrieved from the database.")}</p>
+          <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+            <button type="button" class="agro-retry-btn agro-retry-btn-primary" onclick="location.reload()">🔄 Retry</button>
+            <a href="history.html" class="agro-retry-btn" style="text-decoration:none;">← Return to History Archive</a>
+          </div>
+        </div>
+      </div>
     `;
   }
 }
