@@ -3,12 +3,355 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AI Assistant — AgroVision</title>
+<title>AgroVision AI Assistant — Smart Cotton Farming</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=8">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=12">
+<style>
+  /* Layout & Container */
+  .dash-shell {
+    display: flex;
+    min-height: 100vh;
+    background: #f8faf9;
+    position: relative;
+    overflow-x: hidden;
+  }
+  .dash-main {
+    flex: 1;
+    min-width: 0;
+    padding: 24px 32px 40px;
+    background: #f8faf9;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .assistant-container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 12px;
+  }
+
+  /* Context Anchor Banner */
+  .context-anchor-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .context-anchor-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .context-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+  }
+  .context-badge-active {
+    background: #ecfdf5;
+    color: #059669;
+    border-color: #a7f3d0;
+  }
+
+  /* Chat Shell & Messages Area */
+  .chat-shell {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    box-shadow: 0 4px 16px rgba(13, 59, 46, 0.04);
+    overflow: hidden;
+  }
+  .chat-conversation-area {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 24px;
+    background: #fafbfc;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+  }
+
+  /* Empty Welcome State */
+  .chat-welcome-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: auto 0;
+    padding: 30px 20px;
+    max-width: 680px;
+    align-self: center;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .welcome-icon-circle {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1);
+  }
+  .welcome-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0d3b2e;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .welcome-sub {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 20px;
+    line-height: 1.5;
+  }
+  .welcome-prompts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+  }
+  .welcome-prompt-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .welcome-prompt-card:hover {
+    border-color: #059669;
+    background: #f0fdf4;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(13, 59, 46, 0.05);
+  }
+  .welcome-prompt-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .welcome-prompt-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.35;
+    margin: 0;
+  }
+
+  /* Message Bubbles */
+  .message-row {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .message-row.user-row {
+    justify-content: flex-end;
+  }
+  .message-row.assistant-row {
+    justify-content: flex-start;
+  }
+
+  .message-bubble {
+    max-width: 82%;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.55;
+    box-sizing: border-box;
+    position: relative;
+    word-break: break-word;
+  }
+  .user-bubble {
+    background: #059669;
+    color: #ffffff;
+    border-top-right-radius: 4px;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.2);
+  }
+  .assistant-bubble {
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-top-left-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+
+  .message-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 10.5px;
+    color: #64748b;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .source-tag {
+    font-size: 9.5px;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* Suggested Quick Question Chips */
+  .chat-chips-container {
+    padding: 10px 18px;
+    background: #ffffff;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .chips-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-right: 4px;
+  }
+  .chat-chip-btn {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .chat-chip-btn:hover {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #059669;
+  }
+
+  /* Input Bar */
+  .chat-input-bar {
+    padding: 12px 18px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .chat-input-box {
+    flex: 1;
+    padding: 11px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    background: #f8fafc;
+    transition: all 0.15s ease;
+  }
+  .chat-input-box:focus {
+    background: #ffffff;
+    border-color: #059669;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.12);
+  }
+  .chat-send-btn {
+    padding: 11px 20px;
+    font-size: 12.5px;
+    font-weight: 700;
+    border-radius: 10px;
+    border: none;
+    background: #059669;
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+  }
+  .chat-send-btn:hover {
+    background: #047857;
+  }
+  .chat-send-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Service Unavailable Banner */
+  .service-unavailable-card {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: #991b1b;
+    display: none;
+    margin: 10px 0;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 768px) {
+    .dash-main {
+      padding: 16px 12px 20px;
+      height: auto;
+      overflow: visible;
+    }
+    .chat-shell {
+      height: 70vh;
+    }
+    .welcome-prompts-grid {
+      grid-template-columns: 1fr;
+    }
+    .message-bubble {
+      max-width: 92%;
+    }
+  }
+</style>
 </head>
 <body class="dash-body">
+
   <!-- Mobile Top Navigation Bar -->
   <div class="mobile-top-bar">
     <div style="display:flex; align-items:center; gap:8px;">
@@ -22,7 +365,7 @@
 
   <div class="dash-shell">
 
-    <!-- ============ PROFESSIONAL ENTERPRISE SIDEBAR ============ -->
+    <!-- ============ SIDEBAR ============ -->
     <aside class="sidebar">
       <a href="overview.html" class="brand">
         <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
@@ -86,18 +429,17 @@
     <!-- ============ MAIN CONTENT ============ -->
     <main class="dash-main">
 
-      <!-- ============ ANALYTICS DASHBOARD HEADER ============ -->
+      <!-- ============ HEADER ============ -->
       <header class="analytics-header">
         
-        <!-- Left: Title & Contextual Subtitle -->
         <div class="header-left-group">
           <div class="header-title-box">
-            <h1 class="header-title" id="assistantPageTitle">AI Assistant</h1>
-            <p class="header-subtitle">Grounded agronomic decision support &amp; crop advice</p>
+            <h1 class="header-title" id="assistantPageTitle">AgroVision AI Assistant</h1>
+            <p class="header-subtitle">Understand your analysis and environmental conditions.</p>
           </div>
         </div>
 
-        <!-- Center/Left: Global Search -->
+        <!-- Center Search -->
         <div class="header-search-wrap">
           <span class="header-search-icon">🔍</span>
           <input
@@ -110,16 +452,14 @@
           />
         </div>
 
-        <!-- Right: Date, Location, Notifications, User Profile -->
+        <!-- Right Header Items -->
         <div class="header-right-group">
           
-          <!-- Date Badge -->
           <div class="header-date-badge">
             <span style="font-size:13px;">📅</span>
             <span id="globalHeaderDate">Today</span>
           </div>
 
-          <!-- Farm Station Badge -->
           <div class="header-location-badge" id="globalHeaderLocation">
             <span style="font-size:13px;">📍</span>
             <span>Wardha Farm Station</span>
@@ -137,20 +477,20 @@
             </button>
             <div class="header-dropdown-menu" id="notifDropdownMenu">
               <div style="font-size:12px; font-weight:800; color:#0d3b2e; border-bottom:1px solid #f1f5f9; padding-bottom:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                <span>System Alerts</span>
-                <span style="font-size:10px; color:#059669; font-weight:700; background:#ecfdf5; padding:1px 6px; border-radius:4px;">Live</span>
+                <span>AI Assistant Status</span>
+                <span style="font-size:10px; color:#059669; font-weight:700; background:#ecfdf5; padding:1px 6px; border-radius:4px;" id="notifModelStatusBadge">Gemini Active</span>
               </div>
               <div class="notif-item">
-                <span style="font-size:14px;">🌤️</span>
+                <span style="font-size:14px;">🧠</span>
                 <div>
-                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Live Weather Connected</strong>
-                  <span style="color:#64748b; font-size:11px;">Real-time farm station weather active.</span>
+                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Gemini 2.5 Flash Grounding</strong>
+                  <span style="color:#64748b; font-size:11px;">Grounded in verified CNN, SNN, and OpenWeather telemetry.</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Authenticated User Profile -->
+          <!-- User Profile -->
           <div class="user-profile-wrap">
             <div class="user-profile-widget" id="userProfileWidget" onclick="toggleProfileDropdown(event)" aria-label="User Profile Menu">
               <div class="user-avatar-circle" id="headerUserAvatar">F</div>
@@ -161,7 +501,6 @@
               <span class="user-profile-chevron">▾</span>
             </div>
 
-            <!-- Profile Dropdown Menu -->
             <div class="header-dropdown-menu" id="profileDropdownMenu" style="width:230px;">
               <div style="padding:4px 6px 10px; border-bottom:1px solid #f1f5f9; margin-bottom:6px;">
                 <div style="font-size:12.5px; font-weight:700; color:#0f172a;" id="profileMenuUserName">Farmer</div>
@@ -169,7 +508,7 @@
                 <div style="margin-top:6px;"><span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Verified Operator</span></div>
               </div>
               <a href="reports.html" class="profile-menu-link">
-                <span>📄</span> <span>Agronomic Reports</span>
+                <span>📄</span> <span>Reports Center</span>
               </a>
               <a href="javascript:void(0)" onclick="openSettingsModal()" class="profile-menu-link">
                 <span>⚙️</span> <span>Farm Preferences</span>
@@ -185,59 +524,137 @@
         </div>
       </header>
 
-      <!-- Chat Container -->
-      <div class="chat-page-container">
-        <div class="chat-card">
-          
-          <!-- Banner -->
-          <div class="chat-banner">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:16px;">🌿</span>
-              <span id="chatContextDesc">Using latest analysis session context &amp; verified field telemetry</span>
-            </div>
-            <span id="chatSessionBadge" style="font-weight:700; color:#059669; background:#ecfdf5; padding:3px 10px; border-radius:999px; font-size:11px;">
-              Active Session
-            </span>
-          </div>
+      <div class="assistant-container">
 
-          <!-- Messages Area -->
-          <div class="chat-messages-area" id="chatMessages">
-            <div class="chat-bubble chat-bubble-assistant">
-              <strong style="color:#0d3b2e; font-size:14px; display:block; margin-bottom:4px;">Hello! I am your AgroVision Agronomic Assistant.</strong>
-              <p style="margin:0; color:#334155;">
-                I am here to answer questions about your cotton leaf visual symptoms, SNN environmental stress risk levels, and triggered deterministic Expert Veto rules. How can I help you today?
+        <!-- ============ CONTEXT ANCHOR CARD ============ -->
+        <div class="context-anchor-card" id="contextAnchorCard">
+          <div class="context-anchor-left">
+            <span style="font-size:16px;">🌱</span>
+            <div>
+              <strong style="color:#0d3b2e; font-size:12.5px;" id="contextTitle">Active Analysis Context: Wardha Field</strong>
+              <div style="font-size:11px; color:#64748b;" id="contextSub">Loading authoritative database telemetry…</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span class="context-badge context-badge-active" id="contextSessionBadge">● Telemetry Grounded</span>
+            <button onclick="clearChatConversation()" class="btn btn-action-table" style="padding:4px 8px; font-size:11px; border-radius:6px; cursor:pointer;" title="Restart Chat Session">
+              🔄 Clear Chat
+            </button>
+          </div>
+        </div>
+
+        <!-- ============ SERVICE UNAVAILABLE ALERT ============ -->
+        <div class="service-unavailable-card" id="serviceUnavailableAlert">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+            <div>
+              <strong style="font-size:13px; display:block; margin-bottom:3px;">⚠️ AI Advisory Service Unavailable</strong>
+              <div style="font-size:12px; line-height:1.45;">
+                The Gemini AI explanation layer is currently unreachable or experiencing high demand. All deterministic analysis records, CNN probabilities, and SNN stress reports remain fully operational.
+              </div>
+            </div>
+            <button onclick="retryGeminiConnection()" class="btn btn-action-table" style="background:#ffffff; color:#991b1b; border-color:#fca5a5; font-size:11px; padding:4px 10px; cursor:pointer; white-space:nowrap;">
+              🔄 Retry
+            </button>
+          </div>
+        </div>
+
+        <!-- ============ CHAT SHELL ============ -->
+        <div class="chat-shell">
+
+          <!-- Conversation Area -->
+          <div class="chat-conversation-area" id="chatConversationArea">
+            
+            <!-- Welcome Empty State (Displayed on first use, no fake conversations) -->
+            <div class="chat-welcome-state" id="chatWelcomeState">
+              <div class="welcome-icon-circle">🌿</div>
+              <h2 class="welcome-title">AgroVision AI Assistant</h2>
+              <p class="welcome-sub">
+                Understand your crop analysis, foliar symptoms, microclimatic telemetry, and expert rule evaluations with grounded AI explanation.
               </p>
+
+              <div class="welcome-prompts-grid">
+                <div class="welcome-prompt-card" onclick="sendPrompt('Why did AgroVision give this result?')">
+                  <span class="welcome-prompt-icon">💡</span>
+                  <div>
+                    <p class="welcome-prompt-text">Why did AgroVision give this result?</p>
+                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">Detailed breakdown of CNN &amp; SNN decisions</div>
+                  </div>
+                </div>
+
+                <div class="welcome-prompt-card" onclick="sendPrompt('What environmental factors affected my assessment?')">
+                  <span class="welcome-prompt-icon">🌤️</span>
+                  <div>
+                    <p class="welcome-prompt-text">What environmental factors affected my assessment?</p>
+                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">Examines temperature, soil moisture &amp; rainfall</div>
+                  </div>
+                </div>
+
+                <div class="welcome-prompt-card" onclick="sendPrompt('What should I check in the field?')">
+                  <span class="welcome-prompt-icon">🚜</span>
+                  <div>
+                    <p class="welcome-prompt-text">What should I check in the field?</p>
+                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">Farmer-friendly physical verification steps</div>
+                  </div>
+                </div>
+
+                <div class="welcome-prompt-card" onclick="sendPrompt('Explain my latest analysis simply.')">
+                  <span class="welcome-prompt-icon">📋</span>
+                  <div>
+                    <p class="welcome-prompt-text">Explain my latest analysis simply.</p>
+                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">Clear, plain-language agronomic summary</div>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <!-- Messages Stream (Appended dynamically) -->
+            <div id="messagesStream" style="display:flex; flex-direction:column; gap:16px;"></div>
+
           </div>
 
-          <!-- Suggestion Chips (Section 23) -->
-          <div class="chat-chips-row">
-            <button class="chat-chip" onclick="sendChip('Explain my result')">💡 Explain my result</button>
-            <button class="chat-chip" onclick="sendChip('Why did I get this result?')">❓ Why this result?</button>
-            <button class="chat-chip" onclick="sendChip('What does the environment mean?')">🌤️ What does the environment mean?</button>
-            <button class="chat-chip" onclick="sendChip('Why did Expert Check trigger?')">⚖️ Why did Expert Check trigger?</button>
-            <button class="chat-chip" onclick="sendChip('What should I monitor?')">🚜 What should I monitor?</button>
-            <button class="chat-chip" onclick="sendChip('Summarize my analysis')">📋 Summarize my analysis</button>
+          <!-- Suggested Contextual Questions Chips -->
+          <div class="chat-chips-container">
+            <span class="chips-label">Suggested:</span>
+            <button class="chat-chip-btn" onclick="sendPrompt('Why did AgroVision give this result?')">
+              Why did AgroVision give this result?
+            </button>
+            <button class="chat-chip-btn" onclick="sendPrompt('What environmental factors affected my assessment?')">
+              What environmental factors affected my assessment?
+            </button>
+            <button class="chat-chip-btn" onclick="sendPrompt('What should I check in the field?')">
+              What should I check in the field?
+            </button>
+            <button class="chat-chip-btn" onclick="sendPrompt('Explain my latest analysis simply.')">
+              Explain my latest analysis simply.
+            </button>
           </div>
 
-          <!-- Input Bar -->
+          <!-- Message Input Bar -->
           <div class="chat-input-bar">
-            <input type="text" id="chatInput" class="chat-input-field" placeholder="Ask about symptoms, irrigation, weather, or expert rules…" onkeydown="if(event.key==='Enter') sendMessage()" />
-            <button onclick="sendMessage()" class="btn btn-primary" style="padding:10px 20px; font-size:13px; border-radius:8px;">
-              Send
+            <input
+              type="text"
+              id="chatInputField"
+              class="chat-input-box"
+              placeholder="Ask about symptoms, soil moisture, irrigation timing, or expert rules…"
+              aria-label="Message to AI Assistant"
+              onkeydown="handleInputKeydown(event)"
+            />
+            <button class="chat-send-btn" id="chatSendBtn" onclick="handleSendMessage()" aria-label="Send Message">
+              <span>Send</span> <span>➤</span>
             </button>
           </div>
 
         </div>
+
       </div>
 
     </main>
   </div>
 
   <script src="js/config.js"></script>
-  <script src="js/auth.js?v=8"></script>
+  <script src="js/auth.js?v=12"></script>
   <script src="js/sidebar.js"></script>
   <script src="js/header.js"></script>
-  <script src="js/assistant.js?v=8"></script>
+  <script src="js/assistant.js?v=12"></script>
 </body>
 </html>
