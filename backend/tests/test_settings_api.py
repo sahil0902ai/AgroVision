@@ -2,13 +2,12 @@ import os
 import sys
 import unittest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from fastapi.testclient import TestClient
-from app.main import app
-from app.core.database import init_db, SessionLocal
-from app.models.db_models import UserSettingsDB
+from backend.app.main import app
+from backend.app.core.database import init_db, SessionLocal
+from backend.app.models.db_models import UserSettingsDB
 
 class TestSettingsAPI(unittest.TestCase):
     @classmethod

@@ -363,15 +363,17 @@ function renderOverviewDashboard() {
 
 async function loadOverviewData() {
   try {
-    const response = await fetch(getApiUrl("/api/v1/records?limit=200"));
+    const user = typeof requireLogin === "function" ? requireLogin() : null;
+    const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
+    const response = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
     if (!response.ok) throw new Error("API response error");
 
     const data = await response.json();
     rawAllRecords = Array.isArray(data) ? data : (data.records || []);
 
     renderOverviewDashboard();
-    fetchVisualDistribution();
-    fetchEnvironmentalDistribution();
+    fetchVisualDistribution(userEmailParam);
+    fetchEnvironmentalDistribution(userEmailParam);
   } catch (err) {
     console.error("Error loading farm overview data:", err);
   }
@@ -609,7 +611,7 @@ let visualDistChartInstance = null;
 let currentCategoryFilter = null;
 let latestVisualDistData = null;
 
-async function fetchVisualDistribution() {
+async function fetchVisualDistribution(userEmailParam = "") {
   const loadingEl = document.getElementById("visualDistLoading");
   const emptyEl = document.getElementById("visualDistEmpty");
   const contentEl = document.getElementById("visualDistContent");
@@ -619,7 +621,8 @@ async function fetchVisualDistribution() {
   if (contentEl) contentEl.style.opacity = "0.3";
 
   try {
-    const res = await fetch(getApiUrl("/api/v1/analytics/visual-distribution"));
+    const url = getApiUrl(`/api/v1/analytics/visual-distribution?${userEmailParam.replace(/^&/, '')}`);
+    const res = await fetch(url);
     if (!res.ok) throw new Error("Could not fetch visual distribution");
 
     const data = await res.json();
@@ -853,7 +856,7 @@ function renderCanvasDonutFallback(ctx, canvas, categories, hasData) {
 let envDistChartInstance = null;
 let latestEnvDistData = null;
 
-async function fetchEnvironmentalDistribution() {
+async function fetchEnvironmentalDistribution(userEmailParam = "") {
   const loadingEl = document.getElementById("envDistLoading");
   const emptyEl = document.getElementById("envDistEmpty");
   const contentEl = document.getElementById("envDistContent");
@@ -863,7 +866,8 @@ async function fetchEnvironmentalDistribution() {
   if (contentEl) contentEl.style.opacity = "0.3";
 
   try {
-    const res = await fetch(getApiUrl("/api/v1/analytics/environmental-distribution"));
+    const url = getApiUrl(`/api/v1/analytics/environmental-distribution?${userEmailParam.replace(/^&/, '')}`);
+    const res = await fetch(url);
     if (!res.ok) throw new Error("Could not fetch environmental distribution");
 
     const data = await res.json();
@@ -1293,14 +1297,15 @@ function renderRecentAnalysesTable() {
     if (countBadge) countBadge.textContent = "0 Scans";
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" style="text-align:center; padding:36px 16px; color:#64748b;">
-          <div style="font-size:32px; margin-bottom:8px;">🍃</div>
-          <h4 style="font-size:14px; font-weight:700; color:#0f172a; margin:0 0 4px;">No analysis records yet.</h4>
-          <p style="font-size:12px; color:#64748b; margin:0 0 14px;">Start your first analysis to diagnose foliar health and environmental conditions.</p>
-          <a href="dashboard.html" class="btn btn-primary" style="font-size:12px; padding:7px 16px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
-            <span>Start your first analysis</span>
-            <span>→</span>
-          </a>
+        <td colspan="8" style="padding:0;">
+          <div class="agro-empty-state">
+            <div class="empty-icon">🌱</div>
+            <div class="empty-title">No analyses yet</div>
+            <div class="empty-subtitle">Start your first cotton leaf assessment to see field health trends and stress diagnoses.</div>
+            <div class="empty-actions">
+              <a href="dashboard.html" class="empty-btn empty-btn-primary">+ Start Leaf Analysis</a>
+            </div>
+          </div>
         </td>
       </tr>
     `;
@@ -1377,11 +1382,15 @@ function renderRecentAnalysesTable() {
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" style="text-align:center; padding:32px 16px; color:#64748b;">
-          <div style="font-size:26px; margin-bottom:6px;">🔍</div>
-          <strong style="font-size:13px; color:#334155; display:block;">No records match your filter criteria</strong>
-          <p style="font-size:11.5px; color:#64748b; margin:4px 0 12px;">Try clearing search keywords or resetting visual/environmental filters.</p>
-          <button type="button" class="btn-reset-filters" onclick="resetTableFilters()">Reset Filters</button>
+        <td colspan="8" style="padding:0;">
+          <div class="agro-empty-state">
+            <div class="empty-icon icon-info">🔍</div>
+            <div class="empty-title">No matching records found</div>
+            <div class="empty-subtitle">Try adjusting your search query, dates, or active dropdown filters.</div>
+            <div class="empty-actions">
+              <button type="button" class="empty-btn empty-btn-outline" onclick="resetTableFilters()">↺ Clear All Filters</button>
+            </div>
+          </div>
         </td>
       </tr>
     `;

@@ -17,6 +17,8 @@ def init_db():
         inspector = inspect(engine)
         if "analysis_records" in inspector.get_table_names():
             columns = [c["name"] for c in inspector.get_columns("analysis_records")]
+            if "user_email" not in columns:
+                conn.execute(text("ALTER TABLE analysis_records ADD COLUMN user_email VARCHAR"))
             if "fusion_json" not in columns:
                 conn.execute(text("ALTER TABLE analysis_records ADD COLUMN fusion_json TEXT"))
             if "expert_veto_json" not in columns:
@@ -29,6 +31,18 @@ def init_db():
                 conn.execute(text("ALTER TABLE analysis_records ADD COLUMN weather_source VARCHAR DEFAULT 'OpenWeather'"))
             if "weather_context_json" not in columns:
                 conn.execute(text("ALTER TABLE analysis_records ADD COLUMN weather_context_json TEXT"))
+            conn.commit()
+
+        if "chat_messages" in inspector.get_table_names():
+            columns = [c["name"] for c in inspector.get_columns("chat_messages")]
+            if "user_email" not in columns:
+                conn.execute(text("ALTER TABLE chat_messages ADD COLUMN user_email VARCHAR"))
+            conn.commit()
+
+        if "users" in inspector.get_table_names():
+            columns = [c["name"] for c in inspector.get_columns("users")]
+            if "reset_code" not in columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN reset_code VARCHAR"))
             conn.commit()
 
 

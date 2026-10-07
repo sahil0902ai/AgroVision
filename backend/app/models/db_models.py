@@ -15,10 +15,23 @@ class Lead(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class UserDB(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    name = Column(String, nullable=False)
+    password_hash = Column(String, nullable=False)
+    salt = Column(String, nullable=False)
+    reset_code = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class AnalysisRecordDB(Base):
     __tablename__ = "analysis_records"
     id = Column(Integer, primary_key=True, index=True)
     record_uuid = Column(String, unique=True, index=True, nullable=False)
+    user_email = Column(String, index=True, nullable=True)
     field_name = Column(String, default="Field A — North Parcel")
     image_url = Column(String, nullable=False)
     heatmap_url = Column(String, nullable=True)
@@ -53,6 +66,7 @@ class ChatMessageDB(Base):
     __tablename__ = "chat_messages"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, default="anonymous", index=True)
+    user_email = Column(String, index=True, nullable=True)
     record_uuid = Column(String, index=True, nullable=True)
     field_name = Column(String, default="Field A — North Parcel")
     message = Column(Text, nullable=False)

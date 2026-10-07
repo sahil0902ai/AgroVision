@@ -21,6 +21,7 @@ class PredictResponseSchema(BaseModel):
 class AnalysisRecordResponseSchema(BaseModel):
     id: int
     record_uuid: str
+    user_email: str | None = None
     field_name: str | None = "Field A — North Parcel"
     image_url: str
     heatmap_url: str | None = None

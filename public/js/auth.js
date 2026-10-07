@@ -1,79 +1,75 @@
 /* =========================================================
    AgroVision — Authentication Controller
-   Manages client session and credentials.
-
-   Security notes:
-   - Passwords are never stored in plaintext: signup stores a
-     per-user random salt + SHA-256 hash (WebCrypto). Legacy
-     plaintext records are upgraded to salted hashes on their
-     next successful login.
-   - The dashboard is protected: requireLogin() redirects to
-     the login page when no session exists.
-   - This is client-side demo-grade auth; it must be replaced
-     by server-side authentication before any real deployment.
+   Enterprise Database-Backed Authentication & Session Management
+   Strictly connects to backend SQLite API: /api/auth/*
    ========================================================= */
 
-const USERS_KEY = "agrovision_users";
 const SESSION_KEY = "agrovision_current_user";
 
-function toHex(buffer) {
-  return Array.from(new Uint8Array(buffer))
-    .map(b => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function hashPassword(password, saltHex) {
-  if (!window.crypto || !crypto.subtle) {
-    throw new Error("Secure context required for password hashing. Open the app over HTTPS or localhost.");
+function getApiUrl(endpoint) {
+  if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
+    return window.AGROVISION_CONFIG.getApiUrl(endpoint);
   }
-  const saltBytes = new Uint8Array(saltHex.match(/.{2}/g).map(h => parseInt(h, 16)));
-  const material = new TextEncoder().encode(saltHex + ":" + password);
-  const digest = await crypto.subtle.digest("SHA-256", concatBuffers(saltBytes, new Uint8Array(material)));
-  return toHex(digest);
+  return endpoint;
 }
 
-function concatBuffers(a, b) {
-  const out = new Uint8Array(a.length + b.length);
-  out.set(a, 0);
-  out.set(b, a.length);
-  return out;
+function getCurrentUser() {
+  const session = localStorage.getItem(SESSION_KEY);
+  if (!session) return null;
+  try {
+    return JSON.parse(session);
+  } catch (_) {
+    localStorage.removeItem(SESSION_KEY);
+    return null;
+  }
 }
 
-function randomSalt() {
-  const bytes = crypto.getRandomValues(new Uint8Array(16));
-  return toHex(bytes);
+function requireLogin() {
+  const user = getCurrentUser();
+  if (!user || !user.email) {
+    window.location.href = "login.html";
+    return null;
+  }
+  return user;
 }
 
-function getUsers() {
-  return JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
-}
-
-function saveUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+function logout() {
+  const user = getCurrentUser();
+  if (user && user.token) {
+    fetch(getApiUrl("/api/auth/logout"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    }).catch(() => {});
+  }
+  localStorage.removeItem(SESSION_KEY);
+  window.location.href = "login.html";
 }
 
 function showTab(which) {
   const loginForm = document.getElementById("loginForm");
   const signupForm = document.getElementById("signupForm");
+  const forgotForm = document.getElementById("forgotForm");
   const tabLogin = document.getElementById("tabLogin");
   const tabSignup = document.getElementById("tabSignup");
+  const tabForgot = document.getElementById("tabForgot");
+
   const loginError = document.getElementById("loginError");
   const signupError = document.getElementById("signupError");
+  const forgotError = document.getElementById("forgotError");
+  const forgotSuccess = document.getElementById("forgotSuccess");
 
   if (loginError) loginError.classList.remove("show");
   if (signupError) signupError.classList.remove("show");
+  if (forgotError) forgotError.classList.remove("show");
+  if (forgotSuccess) forgotSuccess.style.display = "none";
 
-  if (which === "signup") {
-    if (loginForm) loginForm.style.display = "none";
-    if (signupForm) signupForm.style.display = "block";
-    if (tabLogin) tabLogin.classList.remove("active");
-    if (tabSignup) tabSignup.classList.add("active");
-  } else {
-    if (loginForm) loginForm.style.display = "block";
-    if (signupForm) signupForm.style.display = "none";
-    if (tabSignup) tabSignup.classList.remove("active");
-    if (tabLogin) tabLogin.classList.add("active");
-  }
+  if (loginForm) loginForm.style.display = which === "login" ? "block" : "none";
+  if (signupForm) signupForm.style.display = which === "signup" ? "block" : "none";
+  if (forgotForm) forgotForm.style.display = which === "forgot" ? "block" : "none";
+
+  if (tabLogin) tabLogin.classList.toggle("active", which === "login");
+  if (tabSignup) tabSignup.classList.toggle("active", which === "signup");
+  if (tabForgot) tabForgot.classList.toggle("active", which === "forgot");
 }
 
 function showAuthError(errorBox, message) {
@@ -83,12 +79,66 @@ function showAuthError(errorBox, message) {
   }
 }
 
+async function handleLogin(event) {
+  event.preventDefault();
+  const emailInput = document.getElementById("loginEmail");
+  const passwordInput = document.getElementById("loginPassword");
+  const errorBox = document.getElementById("loginError");
+  const submitBtn = document.getElementById("loginSubmitBtn");
+
+  const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
+  const password = passwordInput ? passwordInput.value : "";
+
+  if (!email || !password) {
+    showAuthError(errorBox, "Please enter your email and password.");
+    return false;
+  }
+
+  if (errorBox) errorBox.classList.remove("show");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "Authenticating…";
+  }
+
+  try {
+    const res = await fetch(getApiUrl("/api/auth/login"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.detail || data.message || "Invalid email or password.");
+    }
+
+    // Save authentic authenticated session
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      name: data.user.name,
+      email: data.user.email,
+      token: data.user.token
+    }));
+
+    window.location.href = "dashboard.html";
+  } catch (err) {
+    showAuthError(errorBox, err.message || "Login failed. Please verify your credentials.");
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "Log In →";
+    }
+  }
+
+  return false;
+}
+
 async function handleSignup(event) {
   event.preventDefault();
   const nameInput = document.getElementById("signupName");
   const emailInput = document.getElementById("signupEmail");
   const passwordInput = document.getElementById("signupPassword");
   const errorBox = document.getElementById("signupError");
+  const submitBtn = document.getElementById("signupSubmitBtn");
 
   const name = nameInput ? nameInput.value.trim() : "";
   const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
@@ -99,111 +149,171 @@ async function handleSignup(event) {
     return false;
   }
 
-  const users = getUsers();
-  if (users.some(u => u.email === email)) {
-    showAuthError(errorBox, "An account with this email already exists. Try logging in instead.");
+  if (password.length < 6) {
+    showAuthError(errorBox, "Password must be at least 6 characters long.");
     return false;
   }
 
-  let salt, hash;
+  if (errorBox) errorBox.classList.remove("show");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "Creating Account…";
+  }
+
   try {
-    salt = randomSalt();
-    hash = await hashPassword(password, salt);
-  } catch (e) {
-    showAuthError(errorBox, e.message);
-    return false;
+    const res = await fetch(getApiUrl("/api/auth/register"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.detail || data.message || "Registration failed.");
+    }
+
+    // Save authentic authenticated session
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      name: data.user.name,
+      email: data.user.email,
+      token: data.user.token
+    }));
+
+    window.location.href = "dashboard.html";
+  } catch (err) {
+    showAuthError(errorBox, err.message || "Could not register account.");
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "Create Account →";
+    }
   }
 
-  users.push({ name, email, salt, hash });
-  saveUsers(users);
-
-  // Auto-login upon registration
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ name, email }));
-  window.location.href = "dashboard.html";
   return false;
 }
 
-async function handleLogin(event) {
+async function handleForgotPassword(event) {
   event.preventDefault();
-  const emailInput = document.getElementById("loginEmail");
-  const passwordInput = document.getElementById("loginPassword");
-  const errorBox = document.getElementById("loginError");
+  const emailInput = document.getElementById("forgotEmail");
+  const errorBox = document.getElementById("forgotError");
+  const successBox = document.getElementById("forgotSuccess");
+  const submitBtn = document.getElementById("forgotSubmitBtn");
+  const resetSection = document.getElementById("resetPasswordSection");
 
   const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
-  const password = passwordInput ? passwordInput.value : "";
-
-  if (!email || !password) {
-    showAuthError(errorBox, "Please enter your email and password.");
+  if (!email) {
+    showAuthError(errorBox, "Please enter your registered email address.");
     return false;
   }
 
-  const users = getUsers();
-  const match = users.find(u => u.email === email);
-
-  if (!match) {
-    showAuthError(errorBox, "Email or password is incorrect.");
-    return false;
+  if (errorBox) errorBox.classList.remove("show");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "Requesting Code…";
   }
 
-  let valid = false;
+  try {
+    const res = await fetch(getApiUrl("/api/auth/forgot-password"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
 
-  if (match.salt && match.hash) {
-    // Current salted-hash format
-    try {
-      valid = (await hashPassword(password, match.salt)) === match.hash;
-    } catch (e) {
-      showAuthError(errorBox, e.message);
-      return false;
+    const data = await res.json();
+    if (successBox) {
+      successBox.textContent = data.message || "Reset instructions generated.";
+      successBox.style.display = "block";
     }
-  } else if (typeof match.password === "string") {
-    // Legacy plaintext record: verify once, then upgrade to salted hash
-    valid = (match.password === password);
-    if (valid) {
-      const salt = randomSalt();
-      match.salt = salt;
-      match.hash = await hashPassword(password, salt);
-      delete match.password;
-      saveUsers(users);
+    if (resetSection) {
+      resetSection.style.display = "block";
+      const codeInput = document.getElementById("resetCode");
+      if (codeInput && data.reset_code_preview) {
+        codeInput.value = data.reset_code_preview;
+      }
+    }
+  } catch (err) {
+    showAuthError(errorBox, err.message || "Failed to process password recovery.");
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "Send Verification Code";
     }
   }
 
-  if (!valid) {
-    showAuthError(errorBox, "Email or password is incorrect.");
-    return false;
-  }
-
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ name: match.name, email: match.email }));
-  window.location.href = "dashboard.html";
   return false;
 }
 
-function logout() {
-  localStorage.removeItem(SESSION_KEY);
-  window.location.href = "login.html";
-}
+async function handleResetPassword(event) {
+  event.preventDefault();
+  const emailInput = document.getElementById("forgotEmail");
+  const codeInput = document.getElementById("resetCode");
+  const newPasswordInput = document.getElementById("resetNewPassword");
+  const errorBox = document.getElementById("forgotError");
+  const successBox = document.getElementById("forgotSuccess");
+  const resetBtn = document.getElementById("resetSubmitBtn");
 
-function requireLogin() {
-  const session = localStorage.getItem(SESSION_KEY);
-  if (!session) {
-    // Protected route: no session means no access.
-    window.location.href = "login.html";
-    return null;
+  const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
+  const reset_code = codeInput ? codeInput.value.trim() : "";
+  const new_password = newPasswordInput ? newPasswordInput.value : "";
+
+  if (!email || !reset_code || !new_password) {
+    showAuthError(errorBox, "Please enter email, reset code, and new password.");
+    return false;
   }
+
+  if (new_password.length < 6) {
+    showAuthError(errorBox, "New password must be at least 6 characters.");
+    return false;
+  }
+
+  if (errorBox) errorBox.classList.remove("show");
+  if (resetBtn) {
+    resetBtn.disabled = true;
+    resetBtn.innerHTML = "Updating Password…";
+  }
+
   try {
-    return JSON.parse(session);
-  } catch (_) {
-    localStorage.removeItem(SESSION_KEY);
-    window.location.href = "login.html";
-    return null;
+    const res = await fetch(getApiUrl("/api/auth/reset-password"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, reset_code, new_password })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.detail || data.message || "Failed to reset password.");
+    }
+
+    if (successBox) {
+      successBox.textContent = "Password updated successfully! Please log in with your new password.";
+      successBox.style.display = "block";
+    }
+
+    setTimeout(() => {
+      showTab("login");
+      const loginEmail = document.getElementById("loginEmail");
+      if (loginEmail) loginEmail.value = email;
+    }, 1500);
+
+  } catch (err) {
+    showAuthError(errorBox, err.message || "Password reset failed.");
+  } finally {
+    if (resetBtn) {
+      resetBtn.disabled = false;
+      resetBtn.innerHTML = "Reset Password →";
+    }
   }
+
+  return false;
 }
 
-// On the login page: honor ?mode=signup
+// On page load: check query parameters for signup or forgot mode
 document.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("tabSignup")) {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("mode") === "signup") {
-      showTab("signup");
-    }
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get("mode");
+  if (mode === "signup") {
+    showTab("signup");
+  } else if (mode === "forgot" || mode === "reset") {
+    showTab("forgot");
   }
 });

@@ -47,9 +47,11 @@ async function loadActiveAnalysisContext(uuid) {
   const sessionBadge = document.getElementById("contextSessionBadge");
 
   try {
+    const user = typeof requireLogin === "function" ? requireLogin() : null;
+    const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
     const endpoint = uuid
       ? `/api/v1/records/${encodeURIComponent(uuid)}`
-      : `/api/v1/records?limit=1`;
+      : `/api/v1/records?limit=1${userEmailParam}`;
 
     const res = await fetch(getApiUrl(endpoint));
     if (res.ok) {
@@ -217,8 +219,10 @@ async function handleSendMessage() {
 
   // 3. Dispatch to /api/chat
   try {
+    const user = typeof requireLogin === "function" ? requireLogin() : null;
     const payload = {
       message: text,
+      user_email: user?.email || undefined,
       record_uuid: activeRecordUuid,
       field_name: activeContextRecord?.field_name || "Wardha Field",
       history: conversationHistory.slice(-8)

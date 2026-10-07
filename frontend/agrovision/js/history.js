@@ -50,6 +50,9 @@ document.addEventListener("DOMContentLoaded", () => {
 // Data Fetching & KPI Computation
 // ---------------------------------------------------------
 async function loadHistoryData() {
+  const user = typeof requireLogin === "function" ? requireLogin() : null;
+  const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
+
   const tbody = document.getElementById("historyTbody");
   if (tbody) {
     tbody.innerHTML = `
@@ -63,7 +66,7 @@ async function loadHistoryData() {
   }
 
   try {
-    const res = await fetch(getApiUrl("/api/v1/records?limit=200"));
+    const res = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
     if (!res.ok) throw new Error(`HTTP ${res.status}: Could not load history records`);
 
     const data = await res.json();
@@ -502,14 +505,13 @@ function renderHistoryTable(records, totalDbRecords) {
     tbody.innerHTML = `
       <tr>
         <td colspan="8" style="padding:0;">
-          <div class="empty-state-card">
-            <div class="empty-icon">🍃</div>
-            <h3 class="empty-title">No analysis records yet.</h3>
-            <p class="empty-subtitle">Your completed AgroVision assessments will appear here.</p>
-            <a href="dashboard.html" class="btn btn-primary" style="font-size:12px; padding:8px 18px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
-              <span>+ Start First Analysis</span>
-              <span>→</span>
-            </a>
+          <div class="agro-empty-state">
+            <div class="empty-icon">🌱</div>
+            <h3 class="empty-title">No analyses yet</h3>
+            <p class="empty-subtitle">Start your first cotton leaf assessment.</p>
+            <div class="empty-actions">
+              <a href="dashboard.html" class="empty-btn empty-btn-primary">+ Start First Analysis</a>
+            </div>
           </div>
         </td>
       </tr>
@@ -527,13 +529,13 @@ function renderHistoryTable(records, totalDbRecords) {
     tbody.innerHTML = `
       <tr>
         <td colspan="8" style="padding:0;">
-          <div class="empty-state-card">
-            <div class="empty-icon">🔍</div>
+          <div class="agro-empty-state">
+            <div class="empty-icon icon-info">🔍</div>
             <h3 class="empty-title">No matching records found</h3>
             <p class="empty-subtitle">Try adjusting your search query, dates, or active dropdown filters.</p>
-            <button type="button" class="btn btn-primary" onclick="resetAllFilters()" style="font-size:12px; padding:7px 16px; border-radius:8px;">
-              ↺ Reset All Filters
-            </button>
+            <div class="empty-actions">
+              <button type="button" class="empty-btn empty-btn-outline" onclick="resetAllFilters()">↺ Clear All Filters</button>
+            </div>
           </div>
         </td>
       </tr>

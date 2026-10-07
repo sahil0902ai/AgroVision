@@ -6452,4 +6452,105 @@ body.dash-body {
   }
 }
 
+/* =========================================================
+   AgroVision — Standardized Empty-State System
+   ========================================================= */
+.agro-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 44px 20px;
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  margin: 14px 0;
+  width: 100%;
+}
+
+.agro-empty-state .empty-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  background: #f0fdf4;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.agro-empty-state .empty-icon.icon-warning {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.agro-empty-state .empty-icon.icon-info {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.agro-empty-state .empty-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 5px 0;
+}
+
+.agro-empty-state .empty-subtitle {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0 0 16px 0;
+  max-width: 440px;
+  line-height: 1.5;
+}
+
+.agro-empty-state .empty-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.agro-empty-state .empty-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.agro-empty-state .empty-btn-primary {
+  background: #059669;
+  color: #ffffff;
+  border: 1px solid #059669;
+}
+
+.agro-empty-state .empty-btn-primary:hover {
+  background: #047857;
+  border-color: #047857;
+}
+
+.agro-empty-state .empty-btn-outline {
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+.agro-empty-state .empty-btn-outline:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+
 

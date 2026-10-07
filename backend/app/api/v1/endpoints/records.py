@@ -18,6 +18,7 @@ router = APIRouter()
 def get_records(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
+    user_email: str | None = Query(None, description="Filter by authenticated user email"),
     field_name: str | None = Query(None, description="Filter by field or parcel name"),
     stress_severity: str | None = Query(None, description="Filter by SNN stress severity (High, Low, Moderate)"),
     growth_stage: str | None = Query(None, description="Filter by crop growth stage"),
@@ -28,8 +29,12 @@ def get_records(
 ):
     """
     Retrieves filtered historical analysis records ordered by latest first.
+    Strictly scopes to the authenticated user's records when user_email is provided.
     """
     query = db.query(AnalysisRecordDB)
+
+    if isinstance(user_email, str) and user_email.strip():
+        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
 
     if isinstance(field_name, str) and field_name.strip():
         query = query.filter(AnalysisRecordDB.field_name.ilike(f"%{field_name.strip()}%"))
@@ -68,6 +73,7 @@ def get_records(
 
 @router.get("/records/export/csv")
 def export_records_csv(
+    user_email: str | None = Query(None),
     stress_severity: str | None = Query(None),
     growth_stage: str | None = Query(None),
     db: Session = Depends(get_db)
@@ -76,9 +82,11 @@ def export_records_csv(
     Exports filtered or complete historical analysis records as a structured CSV file.
     """
     query = db.query(AnalysisRecordDB)
-    if stress_severity:
+    if isinstance(user_email, str) and user_email.strip():
+        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
+    if isinstance(stress_severity, str) and stress_severity.strip():
         query = query.filter(AnalysisRecordDB.stress_severity.ilike(stress_severity.strip()))
-    if growth_stage:
+    if isinstance(growth_stage, str) and growth_stage.strip():
         query = query.filter(AnalysisRecordDB.growth_stage.ilike(growth_stage.strip()))
 
     records = query.order_by(AnalysisRecordDB.created_at.desc()).all()

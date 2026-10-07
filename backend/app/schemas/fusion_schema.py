@@ -34,6 +34,7 @@ class CombineAnalysisRequest(BaseModel):
         description="Raw environmental inputs used for inference: temperature, humidity, rainfall, soil_moisture, aqi, ozone, growth_stage, etc."
     )
     field_name: Optional[str] = Field("Field A — North Parcel", description="Field/Plot identifier")
+    user_email: Optional[str] = Field(None, description="Authenticated user email for scoped history")
     weather_context: Optional[dict[str, Any]] = Field(None, description="OpenWeather canonical snapshot used during analysis")
 
 

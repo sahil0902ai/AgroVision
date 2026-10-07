@@ -9,7 +9,7 @@ Exposes endpoints for:
 import json
 import logging
 import uuid
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
@@ -85,8 +85,10 @@ def combine_multimodal_analysis(
 
         try:
             env_in = payload.environmental_inputs or {}
+            clean_email = payload.user_email.strip().lower() if payload.user_email else None
             db_record = AnalysisRecordDB(
                 record_uuid=rec_uuid,
+                user_email=clean_email,
                 field_name=field_id_name,
                 image_url="",
                 temperature=float(env_in.get("temperature", 0.0)),
@@ -161,6 +163,8 @@ async def full_multimodal_analysis(
     aqi: float = Form(50.0),
     ozone: float = Form(0.035),
     growth_stage: str = Form("Flowering"),
+    field_name: str = Form("Field A — North Parcel"),
+    user_email: Optional[str] = Form(None),
     db: Session = Depends(get_db),
 ):
     """
@@ -241,8 +245,11 @@ async def full_multimodal_analysis(
 
     # Persist in DB
     try:
+        clean_email = user_email.strip().lower() if user_email else None
         db_record = AnalysisRecordDB(
             record_uuid=pipeline_res["record_uuid"],
+            user_email=clean_email,
+            field_name=field_name or "Field A — North Parcel",
             image_url=pipeline_res["image_url"],
             heatmap_url=pipeline_res.get("heatmap_url"),
             temperature=temperature,

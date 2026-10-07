@@ -34,6 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
 // =========================================================
 
 async function fetchReportsList() {
+  const user = typeof requireLogin === "function" ? requireLogin() : null;
+  const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
+
   const tbody = document.getElementById("reportsTableBody");
   const emptyState = document.getElementById("reportsEmptyState");
   if (tbody) {
@@ -48,7 +51,7 @@ async function fetchReportsList() {
   }
 
   try {
-    const res = await fetch(getApiUrl("/api/v1/records?limit=200"));
+    const res = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
     if (!res.ok) {
       throw new Error(`Failed to retrieve reports: ${res.statusText}`);
     }
@@ -109,7 +112,33 @@ function renderReportsTable(records) {
 
   if (!records || records.length === 0) {
     tbody.innerHTML = "";
-    if (emptyState) emptyState.style.display = "block";
+    if (emptyState) {
+      emptyState.style.display = "block";
+      if (allReportsList && allReportsList.length > 0) {
+        emptyState.innerHTML = `
+          <div class="agro-empty-state" style="padding:32px 20px;">
+            <div class="empty-icon">🔍</div>
+            <div class="empty-title">No matching reports found</div>
+            <div class="empty-subtitle">Try adjusting your keyword search or filter criteria.</div>
+            <div class="empty-actions">
+              <button onclick="resetReportsFilters()" class="empty-btn-outline">Reset Filters</button>
+            </div>
+          </div>
+        `;
+      } else {
+        emptyState.innerHTML = `
+          <div class="agro-empty-state" style="padding:32px 20px;">
+            <div class="empty-icon">📄</div>
+            <div class="empty-title">No reports yet</div>
+            <div class="empty-subtitle">Completed analysis reports will appear here.</div>
+            <div class="empty-actions">
+              <a href="dashboard.html" class="empty-btn-primary">🌿 Start New Analysis</a>
+              <button onclick="openGenerateReportModal()" class="empty-btn-outline">Generate from History</button>
+            </div>
+          </div>
+        `;
+      }
+    }
     if (tableWrap) tableWrap.style.display = "none";
     return;
   }
@@ -427,8 +456,20 @@ function downloadReportJSON(uuid) {
   URL.revokeObjectURL(url);
 }
 
+function resetReportsFilters() {
+  const search = document.getElementById("reportsSearchInput");
+  const sev = document.getElementById("reportsSeverityFilter");
+  const growth = document.getElementById("reportsGrowthFilter");
+  if (search) search.value = "";
+  if (sev) sev.value = "";
+  if (growth) growth.value = "";
+  renderReportsTable(allReportsList);
+}
+
 function exportReportsCSV() {
-  window.location.href = getApiUrl("/api/v1/records/export/csv");
+  const user = typeof requireLogin === "function" ? requireLogin() : null;
+  const userEmailParam = user && user.email ? `?user_email=${encodeURIComponent(user.email)}` : "";
+  window.location.href = getApiUrl(`/api/v1/records/export/csv${userEmailParam}`);
 }
 
 function copyReportUuid(uuid) {

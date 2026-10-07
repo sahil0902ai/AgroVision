@@ -153,8 +153,10 @@ def chat_with_assistant(
 
     # 6. Save message turn in database
     try:
+        clean_email = payload.user_email.strip().lower() if payload.user_email else None
         chat_record = ChatMessageDB(
             user_id="farmer",
+            user_email=clean_email,
             record_uuid=payload.record_uuid or (analysis_data.get("record_uuid") if analysis_data else None),
             field_name=field_name,
             message=user_message,
@@ -178,14 +180,17 @@ def chat_with_assistant(
 
 @router.get("/chat/history", response_model=List[ChatMessageItem], tags=["AI Assistant (Gemini)"])
 def get_chat_history(
+    user_email: Optional[str] = Query(None, description="Filter history by authenticated user email"),
     record_uuid: Optional[str] = Query(None, description="Filter history by analysis record UUID"),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
     """
-    Retrieves previous conversation turns for the user and analysis session.
+    Retrieves previous conversation turns scoped to the authenticated user and analysis session.
     """
     query = db.query(ChatMessageDB)
+    if user_email and user_email.strip():
+        query = query.filter(ChatMessageDB.user_email == user_email.strip().lower())
     if record_uuid:
         query = query.filter(ChatMessageDB.record_uuid == record_uuid)
     

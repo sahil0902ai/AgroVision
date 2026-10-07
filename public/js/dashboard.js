@@ -1250,7 +1250,9 @@ async function runCombinedSynthesis() {
   const perfStart = performance.now();
 
   try {
+    const user = typeof requireLogin === "function" ? requireLogin() : null;
     const combinePayload = {
+      user_email: user?.email || undefined,
       visual_evidence: {
         class: latestCNNResult.prediction.class,
         confidence: latestCNNResult.prediction.confidence,

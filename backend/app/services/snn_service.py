@@ -3,7 +3,12 @@ from pathlib import Path
 from typing import Any, Optional
 
 import torch
-from ai_models.snn_inference import SNNInferenceEngine
+
+try:
+    from ai_models.snn_inference import SNNInferenceEngine
+except ImportError:
+    from backend.ai_models.snn_inference import SNNInferenceEngine
+
 from ..core.config import settings
 
 logger = logging.getLogger("agrovision.snn_service")

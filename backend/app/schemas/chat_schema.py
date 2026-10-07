@@ -9,6 +9,7 @@ class ChatMessageItem(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str = Field(..., description="User prompt or agronomic inquiry")
+    user_email: Optional[str] = Field(None, description="Authenticated user email for scoped chat history")
     record_uuid: Optional[str] = Field(None, description="Optional analysis record UUID to anchor trusted context")
     session_context: Optional[Dict[str, Any]] = Field(None, description="In-memory active session analysis data if unsaved")
     field_name: Optional[str] = Field("Field A — North Parcel", description="Current field / plot name")

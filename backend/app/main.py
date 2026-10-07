@@ -2,6 +2,7 @@ import logging
 import os
 from fastapi.responses import RedirectResponse
 
+from .api.auth import router as auth_router
 from .api.cnn import router as cnn_router
 from .api.snn import router as snn_router
 from .api.analysis import router as analysis_router
@@ -73,7 +74,8 @@ def startup_event() -> None:
     else:
         logger.warning("[Startup] Notice: SNN model weights not loaded. Please ensure agrovision_snn.pth is in backend/models/.")
 
-# Mount CNN, SNN, Multimodal Analysis, Weather, Chat, and Core API Routers
+# Mount CNN, SNN, Multimodal Analysis, Weather, Chat, Settings, and Auth API Routers
+app.include_router(auth_router)
 app.include_router(cnn_router, prefix="/api", tags=["CNN Visual Analysis"])
 app.include_router(snn_router, prefix="/api", tags=["SNN Environmental Analysis"])
 app.include_router(analysis_router, prefix="/api", tags=["Multimodal Analysis & Expert Veto"])

@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Optional
 
 from app.core.database import get_db
 from app.models.db_models import AnalysisRecordDB
@@ -12,16 +12,27 @@ router = APIRouter()
 
 
 @router.get("/analytics/summary")
-def get_analytics_summary(db: Session = Depends(get_db)):
-    total_scans = db.query(func.count(AnalysisRecordDB.id)).scalar() or 0
-    
-    high_count = db.query(func.count(AnalysisRecordDB.id)).filter(AnalysisRecordDB.stress_severity == "High").scalar() or 0
-    mod_count = db.query(func.count(AnalysisRecordDB.id)).filter(AnalysisRecordDB.stress_severity == "Moderate").scalar() or 0
-    low_count = db.query(func.count(AnalysisRecordDB.id)).filter(AnalysisRecordDB.stress_severity == "Low").scalar() or 0
+def get_analytics_summary(
+    user_email: Optional[str] = Query(None, description="Filter summary by authenticated user email"),
+    db: Session = Depends(get_db)
+):
+    query = db.query(AnalysisRecordDB)
+    if isinstance(user_email, str) and user_email.strip():
+        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
 
-    avg_temp = db.query(func.avg(AnalysisRecordDB.temperature)).scalar()
-    avg_humidity = db.query(func.avg(AnalysisRecordDB.humidity)).scalar()
-    avg_soil = db.query(func.avg(AnalysisRecordDB.soil_moisture)).scalar()
+    total_scans = query.count()
+
+    high_query = query.filter(AnalysisRecordDB.stress_severity == "High")
+    mod_query = query.filter(AnalysisRecordDB.stress_severity == "Moderate")
+    low_query = query.filter(AnalysisRecordDB.stress_severity == "Low")
+
+    high_count = high_query.count()
+    mod_count = mod_query.count()
+    low_count = low_query.count()
+
+    avg_temp = query.with_entities(func.avg(AnalysisRecordDB.temperature)).scalar()
+    avg_humidity = query.with_entities(func.avg(AnalysisRecordDB.humidity)).scalar()
+    avg_soil = query.with_entities(func.avg(AnalysisRecordDB.soil_moisture)).scalar()
 
     return {
         "total_scans": total_scans,
@@ -43,6 +54,7 @@ def get_analytics_trend(
     period: str = Query("30d", description="Filter period: 7d, 30d, 90d, or custom"),
     start_date: str | None = Query(None, description="Start date (YYYY-MM-DD) for custom filter"),
     end_date: str | None = Query(None, description="End date (YYYY-MM-DD) for custom filter"),
+    user_email: Optional[str] = Query(None, description="Filter trend by authenticated user email"),
     db: Session = Depends(get_db)
 ):
     """
@@ -76,10 +88,14 @@ def get_analytics_trend(
         start_dt = (now - timedelta(days=29)).replace(hour=0, minute=0, second=0, microsecond=0)
         end_dt = now.replace(hour=23, minute=59, second=59, microsecond=999999)
 
-    records = db.query(AnalysisRecordDB).filter(
+    query = db.query(AnalysisRecordDB).filter(
         AnalysisRecordDB.created_at >= start_dt,
         AnalysisRecordDB.created_at <= end_dt
-    ).order_by(AnalysisRecordDB.created_at.asc()).all()
+    )
+    if isinstance(user_email, str) and user_email.strip():
+        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
+
+    records = query.order_by(AnalysisRecordDB.created_at.asc()).all()
 
     total_records = len(records)
     if total_records == 0:
@@ -148,17 +164,15 @@ def get_analytics_trend(
                 cnn_obj = json.loads(r.cnn_predictions_json)
                 if isinstance(cnn_obj, dict) and cnn_obj:
                     top_class = max(cnn_obj, key=cnn_obj.get).lower()
+                    if top_class == "healthy":
+                        is_healthy = True
             except Exception:
                 pass
         
-        if top_class == "healthy":
-            is_healthy = True
-        elif top_class:
-            is_healthy = False
-        elif (r.stress_severity or "").lower() == "low":
-            is_healthy = True
-        else:
-            is_healthy = False
+        # Fallback to SNN severity if CNN is absent
+        if not top_class:
+            if (r.stress_severity or "").lower() == "low":
+                is_healthy = True
 
         if is_healthy:
             date_map[d_str]["healthy"] += 1
@@ -169,16 +183,15 @@ def get_analytics_trend(
         
         date_map[d_str]["total"] += 1
 
-    # Sort data points chronologically
-    sorted_keys = sorted(date_map.keys())
-    data_points = [date_map[k] for k in sorted_keys]
+    # Sorted list of aggregated data points
+    sorted_days = sorted(date_map.keys())
+    data_points = [date_map[k] for k in sorted_days]
 
-    # Build chart series
-    series_dates = [dp["label"] for dp in data_points]
-    series_iso = [dp["date"] for dp in data_points]
-    series_healthy = [dp["healthy"] for dp in data_points]
-    series_stressed = [dp["stressed"] for dp in data_points]
-    series_total = [dp["total"] for dp in data_points]
+    dates_list = [date_map[k]["label"] for k in sorted_days]
+    iso_dates_list = [date_map[k]["date"] for k in sorted_days]
+    healthy_series = [date_map[k]["healthy"] for k in sorted_days]
+    stressed_series = [date_map[k]["stressed"] for k in sorted_days]
+    total_series = [date_map[k]["total"] for k in sorted_days]
 
     return {
         "period": period,
@@ -186,14 +199,14 @@ def get_analytics_trend(
         "end_date": end_dt.strftime("%Y-%m-%d"),
         "total_records": total_records,
         "has_sufficient_data": total_records >= 1,
-        "message": "Success" if total_records >= 1 else "Not enough data for trend analysis",
+        "message": "Data available" if total_records >= 1 else "Not enough data for trend analysis",
         "data_points": data_points,
         "series": {
-            "dates": series_dates,
-            "iso_dates": series_iso,
-            "healthy": series_healthy,
-            "stressed": series_stressed,
-            "total": series_total
+            "dates": dates_list,
+            "iso_dates": iso_dates_list,
+            "healthy": healthy_series,
+            "stressed": stressed_series,
+            "total": total_series
         },
         "summary": {
             "healthy_total": healthy_sum,
@@ -205,14 +218,18 @@ def get_analytics_trend(
 
 @router.get("/analytics/visual-distribution")
 def get_visual_stress_distribution(
+    user_email: Optional[str] = Query(None, description="Filter by authenticated user email"),
     db: Session = Depends(get_db)
 ):
     """
     Retrieves the aggregate visual stress distribution (CNN 5 classes)
-    across all historical database analysis records.
+    across historical database analysis records.
     Never fabricates random data.
     """
-    records = db.query(AnalysisRecordDB).all()
+    query = db.query(AnalysisRecordDB)
+    if isinstance(user_email, str) and user_email.strip():
+        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
+    records = query.all()
     total_analyses = len(records)
 
     categories_config = [
@@ -279,6 +296,7 @@ def get_visual_stress_distribution(
 
 @router.get("/analytics/environmental-distribution")
 def get_environmental_stress_distribution(
+    user_email: Optional[str] = Query(None, description="Filter by authenticated user email"),
     db: Session = Depends(get_db)
 ):
     """
@@ -286,19 +304,15 @@ def get_environmental_stress_distribution(
     from historical database records.
     Never fabricates random data.
     """
-    total = db.query(func.count(AnalysisRecordDB.id)).scalar() or 0
+    query = db.query(AnalysisRecordDB)
+    if isinstance(user_email, str) and user_email.strip():
+        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
+
+    total = query.count()
     
-    low_count = db.query(func.count(AnalysisRecordDB.id)).filter(
-        AnalysisRecordDB.stress_severity.ilike("Low")
-    ).scalar() or 0
-    
-    mod_count = db.query(func.count(AnalysisRecordDB.id)).filter(
-        AnalysisRecordDB.stress_severity.ilike("Moderate")
-    ).scalar() or 0
-    
-    high_count = db.query(func.count(AnalysisRecordDB.id)).filter(
-        AnalysisRecordDB.stress_severity.ilike("High")
-    ).scalar() or 0
+    low_count = query.filter(AnalysisRecordDB.stress_severity.ilike("Low")).count()
+    mod_count = query.filter(AnalysisRecordDB.stress_severity.ilike("Moderate")).count()
+    high_count = query.filter(AnalysisRecordDB.stress_severity.ilike("High")).count()
 
     categories = [
         {

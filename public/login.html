@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Login — AgroVision</title>
+<title>Account Portal — AgroVision</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
@@ -37,9 +37,10 @@
         <div class="auth-tabs">
           <button class="auth-tab active" id="tabLogin" onclick="showTab('login')">Log In</button>
           <button class="auth-tab" id="tabSignup" onclick="showTab('signup')">Sign Up</button>
+          <button class="auth-tab" id="tabForgot" onclick="showTab('forgot')">Reset Password</button>
         </div>
 
-        <!-- LOGIN FORM -->
+        <!-- ============ 1. LOGIN FORM ============ -->
         <form id="loginForm" onsubmit="return handleLogin(event)">
           <h1>Welcome back</h1>
           <p class="sub">Log in to see your farm's latest leaf analysis.</p>
@@ -47,20 +48,20 @@
           <div class="form-error" id="loginError"></div>
 
           <div class="field">
-            <label for="loginEmail">Email</label>
-            <input type="email" id="loginEmail" placeholder="you@example.com" required />
+            <label for="loginEmail">Email Address</label>
+            <input type="email" id="loginEmail" placeholder="farmer@agrovision.org" required autocomplete="email" />
           </div>
           <div class="field">
             <label for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" placeholder="Enter your password" required />
+            <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password" />
           </div>
 
           <div class="field-row">
-            <label class="checkbox-row"><input type="checkbox" /> Remember me</label>
-            <a href="#" onclick="alert('Please contact your farm administrator or local agricultural extension officer for password assistance.'); return false;">Forgot password?</a>
+            <label class="checkbox-row"><input type="checkbox" id="rememberMe" /> Remember me</label>
+            <a href="javascript:void(0)" onclick="showTab('forgot')">Forgot password?</a>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block btn-lg">Log In →</button>
+          <button type="submit" id="loginSubmitBtn" class="btn btn-primary btn-block btn-lg">Log In →</button>
 
           <p class="auth-switch">
             Don't have an account? <button type="button" onclick="showTab('signup')">Sign up</button>
@@ -71,7 +72,7 @@
           </div>
         </form>
 
-        <!-- SIGNUP FORM -->
+        <!-- ============ 2. SIGNUP FORM ============ -->
         <form id="signupForm" style="display:none;" onsubmit="return handleSignup(event)">
           <h1>Create your account</h1>
           <p class="sub">Set up AgroVision for your farm in under a minute.</p>
@@ -79,22 +80,55 @@
           <div class="form-error" id="signupError"></div>
 
           <div class="field">
-            <label for="signupName">Full name</label>
-            <input type="text" id="signupName" placeholder="e.g. Ramesh Patil" required />
+            <label for="signupName">Full Name</label>
+            <input type="text" id="signupName" placeholder="e.g. Ramesh Patil" required autocomplete="name" />
           </div>
           <div class="field">
-            <label for="signupEmail">Email</label>
-            <input type="email" id="signupEmail" placeholder="you@example.com" required />
+            <label for="signupEmail">Email Address</label>
+            <input type="email" id="signupEmail" placeholder="you@example.com" required autocomplete="email" />
           </div>
           <div class="field">
             <label for="signupPassword">Password</label>
-            <input type="password" id="signupPassword" placeholder="At least 6 characters" minlength="6" required />
+            <input type="password" id="signupPassword" placeholder="At least 6 characters" minlength="6" required autocomplete="new-password" />
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block btn-lg">Create Account →</button>
+          <button type="submit" id="signupSubmitBtn" class="btn btn-primary btn-block btn-lg">Create Account →</button>
 
           <p class="auth-switch">
             Already have an account? <button type="button" onclick="showTab('login')">Log in</button>
+          </p>
+        </form>
+
+        <!-- ============ 3. FORGOT / RESET PASSWORD FORM ============ -->
+        <form id="forgotForm" style="display:none;" onsubmit="return handleForgotPassword(event)">
+          <h1>Reset Password</h1>
+          <p class="sub">Enter your registered email to request a reset code.</p>
+
+          <div class="form-error" id="forgotError"></div>
+          <div id="forgotSuccess" style="display:none; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; border-radius:8px; padding:10px 12px; font-size:12px; margin-bottom:14px;"></div>
+
+          <div class="field">
+            <label for="forgotEmail">Email Address</label>
+            <input type="email" id="forgotEmail" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+
+          <button type="submit" id="forgotSubmitBtn" class="btn btn-primary btn-block" style="padding:10px 16px; margin-bottom:12px;">Send Verification Code</button>
+
+          <!-- Reset Code & New Password Sub-Form -->
+          <div id="resetPasswordSection" style="display:none; border-top:1px dashed #cbd5e1; padding-top:14px; margin-top:14px;">
+            <div class="field">
+              <label for="resetCode">Verification Code</label>
+              <input type="text" id="resetCode" placeholder="Enter 6-digit code" />
+            </div>
+            <div class="field">
+              <label for="resetNewPassword">New Password</label>
+              <input type="password" id="resetNewPassword" placeholder="At least 6 characters" minlength="6" />
+            </div>
+            <button type="button" id="resetSubmitBtn" onclick="handleResetPassword(event)" class="btn btn-primary btn-block btn-lg" style="margin-top:6px;">Reset Password →</button>
+          </div>
+
+          <p class="auth-switch" style="margin-top:16px;">
+            Remember your credentials? <button type="button" onclick="showTab('login')">Back to Log in</button>
           </p>
         </form>
 
@@ -102,6 +136,7 @@
     </div>
   </div>
 
+  <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
 </body>
 </html>

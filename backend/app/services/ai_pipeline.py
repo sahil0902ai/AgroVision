@@ -2,11 +2,21 @@ import os
 import uuid
 from datetime import date
 
-from ai_models.cnn_inference import CNNInferenceEngine
-from ai_models.snn_inference import SNNInferenceEngine
-from ai_models.snn_preprocessing import SNN_DEFAULT_FIELD_INPUTS
-from app.services.gradcam import GradCAM, overlay_heatmap_on_image
-from app.services.recommendations import ExpertRecommendationEngine
+try:
+    from ai_models.cnn_inference import CNNInferenceEngine
+    from ai_models.snn_inference import SNNInferenceEngine
+    from ai_models.snn_preprocessing import SNN_DEFAULT_FIELD_INPUTS
+except ImportError:
+    from backend.ai_models.cnn_inference import CNNInferenceEngine
+    from backend.ai_models.snn_inference import SNNInferenceEngine
+    from backend.ai_models.snn_preprocessing import SNN_DEFAULT_FIELD_INPUTS
+
+try:
+    from app.services.gradcam import GradCAM, overlay_heatmap_on_image
+    from app.services.recommendations import ExpertRecommendationEngine
+except ImportError:
+    from backend.app.services.gradcam import GradCAM, overlay_heatmap_on_image
+    from backend.app.services.recommendations import ExpertRecommendationEngine
 
 MAX_PIPELINE_IMAGE_BYTES = 10 * 1024 * 1024
 
