@@ -3,64 +3,163 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Analysis Detail — AgroVision</title>
+<title>Analysis Detail Report — AgroVision</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=11">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=12">
 <style>
   .detail-container {
-    max-width: 1060px;
+    max-width: 1080px;
     margin: 0 auto;
+    padding-bottom: 40px;
   }
-  .card-pbi {
+
+  /* Power BI Card & Section Shells */
+  .report-section-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 22px;
+    border-radius: 14px;
+    padding: 22px 24px;
     margin-bottom: 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
-  .card-pbi-title {
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  .report-section-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(13, 59, 46, 0.04);
+  }
+
+  .report-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .report-section-title {
+    font-size: 14px;
+    font-weight: 800;
     color: #0d3b2e;
-    margin: 0 0 14px;
+    margin: 0;
     display: flex;
     align-items: center;
     gap: 8px;
+    letter-spacing: -0.01em;
   }
+
+  .report-section-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+  }
+
+  /* Header KPI Strip (4 Core Header Fields) */
+  .header-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .header-kpi-tile {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .header-kpi-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .header-kpi-value {
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    word-break: break-word;
+  }
+
+  .header-kpi-sub {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  /* Comparison Grid for Leaf & Heatmap */
   .image-compare-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
   }
+
   .image-box {
     text-align: center;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
+
   .image-box img {
     max-width: 100%;
-    max-height: 220px;
+    max-height: 240px;
     object-fit: contain;
     border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    background: #ffffff;
   }
+
+  .image-box-caption {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #475569;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Telemetry Meta Grid */
   .meta-grid-6 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
   }
+
   .meta-tile {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
-    padding: 10px 14px;
+    padding: 12px 14px;
+    transition: background 0.15s ease, border-color 0.15s ease;
   }
+  .meta-tile:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+  }
+
   .meta-lbl {
     font-size: 10.5px;
     color: #64748b;
@@ -68,26 +167,88 @@
     font-weight: 700;
     letter-spacing: 0.04em;
   }
+
   .meta-val {
-    font-size: 14px;
+    font-size: 14.5px;
     color: #0f172a;
     font-weight: 800;
-    margin-top: 3px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  .rule-pbi-card {
+
+  .meta-sub {
+    font-size: 10px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+
+  /* Dropdown Menu for Downloads */
+  .download-dropdown-wrap {
+    position: relative;
+    display: inline-block;
+  }
+
+  .download-dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 6px;
     background: #ffffff;
-    border: 1px solid #fed7aa;
-    border-left: 4px solid #d97706;
+    border: 1px solid #e2e8f0;
     border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    z-index: 50;
+    min-width: 170px;
+    padding: 6px;
   }
-  @media (max-width: 768px) {
+
+  .download-dropdown-menu.show {
+    display: block;
+  }
+
+  .download-item-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .download-item-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  @media (max-width: 860px) {
+    .header-kpi-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
     .image-compare-grid {
       grid-template-columns: 1fr;
     }
     .meta-grid-6 {
       grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 520px) {
+    .header-kpi-grid {
+      grid-template-columns: 1fr;
+    }
+    .meta-grid-6 {
+      grid-template-columns: 1fr;
     }
   }
 </style>
@@ -177,8 +338,8 @@
         <!-- Left: Title & Contextual Subtitle -->
         <div class="header-left-group">
           <div class="header-title-box">
-            <h1 class="header-title" id="analyticsHeaderTitle">Record Inspection</h1>
-            <p class="header-subtitle" id="analyticsHeaderSub">Verified crop diagnosis &amp; agronomic evidence</p>
+            <h1 class="header-title" id="analyticsHeaderTitle">Analysis Report View</h1>
+            <p class="header-subtitle" id="analyticsHeaderSub">Full multimodal agricultural diagnosis and environmental assessment</p>
           </div>
         </div>
 
@@ -198,13 +359,11 @@
         <!-- Right: Date, Location, Notifications, User Profile -->
         <div class="header-right-group">
           
-          <!-- Date Badge -->
           <div class="header-date-badge">
             <span style="font-size:13px;">📅</span>
             <span id="globalHeaderDate">Today</span>
           </div>
 
-          <!-- Farm Station Badge -->
           <div class="header-location-badge" id="globalHeaderLocation">
             <span style="font-size:13px;">📍</span>
             <span>Wardha Farm Station</span>
@@ -246,7 +405,6 @@
               <span class="user-profile-chevron">▾</span>
             </div>
 
-            <!-- Profile Dropdown Menu -->
             <div class="header-dropdown-menu" id="profileDropdownMenu" style="width:230px;">
               <div style="padding:4px 6px 10px; border-bottom:1px solid #f1f5f9; margin-bottom:6px;">
                 <div style="font-size:12.5px; font-weight:700; color:#0f172a;" id="profileMenuUserName">Farmer</div>
@@ -272,162 +430,318 @@
 
       <div class="detail-container">
 
-        <!-- Action Header -->
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
+        <!-- ============ TOP ACTION BAR ============ -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:18px;">
           <div>
-            <a href="history.html" style="font-size:12.5px; color:#059669; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px; margin-bottom:6px;">
+            <a href="history.html" style="font-size:12px; color:#059669; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px; margin-bottom:6px;">
               ← Back to Analysis Archive
             </a>
-            <h1 style="margin:0; font-size:1.6rem; color:#0d3b2e;" id="pageTitle">Analysis Record Inspection</h1>
-            <p style="margin:2px 0 0; font-size:12.5px; color:#64748b;" id="pageSub">UUID: Loading…</p>
+            <h1 style="margin:0; font-size:1.55rem; color:#0d3b2e; font-weight:800;" id="pageTitle">Analysis Assessment Report</h1>
+            <p style="margin:2px 0 0; font-size:12.5px; color:#64748b;" id="pageSub">Authentic historical record inspection</p>
           </div>
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a id="askAIBtn" href="assistant.html" class="btn btn-action-outline" style="padding:9px 16px; font-size:12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-color:#059669; color:#065f46; background:#f0fdf4;">
+
+          <!-- Utility Action Buttons: Generate PDF Report, Download Data, Ask AI Assistant -->
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            
+            <a id="askAIBtn" href="assistant.html" class="btn btn-action-outline" style="padding:8px 14px; font-size:12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-color:#059669; color:#065f46; background:#f0fdf4;">
               🤖 Ask AI Assistant
             </a>
-            <a id="reportBtn" href="#" target="_blank" class="btn btn-primary" style="padding:9px 18px; font-size:12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-              🖨️ View / Print PDF Report
+
+            <!-- Download Data Dropdown -->
+            <div class="download-dropdown-wrap">
+              <button class="btn btn-action-outline" onclick="toggleDownloadDropdown(event)" style="padding:8px 14px; font-size:12px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; background:#ffffff; border-color:#cbd5e1; color:#1e293b;">
+                💾 Download Data ▾
+              </button>
+              <div class="download-dropdown-menu" id="downloadDropdownMenu">
+                <button class="download-item-btn" onclick="exportCurrentRecordJSON()">
+                  <span>📄</span> Download JSON (Raw)
+                </button>
+                <button class="download-item-btn" onclick="exportCurrentRecordCSV()">
+                  <span>📊</span> Download CSV (Summary)
+                </button>
+              </div>
+            </div>
+
+            <a id="reportBtn" href="#" target="_blank" class="btn btn-primary" style="padding:8px 16px; font-size:12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+              🖨️ Generate PDF Report
             </a>
-            <a href="dashboard.html" class="btn btn-action-outline" style="padding:9px 16px; font-size:12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+
+            <a href="dashboard.html" class="btn btn-action-outline" style="padding:8px 14px; font-size:12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
               + New Analysis
             </a>
           </div>
         </div>
 
-        <div id="loadingState" style="text-align:center; padding:60px; color:#6b7280;">
-          <div style="font-size:28px; margin-bottom:12px;">⏳</div>
-          <strong>Retrieving verified session record…</strong>
+        <!-- Loading / Error State -->
+        <div id="loadingState" style="text-align:center; padding:60px; color:#6b7280; background:#ffffff; border-radius:14px; border:1px solid #e2e8f0;">
+          <div style="font-size:32px; margin-bottom:12px;">⏳</div>
+          <strong style="color:#0f172a; font-size:15px;">Retrieving verified analysis session…</strong>
+          <p style="font-size:12.5px; color:#64748b; margin:4px 0 0;">Loading stored CNN, SNN, and historical OpenWeather snapshot from database.</p>
         </div>
 
         <div id="detailContent" style="display:none;">
 
-          <!-- 1. FINAL MULTIMODAL ASSESSMENT HERO -->
-          <div class="card-pbi" style="border:1.5px solid #059669; background:linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
-              <div>
-                <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#065f46; letter-spacing:0.04em;">Primary Multimodal Decision Finding</div>
-                <h2 style="margin:4px 0 0; font-size:1.45rem; font-weight:800; color:#064e3b;" id="heroClass">Nutrient Deficiency</h2>
+          <!-- ============ HEADER: 4 CORE METADATA KPI TILES ============ -->
+          <div class="header-kpi-grid">
+            <!-- 1. Analysis ID -->
+            <div class="header-kpi-tile">
+              <div class="header-kpi-label">
+                <span>🔑</span> Analysis ID
               </div>
-              <div style="display:flex; gap:8px;">
-                <span id="heroSeverityBadge" style="background:#fee2e2; color:#dc2626; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px;">High Risk</span>
-                <span id="heroAlignBadge" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">Aligned</span>
+              <div class="header-kpi-value" style="font-family:monospace; font-size:12px; color:#0f172a;" id="detailHeaderId">
+                —
+              </div>
+              <div class="header-kpi-sub" style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="detailHeaderIdShort">UUID</span>
+                <button onclick="copyRecordUuid()" style="background:none; border:none; color:#059669; font-size:10.5px; font-weight:700; cursor:pointer; padding:0;">Copy 📋</button>
               </div>
             </div>
-            
-            <p style="margin:0 0 14px; font-size:13px; color:#1e293b; line-height:1.5;" id="heroSummary">
-              Visual chlorosis patterns detected with corresponding environmental baseline metrics.
-            </p>
 
-            <!-- 3-Column Evidence Summary Tiles -->
-            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;" id="heroMetaList">
-              <!-- Dynamically rendered -->
+            <!-- 2. Date & Time -->
+            <div class="header-kpi-tile">
+              <div class="header-kpi-label">
+                <span>📅</span> Date &amp; Time
+              </div>
+              <div class="header-kpi-value" style="font-size:13px;" id="detailHeaderDate">
+                —
+              </div>
+              <div class="header-kpi-sub" id="detailHeaderDateSub">
+                Analysis Observation
+              </div>
+            </div>
+
+            <!-- 3. Field -->
+            <div class="header-kpi-tile">
+              <div class="header-kpi-label">
+                <span>📍</span> Field / Parcel
+              </div>
+              <div class="header-kpi-value" id="detailHeaderField">
+                Field A — Wardha
+              </div>
+              <div class="header-kpi-sub" id="detailHeaderGrowth">
+                Growth Stage: Vegetative
+              </div>
+            </div>
+
+            <!-- 4. Analysis Status -->
+            <div class="header-kpi-tile">
+              <div class="header-kpi-label">
+                <span>🛡️</span> Analysis Status
+              </div>
+              <div class="header-kpi-value" id="detailHeaderStatusWrap">
+                <span id="detailHeaderStatusBadge" class="report-section-badge" style="background:#ecfdf5; color:#059669; border-color:#a7f3d0; font-size:11.5px;">
+                  Verified Analysis
+                </span>
+              </div>
+              <div class="header-kpi-sub" id="detailHeaderStatusSub">
+                Deterministic Check Passed
+              </div>
             </div>
           </div>
 
-          <!-- 2. VISUAL LEAF EVIDENCE & CNN PROBABILITIES -->
-          <div class="card-pbi">
-            <div class="card-pbi-title">🌿 1. Visual Leaf Evidence &amp; Model Probabilities (CNN)</div>
-            
+          <!-- =========================================================
+               11 REQUIRED REPORT SECTIONS
+               ========================================================= -->
+
+          <!-- SECTION 1: LEAF IMAGE & SALIENCY MAP -->
+          <div class="report-section-card" id="sectionLeafImage">
+            <div class="report-section-header">
+              <h3 class="report-section-title">
+                <span>🌿</span> 1. Leaf Image &amp; Saliency Map
+              </h3>
+              <span class="report-section-badge" style="background:#f1f5f9; color:#475569; border-color:#cbd5e1;">
+                224 × 224 RGB Capture
+              </span>
+            </div>
+
             <div class="image-compare-grid">
               <div class="image-box">
-                <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:8px; text-transform:uppercase;">Observed Leaf Scan</div>
-                <img id="leafImg" src="" alt="Uploaded leaf" onerror="this.src='images/leaf_placeholder.jpg'" />
+                <img id="leafImg" src="" alt="Observed Leaf Scan" onerror="this.src='images/leaf_placeholder.jpg'" />
+                <div class="image-box-caption">
+                  <span>📸</span> Observed Leaf Scan (Field Ingestion)
+                </div>
               </div>
               <div class="image-box" id="heatmapBox">
-                <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:8px; text-transform:uppercase;">Grad-CAM Saliency Overlay</div>
-                <img id="heatmapImg" src="" alt="Grad-CAM heatmap" onerror="document.getElementById('heatmapBox').style.display='none'" />
+                <img id="heatmapImg" src="" alt="Grad-CAM Saliency Overlay" onerror="document.getElementById('heatmapBox').style.display='none'" />
+                <div class="image-box-caption">
+                  <span>🔥</span> Grad-CAM Heatmap (Localized Saliency Focus)
+                </div>
               </div>
             </div>
-
-            <div style="margin-top:18px;">
-              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#475569; margin-bottom:8px; letter-spacing:0.04em;">
-                Class Probability Distribution
-              </div>
-              <div id="cnnProbsContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
+            <div style="font-size:11px; color:#64748b; margin-top:12px; line-height:1.45;">
+              Grad-CAM overlay highlights discriminating pixel regions (chlorosis, necrotic spots, wilting margins) that directly influenced the deep convolutional neural network's visual classification.
             </div>
-
-            <!-- Expandable CNN Architecture Details -->
-            <details class="model-details" style="margin-top:14px;">
-              <summary>▶ Model Details (CNN)</summary>
-              <div class="model-meta-grid" style="margin-top:8px;">
-                <div><strong>Architecture:</strong> ResNet-18 Custom (110,853 parameters)</div>
-                <div><strong>Resolution:</strong> 224 × 224 RGB</div>
-                <div><strong>Preprocessing:</strong> ImageNet Mean/Std Normalization</div>
-                <div><strong>Benchmark:</strong> 86.05% Test Accuracy</div>
-              </div>
-            </details>
           </div>
 
-          <!-- 3. SNN ENVIRONMENTAL ASSESSMENT & INPUTS -->
-          <div class="card-pbi">
-            <div class="card-pbi-title">⛅ 2. Field Microclimate &amp; Soil Telemetry (SNN)</div>
-            
-            <div class="meta-grid-6" id="envInputsGrid"></div>
-
-            <div style="margin-top:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; font-size:12px; color:#475569;" id="snnSpikesSummary">
-              Spiking Neural Network simulation across T=10 timesteps.
+          <!-- SECTION 2: VISUAL ANALYSIS — CNN -->
+          <div class="report-section-card" id="sectionVisualCNN">
+            <div class="report-section-header">
+              <h3 class="report-section-title">
+                <span>👁️</span> 2. Visual Analysis — CNN (Deep Learning)
+              </h3>
+              <div style="display:flex; gap:8px;">
+                <span id="cnnTopBadge" class="report-section-badge" style="background:#ecfdf5; color:#059669; border-color:#a7f3d0;">
+                  Top Finding: Nutrient Deficiency
+                </span>
+              </div>
             </div>
 
-            <!-- Expandable SNN Architecture Details -->
-            <details class="model-details" style="margin-top:14px;">
-              <summary>▶ Model Details (SNN)</summary>
-              <div class="model-meta-grid" style="margin-top:8px;">
-                <div><strong>Architecture:</strong> 3-Layer LIF Spiking (33 inputs, T=10)</div>
-                <div><strong>Membrane Decay:</strong> β = 0.95</div>
-                <div><strong>Temporal Resolution:</strong> 10 timesteps</div>
-                <div><strong>Benchmark:</strong> 91.81% Test Accuracy</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:14px;" id="cnnHeroRow">
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px;">
+                <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Primary Visual Classification</div>
+                <div style="font-size:1.3rem; font-weight:800; color:#064e3b; margin:4px 0;" id="cnnPrimaryClass">Nutrient Deficiency</div>
+                <div style="font-size:11.5px; color:#475569;" id="cnnConfidenceText">Confidence: 87.4% model certainty</div>
               </div>
-            </details>
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px;">
+                <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Visual Symptom Profile</div>
+                <div style="font-size:12px; color:#334155; margin-top:4px; line-height:1.45;" id="cnnSymptomDesc">
+                  Foliar discoloration detected with high localized feature activation in leaf vascular and interveinal tissue.
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#475569; margin-bottom:10px; letter-spacing:0.04em;">
+                5-Class Probability Distribution
+              </div>
+              <div id="cnnProbsContainer" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
           </div>
 
-          <!-- 4. HISTORICAL MACROCLIMATE & WEATHER CONTEXT (OPENWEATHER) -->
-          <div class="card-pbi" id="detailWeatherCard" style="display:none;">
-            <div class="card-pbi-title" style="display:flex; justify-content:space-between; align-items:center;">
-              <span>🌤️ 3. Historical Macroclimate &amp; Weather Context (OpenWeather)</span>
-              <span id="detailWeatherSourceBadge" style="font-size:10.5px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Recorded at Observation Time</span>
+          <!-- SECTION 3: ENVIRONMENTAL ANALYSIS — SNN -->
+          <div class="report-section-card" id="sectionEnvironmentalSNN">
+            <div class="report-section-header">
+              <h3 class="report-section-title">
+                <span>⚡</span> 3. Environmental Analysis — SNN (Spiking Neural Network)
+              </h3>
+              <span id="snnSeverityBadge" class="report-section-badge" style="background:#fef3c7; color:#d97706; border-color:#fde68a;">
+                Moderate Stress Severity
+              </span>
             </div>
-            
+
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:14px;">
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+                <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Risk Level</div>
+                <div style="font-size:15px; font-weight:800; color:#0f172a; margin-top:3px;" id="snnRiskLevel">Moderate</div>
+              </div>
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+                <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Spiking Activity Score</div>
+                <div style="font-size:15px; font-weight:800; color:#0284c7; margin-top:3px;" id="snnActivityScore">74.0%</div>
+              </div>
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+                <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Simulation Horizon</div>
+                <div style="font-size:15px; font-weight:800; color:#0d3b2e; margin-top:3px;">T = 10 Timesteps</div>
+              </div>
+            </div>
+
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; font-size:12px; color:#475569;" id="snnSpikesSummary">
+              Leaky Integrate-and-Fire neurons simulated across 10 temporal timesteps (β = 0.95).
+            </div>
+          </div>
+
+          <!-- SECTION 4: ENVIRONMENTAL INPUTS -->
+          <div class="report-section-card" id="sectionEnvironmentalInputs">
+            <div class="report-section-header">
+              <h3 class="report-section-title">
+                <span>⛅</span> 4. Environmental Inputs (Field Microclimate &amp; Telemetry)
+              </h3>
+              <span class="report-section-badge" style="background:#f0fdf4; color:#15803d; border-color:#bbf7d0;">
+                6 Direct Telemetry Sensors
+              </span>
+            </div>
+
+            <div class="meta-grid-6" id="envInputsGrid">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- SECTION 5: WEATHER SNAPSHOT -->
+          <div class="report-section-card" id="sectionWeatherSnapshot">
+            <div class="report-section-header">
+              <h3 class="report-section-title">
+                <span>🌤️</span> 5. Weather Snapshot (Historical Analysis-Time Snapshot)
+              </h3>
+              <span id="detailWeatherSourceBadge" class="report-section-badge" style="background:#ecfdf5; color:#059669; border-color:#a7f3d0;">
+                Analysis-Time Snapshot (Archived)
+              </span>
+            </div>
+
+            <!-- Historical Preservation Notice -->
+            <div style="background:#eff6ff; border-left:3.5px solid #2563eb; padding:9px 13px; font-size:11.5px; color:#1e40af; border-radius:0 8px 8px 0; margin-bottom:14px; line-height:1.45;">
+              <strong>Historical Preservation:</strong> This macroclimate weather snapshot reflects exact conditions recorded via OpenWeather at the time this crop analysis was initiated. It is permanently preserved for auditability and is never substituted with current live weather.
+            </div>
+
             <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
               <div>
-                <strong style="color:#0f172a; font-size:13px;" id="detailWeatherStation">Wardha Station</strong>
+                <strong style="color:#0f172a; font-size:13px;" id="detailWeatherStation">Wardha Farm Weather Station</strong>
                 <div style="font-size:11px; color:#64748b;" id="detailWeatherObserved">Observed Time: —</div>
               </div>
-              <div style="font-size:12px; color:#475569;" id="detailWeatherCondition">Condition: Clear</div>
+              <div style="font-size:12px; color:#475569; font-weight:600;" id="detailWeatherCondition">Condition: Clear</div>
             </div>
 
             <div class="meta-grid-6" id="detailWeatherGrid">
               <!-- Dynamically rendered -->
             </div>
 
-            <div style="margin-top:12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 14px; font-size:12px; color:#1e40af;" id="detailWeatherForecastText">
-              48-Hour Forecast Outlook
+            <div style="margin-top:12px; background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px; padding:10px 14px; font-size:12px; color:#6b21a8;" id="detailWeatherForecastText">
+              48-Hour Macro Forecast Outlook recorded during session.
             </div>
           </div>
 
-          <!-- 5. EXPERT CHECK (DETERMINISTIC AGRONOMIC RULE LAYER) -->
-          <div class="card-pbi" id="expertCheckCard">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div style="width:28px; height:28px; border-radius:6px; background:#fff7ed; border:1px solid #ffedd5; display:flex; align-items:center; justify-content:center; font-size:15px;">🛡️</div>
-                <div>
-                  <h4 style="margin:0; font-size:13.5px; font-weight:800; color:#0f172a;">Expert Check</h4>
-                  <div style="font-size:10.5px; color:#64748b; font-weight:600;">Deterministic Rule Layer (Agronomic Qualification &amp; Safety Gate)</div>
-                </div>
+          <!-- SECTION 6: MULTIMODAL FUSION -->
+          <div class="report-section-card" id="sectionMultimodalFusion">
+            <div class="report-section-header">
+              <h3 class="report-section-title">
+                <span>🧬</span> 6. Multimodal Fusion (Visual + Environmental Integration)
+              </h3>
+              <span id="fusionRelBadge" class="report-section-badge" style="background:#ecfdf5; color:#059669; border-color:#a7f3d0;">
+                ALIGNED
+              </span>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px;">
+                <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Modality Convergence</div>
+                <div style="font-size:13.5px; font-weight:800; color:#0d3b2e; margin:3px 0;" id="fusionVerdictText">Coincident Evidence</div>
+                <div style="font-size:11.5px; color:#475569;" id="fusionConvergenceSub">Visual leaf diagnosis is corroborated by microclimatic sensor stress level.</div>
               </div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span id="detailRuleIdBadge" style="background:#f1f5f9; color:#334155; font-size:11px; font-weight:800; font-family:monospace; padding:3px 10px; border-radius:6px; border:1px solid #cbd5e1;">EVR-004</span>
-                <span id="detailRuleStatusBadge" style="background:#fff1f2; color:#e11d48; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; border:1px solid #fecdd3;">Evidence Conflict</span>
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px;">
+                <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Fusion Calibration</div>
+                <div style="font-size:13.5px; font-weight:800; color:#0d3b2e; margin:3px 0;">60% CNN · 40% SNN</div>
+                <div style="font-size:11.5px; color:#475569;">Deterministic Gated Rule Fusion with Bayesian Risk Weighting.</div>
               </div>
             </div>
 
-            <!-- Non-Replacing Qualifier Notice -->
-            <div style="background:#f8fafc; border-left:3px solid #64748b; padding:8px 12px; font-size:11px; color:#475569; border-radius:0 6px 6px 0; margin-bottom:14px; line-height:1.45;">
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; font-size:12.5px; color:#1e293b; line-height:1.5;" id="fusionSummaryText">
+              Visual chlorosis patterns detected with corresponding environmental baseline metrics.
+            </div>
+          </div>
+
+          <!-- SECTION 7: EXPERT CHECK -->
+          <div class="report-section-card" id="sectionExpertCheck">
+            <div class="report-section-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:16px;">🛡️</span>
+                <h3 class="report-section-title" style="margin:0;">
+                  7. Expert Check (Deterministic Rule Layer &amp; Safety Gate)
+                </h3>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span id="detailRuleIdBadge" style="background:#f1f5f9; color:#334155; font-size:11px; font-weight:800; font-family:monospace; padding:3px 10px; border-radius:6px; border:1px solid #cbd5e1;">EVR-007</span>
+                <span id="detailRuleStatusBadge" class="report-section-badge" style="background:#ecfdf5; color:#059669; border-color:#a7f3d0;">No Rule Triggered</span>
+              </div>
+            </div>
+
+            <!-- Deterministic Notice -->
+            <div style="background:#f8fafc; border-left:3.5px solid #64748b; padding:8px 12px; font-size:11px; color:#475569; border-radius:0 6px 6px 0; margin-bottom:14px; line-height:1.45;">
               <strong>Deterministic Safeguard:</strong> This layer evaluates deterministic physical conditions to qualify AI model inferences without replacing CNN or SNN reasoning. Thresholds are illustrative decision-support parameters requiring local agronomic calibration.
             </div>
 
             <div id="rulesContainer"></div>
 
-            <!-- Expandable Rule Registry & Threshold Audit -->
+            <!-- Auditable Rule Registry Table (Expandable) -->
             <details class="model-details" style="margin-top:14px; background:#fafafa; border:1px solid #f1f5f9; border-radius:8px; padding:10px 14px;">
               <summary style="font-size:11px; font-weight:700; color:#475569; cursor:pointer;">▶ Auditable Deterministic Rule Registry (7 Rules)</summary>
               <div style="margin-top:10px; font-size:11px; color:#64748b; line-height:1.5; overflow-x:auto;">
@@ -489,30 +803,132 @@
             </details>
           </div>
 
-          <!-- 5. WHAT TO CHECK NEXT (Farmer-Friendly Action Checklist) -->
-          <div class="what-to-check-panel" id="detailWhatToCheckPanel" style="margin-bottom:20px;">
-            <div class="what-to-check-header">
-              <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:32px; height:32px; border-radius:8px; background:#ecfdf5; border:1px solid #a7f3d0; display:flex; align-items:center; justify-content:center; font-size:16px;">
-                  ✅
-                </div>
-                <div>
-                  <h4 style="margin:0; font-size:14px; font-weight:800; color:#0d3b2e;">What to Check Next</h4>
-                  <div style="font-size:11px; color:#64748b;">Actionable field checklist generated from visual diagnosis, sensor telemetry &amp; backend rules</div>
-                </div>
+          <!-- SECTION 8: FINAL ASSESSMENT -->
+          <div class="report-section-card" id="sectionFinalAssessment" style="border:1.5px solid #059669; background:linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);">
+            <div class="report-section-header" style="border-bottom:1px solid #dcfce7;">
+              <h3 class="report-section-title" style="color:#064e3b;">
+                <span>🎯</span> 8. Final Assessment (Integrated Diagnostic Verdict)
+              </h3>
+              <div style="display:flex; gap:8px;">
+                <span id="finalSevBadge" class="report-section-badge" style="background:#fef3c7; color:#d97706; border-color:#fde68a;">
+                  Moderate Risk
+                </span>
+                <span id="finalAlignBadge" class="report-section-badge" style="background:#ecfdf5; color:#059669; border-color:#a7f3d0;">
+                  Aligned Finding
+                </span>
               </div>
-              <span class="what-to-check-count" id="detailWhatToCheckCount">0 / 6 Completed</span>
             </div>
 
-            <!-- Dynamic Checklist Items Container -->
-            <div class="what-to-check-list" id="detailWhatToCheckList">
-              <!-- Populated dynamically from record context -->
+            <div style="margin-bottom:16px;">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#065f46; letter-spacing:0.04em;">Primary Multimodal Diagnosis</div>
+              <h2 style="margin:4px 0 6px; font-size:1.55rem; font-weight:800; color:#064e3b;" id="finalHeroClass">Nutrient Deficiency</h2>
+              <p style="margin:0; font-size:13px; color:#1e293b; line-height:1.5;" id="finalHeroSummary">
+                Visual chlorosis patterns detected with corresponding environmental baseline metrics.
+              </p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;" id="finalMetaGrid">
+              <!-- Dynamically populated 3 KPI cards -->
             </div>
           </div>
 
-          <!-- 6. DISCLAIMER -->
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; font-size:11px; color:#64748b; margin-bottom:32px;">
-            <strong>Advisory Notice:</strong> Model benchmarks: CNN Test Accuracy = 86.05%, SNN Test Accuracy = 91.81%. Expert-rule thresholds provide decision support and require agronomic validation before making major chemical or irrigation interventions.
+          <!-- SECTION 9: WHAT TO CHECK NEXT -->
+          <div class="report-section-card" id="sectionWhatToCheckNext" style="padding:0; overflow:hidden; border:none; background:transparent;">
+            <div class="what-to-check-panel" id="detailWhatToCheckPanel" style="margin-bottom:0;">
+              <div class="what-to-check-header">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <div style="width:32px; height:32px; border-radius:8px; background:#ecfdf5; border:1px solid #a7f3d0; display:flex; align-items:center; justify-content:center; font-size:16px;">
+                    ✅
+                  </div>
+                  <div>
+                    <h4 style="margin:0; font-size:14px; font-weight:800; color:#0d3b2e;">9. What to Check Next</h4>
+                    <div style="font-size:11px; color:#64748b;">Actionable field checklist generated from visual diagnosis, sensor telemetry &amp; backend rules</div>
+                  </div>
+                </div>
+                <span class="what-to-check-count" id="detailWhatToCheckCount">0 / 6 Completed</span>
+              </div>
+
+              <!-- Dynamic Checklist Items Container -->
+              <div class="what-to-check-list" id="detailWhatToCheckList">
+                <!-- Populated dynamically from record context -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 10: AI EXPLANATION -->
+          <div class="report-section-card" id="sectionAIExplanation" style="margin-top:20px;">
+            <div class="report-section-header">
+              <h3 class="report-section-title">
+                <span>🤖</span> 10. AI Explanation (Agronomic Synthesis &amp; Reasoning)
+              </h3>
+              <span class="report-section-badge" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe;">
+                Gemini Agronomic Advisory
+              </span>
+            </div>
+
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px; font-size:12.5px; color:#1e293b; line-height:1.55;" id="aiExplanationText">
+              AgroVision's multimodal intelligence synthesizes foliar phenotypic symptoms with root-zone microclimate data to produce calibrated, evidence-backed agronomic guidance.
+            </div>
+
+            <!-- Quick AI Assistant Action Buttons -->
+            <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+              <a id="aiActionNutrient" href="#" class="btn btn-action-outline" style="padding:6px 12px; font-size:11.5px; border-radius:6px; text-decoration:none; background:#ffffff; color:#0d3b2e;">
+                💬 Ask AI about foliar symptoms
+              </a>
+              <a id="aiActionIrrigation" href="#" class="btn btn-action-outline" style="padding:6px 12px; font-size:11.5px; border-radius:6px; text-decoration:none; background:#ffffff; color:#0d3b2e;">
+                💧 Ask AI about irrigation timing
+              </a>
+              <a id="aiActionSoil" href="#" class="btn btn-action-outline" style="padding:6px 12px; font-size:11.5px; border-radius:6px; text-decoration:none; background:#ffffff; color:#0d3b2e;">
+                🌱 Ask AI about soil sampling
+              </a>
+            </div>
+          </div>
+
+          <!-- SECTION 11: TECHNICAL MODEL DETAILS -->
+          <div class="report-section-card" id="sectionTechnicalDetails">
+            <div class="report-section-header">
+              <h3 class="report-section-title">
+                <span>⚙️</span> 11. Technical Model Details &amp; Parameters
+              </h3>
+              <span class="report-section-badge" style="background:#f1f5f9; color:#475569; border-color:#cbd5e1;">
+                Dual AI Architecture
+              </span>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <!-- CNN Architecture Specs -->
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px;">
+                <div style="font-size:12px; font-weight:800; color:#0d3b2e; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                  <span>🌿</span> CNN Model (Visual Classifier)
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px; font-size:11.5px; color:#475569;">
+                  <div><strong>Architecture:</strong> ResNet-18 Custom Deep CNN</div>
+                  <div><strong>Parameters:</strong> 110,853 trainable parameters</div>
+                  <div><strong>Input Resolution:</strong> 224 × 224 RGB Normalized</div>
+                  <div><strong>Test Benchmark:</strong> 86.05% Accuracy on Cotton Leaves</div>
+                  <div><strong>Output Classes:</strong> 5 Classes with Softmax Calibration</div>
+                </div>
+              </div>
+
+              <!-- SNN Architecture Specs -->
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px;">
+                <div style="font-size:12px; font-weight:800; color:#0d3b2e; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                  <span>⚡</span> SNN Model (Environmental Spiking)
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px; font-size:11.5px; color:#475569;">
+                  <div><strong>Architecture:</strong> 3-Layer LIF Spiking Neural Network</div>
+                  <div><strong>Input Dimensions:</strong> 33-dimensional telemetry features</div>
+                  <div><strong>Membrane Decay:</strong> β = 0.95 (Exponential LIF decay)</div>
+                  <div><strong>Temporal Resolution:</strong> T = 10 discrete timesteps</div>
+                  <div><strong>Test Benchmark:</strong> 91.81% Test Accuracy on Multi-sensor Data</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Advisory Notice -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; font-size:11px; color:#64748b; margin-top:20px;">
+            <strong>Advisory Notice:</strong> Model benchmarks: CNN Test Accuracy = 86.05%, SNN Test Accuracy = 91.81%. Deterministic expert-rule thresholds provide decision support and require agronomic validation before making major chemical or irrigation interventions.
           </div>
 
         </div>
@@ -522,9 +938,9 @@
   </div>
 
   <script src="js/config.js"></script>
-  <script src="js/auth.js?v=11"></script>
+  <script src="js/auth.js?v=12"></script>
   <script src="js/sidebar.js"></script>
   <script src="js/header.js"></script>
-  <script src="js/analysis_detail.js?v=11"></script>
+  <script src="js/analysis_detail.js?v=12"></script>
 </body>
 </html>
