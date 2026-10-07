@@ -129,3 +129,34 @@ class UserSettingsDB(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+
+class FieldDB(Base):
+    __tablename__ = "fields"
+    id = Column(Integer, primary_key=True, index=True)
+    field_id = Column(String, unique=True, index=True, nullable=False)
+    user_email = Column(String, index=True, nullable=False)
+    field_name = Column(String, nullable=False)
+    zone_label = Column(String, default="Central Cotton Zone")
+    latitude = Column(Float, default=20.9750)
+    longitude = Column(Float, default=78.7200)
+    crop_stage = Column(String, default="Flowering")
+    days_since_sowing = Column(Integer, default=60)
+    soil_type = Column(String, default="Black Cotton Soil (Vertisol)")
+    acreage = Column(Float, default=5.0)
+    is_active = Column(Integer, default=1)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class NotificationDB(Base):
+    __tablename__ = "notifications"
+    id = Column(Integer, primary_key=True, index=True)
+    user_email = Column(String, index=True, nullable=False)
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    notif_type = Column(String, default="system")  # analysis, expert_veto, weather, report, system
+    link_url = Column(String, nullable=True)
+    is_read = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+

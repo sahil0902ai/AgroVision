@@ -322,11 +322,44 @@
               <div class="settings-header-left">
                 <div class="settings-section-icon">📍</div>
                 <div>
-                  <h2 class="settings-section-title">Field Preferences &amp; Units</h2>
-                  <p class="settings-section-desc">Default field telemetry parameters, soil profiles, and measurement units</p>
+                  <h2 class="settings-section-title">Field Preferences &amp; Farm Parcels</h2>
+                  <p class="settings-section-desc">Manage registered farm plots, telemetry parameters, soil profiles, and units</p>
                 </div>
               </div>
-              <span class="provenance-tag tag-auto-weather">TELEMETRY DEFAULTS</span>
+              <span class="provenance-tag tag-auto-weather">DATABASE SYNCED</span>
+            </div>
+
+            <!-- Registered Fields Management Table -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:18px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                <div>
+                  <h4 style="font-size:12.5px; font-weight:800; color:#0d3b2e; margin:0;">🌱 Registered Farm Fields</h4>
+                  <span style="font-size:11px; color:#64748b;">Synchronized with backend REST API and live OpenWeather telemetry</span>
+                </div>
+                <button type="button" onclick="openAddFieldModal()" class="btn btn-primary" style="padding:6px 12px; font-size:11.5px; font-weight:700;">
+                  + Add New Field
+                </button>
+              </div>
+
+              <div class="table-responsive" style="max-height:220px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; background:#ffffff;">
+                <table class="data-table" style="width:100%; font-size:11.5px; text-align:left; border-collapse:collapse;">
+                  <thead>
+                    <tr style="background:#f1f5f9; color:#475569; border-bottom:1px solid #e2e8f0;">
+                      <th style="padding:8px 10px;">Field / Parcel</th>
+                      <th style="padding:8px 10px;">Location</th>
+                      <th style="padding:8px 10px;">Area</th>
+                      <th style="padding:8px 10px;">Soil &amp; Irrigation</th>
+                      <th style="padding:8px 10px;">Coordinates</th>
+                      <th style="padding:8px 10px; text-align:right;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="settingsFieldsTableBody">
+                    <tr>
+                      <td colspan="6" style="padding:16px; text-align:center; color:#64748b;">Loading fields…</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <div class="settings-form-grid-2">
@@ -762,7 +795,103 @@
 
       </div>
 
+      <!-- Shared Global Footer -->
+      <footer class="dash-footer" style="margin-top:24px;">
+        <div class="dash-footer-inner">
+          <div class="footer-left">
+            <span class="footer-brand">🌿 <strong>AgroVision</strong> · Smart Cotton Farming</span>
+            <span class="footer-copy">© 2026 AgroVision Technologies. All rights reserved.</span>
+          </div>
+          <div class="footer-links">
+            <a href="about.html">About</a>
+            <a href="services.html">Services</a>
+            <a href="assistant.html">AI Advisor</a>
+            <a href="settings.html">Settings</a>
+          </div>
+          <div class="footer-right">
+            <span class="footer-status-badge status-online" id="globalFooterStatusBadge">
+              <span class="status-pulse-dot" style="background:#059669;"></span> System Online
+            </span>
+            <span class="footer-version">v2.4.0</span>
+          </div>
+        </div>
+      </footer>
+
     </main>
+  </div>
+
+  <!-- ADD FIELD MODAL -->
+  <div id="addFieldModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); z-index:9999; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(3px);">
+    <div style="background:#ffffff; border-radius:14px; max-width:540px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 25px -5px rgba(0,0,0,0.15); border:1px solid #e2e8f0; display:flex; flex-direction:column;">
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid #e2e8f0; background:#f8fafc; border-top-left-radius:14px; border-top-right-radius:14px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:18px;">🌱</span>
+          <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">Register New Farm Field</h3>
+        </div>
+        <button type="button" onclick="closeAddFieldModal()" style="background:none; border:none; font-size:18px; color:#64748b; cursor:pointer; padding:4px 8px; border-radius:6px;" aria-label="Close modal">✕</button>
+      </div>
+
+      <form id="newFieldForm" onsubmit="handleCreateField(event)" style="padding:18px; display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <label style="display:block; font-size:11.5px; font-weight:700; color:#1e293b; margin-bottom:4px;">Field / Parcel Name *</label>
+          <input type="text" id="newFieldName" class="settings-input" placeholder="e.g. Field D — East Canal Plot" required style="width:100%; box-sizing:border-box;" />
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div>
+            <label style="display:block; font-size:11.5px; font-weight:700; color:#1e293b; margin-bottom:4px;">Location / District *</label>
+            <input type="text" id="newFieldLocation" class="settings-input" placeholder="e.g. Wardha District" required style="width:100%; box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="display:block; font-size:11.5px; font-weight:700; color:#1e293b; margin-bottom:4px;">Area (Acres)</label>
+            <input type="number" step="0.1" min="0.1" id="newFieldArea" class="settings-input" placeholder="e.g. 5.5" style="width:100%; box-sizing:border-box;" />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div>
+            <label style="display:block; font-size:11.5px; font-weight:700; color:#1e293b; margin-bottom:4px;">Latitude (°N) *</label>
+            <input type="number" step="0.0001" id="newFieldLat" class="settings-input" value="20.9750" required style="width:100%; box-sizing:border-box;" />
+          </div>
+          <div>
+            <label style="display:block; font-size:11.5px; font-weight:700; color:#1e293b; margin-bottom:4px;">Longitude (°E) *</label>
+            <input type="number" step="0.0001" id="newFieldLon" class="settings-input" value="78.7200" required style="width:100%; box-sizing:border-box;" />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div>
+            <label style="display:block; font-size:11.5px; font-weight:700; color:#1e293b; margin-bottom:4px;">Soil Type</label>
+            <select id="newFieldSoil" class="settings-select" style="width:100%; box-sizing:border-box;">
+              <option value="Black Cotton Soil (Vertisol)">Black Cotton Soil (Vertisol)</option>
+              <option value="Medium Black Soil">Medium Black Soil</option>
+              <option value="Red Sandy Loam">Red Sandy Loam</option>
+              <option value="Laterite Soil">Laterite Soil</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block; font-size:11.5px; font-weight:700; color:#1e293b; margin-bottom:4px;">Irrigation System</label>
+            <select id="newFieldIrrigation" class="settings-select" style="width:100%; box-sizing:border-box;">
+              <option value="Drip Irrigation">Drip Irrigation</option>
+              <option value="Furrow Irrigation">Furrow Irrigation</option>
+              <option value="Sprinkler System">Sprinkler System</option>
+              <option value="Rainfed / Dryland">Rainfed / Dryland</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+          <button type="button" class="btn-reset-filters" onclick="closeAddFieldModal()" style="font-size:11.5px; padding:6px 14px;">
+            Cancel
+          </button>
+          <button type="submit" id="btnSubmitNewField" class="btn btn-primary" style="font-size:11.5px; padding:6px 16px; font-weight:700;">
+            Register Field
+          </button>
+        </div>
+      </form>
+
+    </div>
   </div>
 
   <!-- Universal Mobile Bottom Navigation Bar -->
@@ -793,7 +922,11 @@
     </a>
   </nav>
 
-  <script src="js/auth.js"></script>
-  <script src="js/settings.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js?v=12"></script>
+  <script src="js/sync_bus.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/header.js"></script>
+  <script src="js/settings.js?v=12"></script>
 </body>
 </html>

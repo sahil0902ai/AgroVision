@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from sqlalchemy.orm import Session
 
 from ..core.database import get_db
-from ..models.db_models import AnalysisRecordDB
+from ..models.db_models import AnalysisRecordDB, NotificationDB
 from ..schemas.fusion_schema import (
     CNNAnalysisOutput,
     CombineAnalysisRequest,
@@ -310,6 +310,19 @@ async def run_unified_analysis(
             created_at=datetime.utcnow(),
         )
         db.add(db_record)
+        
+        # Create real-time notification
+        is_alert = bool(veto_result.get("triggered_rules"))
+        notif = NotificationDB(
+            user_email=clean_email or "default_farmer@agrovision.org",
+            title=f"Expert Precaution: {top_cnn_class}" if is_alert else f"Analysis Saved: {top_cnn_class}",
+            message=f"Session {session_uuid[:8]} completed for {field_name}. Visual: {top_cnn_class}, Environmental: {snn_predicted_severity}.",
+            notif_type="expert_veto" if is_alert else "analysis",
+            link_url=f"analysis_detail.html?uuid={session_uuid}",
+            is_read=0,
+            created_at=datetime.utcnow()
+        )
+        db.add(notif)
         db.commit()
     except Exception as dbe:
         logger.error(f"Database persistence error: {dbe}", exc_info=True)
@@ -498,6 +511,19 @@ def combine_multimodal_analysis(
                 created_at=datetime.utcnow(),
             )
             db.add(db_record)
+            
+            is_alert = bool(veto_result.get("triggered_rules"))
+            vis_class = payload.visual_evidence.predicted_class
+            notif = NotificationDB(
+                user_email=clean_email or "default_farmer@agrovision.org",
+                title=f"Expert Precaution: {vis_class}" if is_alert else f"Analysis Saved: {vis_class}",
+                message=f"Session {rec_uuid[:8]} completed for {field_id_name}. Visual: {vis_class}, Environmental: {payload.environmental_evidence.severity}.",
+                notif_type="expert_veto" if is_alert else "analysis",
+                link_url=f"analysis_detail.html?uuid={rec_uuid}",
+                is_read=0,
+                created_at=datetime.utcnow()
+            )
+            db.add(notif)
             db.commit()
         except Exception as dbe:
             logger.warning(f"Could not persist combined record: {dbe}")

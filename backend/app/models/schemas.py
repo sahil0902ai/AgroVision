@@ -46,3 +46,68 @@ class AnalysisRecordResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class FieldCreateSchema(BaseModel):
+    field_name: str
+    zone_label: str | None = "Central Cotton Zone"
+    latitude: float = 20.9750
+    longitude: float = 78.7200
+    crop_stage: str = "Flowering"
+    days_since_sowing: int = 60
+    soil_type: str = "Black Cotton Soil (Vertisol)"
+    acreage: float = 5.0
+
+
+class FieldUpdateSchema(BaseModel):
+    field_name: str | None = None
+    zone_label: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    crop_stage: str | None = None
+    days_since_sowing: int | None = None
+    soil_type: str | None = None
+    acreage: float | None = None
+    is_active: int | None = None
+
+
+class FieldResponseSchema(BaseModel):
+    id: int
+    field_id: str
+    user_email: str
+    field_name: str
+    zone_label: str | None = None
+    latitude: float
+    longitude: float
+    crop_stage: str
+    days_since_sowing: int
+    soil_type: str
+    acreage: float
+    is_active: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class NotificationCreateSchema(BaseModel):
+    title: str
+    message: str
+    notif_type: str = "system"
+    link_url: str | None = None
+
+
+class NotificationResponseSchema(BaseModel):
+    id: int
+    user_email: str
+    title: str
+    message: str
+    notif_type: str
+    link_url: str | None = None
+    is_read: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+

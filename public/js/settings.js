@@ -501,7 +501,246 @@ async function handleChangePassword(event) {
   }
 }
 
+/* =========================================================
+   LIVE FIELD MANAGEMENT & REST API SYNC
+   ========================================================= */
+
+let userFieldsList = [];
+
+async function loadUserFields() {
+  const email = currentUser?.email?.toLowerCase().trim();
+  if (!email) return;
+
+  const tableBody = document.getElementById("settingsFieldsTableBody");
+  if (!tableBody) return;
+
+  try {
+    const res = await fetch(getApiUrl(`/api/v1/fields?email=${encodeURIComponent(email)}`));
+    if (!res.ok) throw new Error("Could not load farm fields.");
+
+    const data = await res.json();
+    userFieldsList = (data && data.fields) ? data.fields : [];
+    renderFieldsTable(userFieldsList);
+  } catch (err) {
+    console.warn("Failed to load user fields:", err);
+    tableBody.innerHTML = `<tr><td colspan="6" style="padding:14px; text-align:center; color:#ef4444;">Failed to load fields: ${err.message}</td></tr>`;
+  }
+}
+
+function renderFieldsTable(fields) {
+  const tableBody = document.getElementById("settingsFieldsTableBody");
+  if (!tableBody) return;
+
+  if (!fields || fields.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="6" style="padding:20px; text-align:center; color:#64748b;">No registered farm fields found. Click <strong>+ Add New Field</strong> above to register your first plot.</td></tr>`;
+    return;
+  }
+
+  const activeFieldId = localStorage.getItem("agrovision_active_field_id");
+
+  tableBody.innerHTML = fields.map(f => {
+    const isDefault = f.is_default || f.id === activeFieldId;
+    return `
+      <tr style="border-bottom:1px solid #f1f5f9; background:${isDefault ? '#f0fdf4' : 'transparent'};">
+        <td style="padding:10px 12px; font-weight:700; color:#0f172a;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span>🌱</span>
+            <span>${escapeHtml(f.name)}</span>
+            ${isDefault ? '<span style="font-size:9.5px; background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; padding:1px 6px; border-radius:999px; font-weight:800;">ACTIVE</span>' : ''}
+          </div>
+          <div style="font-size:10px; color:#64748b; margin-top:2px;">ID: ${escapeHtml(f.station_id || f.id)}</div>
+        </td>
+        <td style="padding:10px 12px; color:#334155;">${escapeHtml(f.location || '-')}</td>
+        <td style="padding:10px 12px; color:#334155;">${f.area_acres ? f.area_acres + ' ac' : '-'}</td>
+        <td style="padding:10px 12px; color:#334155;">
+          <span style="display:block; font-weight:600; font-size:11px;">${escapeHtml(f.soil_type || 'Vertisol')}</span>
+          <span style="font-size:10.5px; color:#64748b;">${escapeHtml(f.irrigation_type || 'Drip')}</span>
+        </td>
+        <td style="padding:10px 12px; font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#475569;">
+          ${f.latitude.toFixed(4)}°N, ${f.longitude.toFixed(4)}°E
+        </td>
+        <td style="padding:10px 12px; text-align:right; white-space:nowrap;">
+          ${!isDefault ? `
+            <button type="button" onclick="handleSetActiveField('${escapeHtml(f.id)}')" class="btn btn-outline" style="padding:4px 8px; font-size:10.5px; font-weight:700; margin-right:4px;">
+              Set Active
+            </button>
+          ` : ''}
+          <button type="button" onclick="handleDeleteField('${escapeHtml(f.id)}', '${escapeHtml(f.name)}')" class="btn btn-outline" style="padding:4px 8px; font-size:10.5px; color:#ef4444; border-color:#fecaca;" title="Delete Field">
+            🗑️
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str).replace(/[&<>"']/g, m => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[m]);
+}
+
+function openAddFieldModal() {
+  const modal = document.getElementById("addFieldModal");
+  if (modal) {
+    modal.style.display = "flex";
+    const nameInput = document.getElementById("newFieldName");
+    if (nameInput) {
+      nameInput.value = "";
+      nameInput.focus();
+    }
+  }
+}
+
+function closeAddFieldModal() {
+  const modal = document.getElementById("addFieldModal");
+  if (modal) modal.style.display = "none";
+}
+
+async function handleCreateField(e) {
+  if (e) e.preventDefault();
+  const email = currentUser?.email?.toLowerCase().trim();
+  if (!email) {
+    showAlert("error", "You must be logged in to register a field.");
+    return;
+  }
+
+  const name = document.getElementById("newFieldName")?.value.trim();
+  const location = document.getElementById("newFieldLocation")?.value.trim();
+  const areaVal = document.getElementById("newFieldArea")?.value.trim();
+  const latVal = document.getElementById("newFieldLat")?.value.trim();
+  const lonVal = document.getElementById("newFieldLon")?.value.trim();
+  const soil = document.getElementById("newFieldSoil")?.value;
+  const irrigation = document.getElementById("newFieldIrrigation")?.value;
+
+  if (!name || !location || !latVal || !lonVal) {
+    showAlert("error", "Please fill in all required field information.");
+    return;
+  }
+
+  const payload = {
+    user_email: email,
+    name: name,
+    location: location,
+    area_acres: areaVal ? parseFloat(areaVal) : null,
+    latitude: parseFloat(latVal),
+    longitude: parseFloat(lonVal),
+    soil_type: soil,
+    irrigation_type: irrigation,
+    is_default: userFieldsList.length === 0
+  };
+
+  const submitBtn = document.getElementById("btnSubmitNewField");
+  if (submitBtn) submitBtn.disabled = true;
+
+  try {
+    const res = await fetch(getApiUrl("/api/v1/fields"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to create field.");
+    }
+
+    const newField = await res.json();
+    closeAddFieldModal();
+    showAlert("success", `Field "${newField.name}" successfully registered and saved to database.`);
+
+    if (window.AgroVisionSync && typeof window.AgroVisionSync.emitFieldChanged === "function") {
+      window.AgroVisionSync.emitFieldChanged({ field_id: newField.id, name: newField.name, field: newField });
+    }
+
+    await loadUserFields();
+
+    // If this was first field, populate default field inputs
+    const fieldDefName = document.getElementById("fieldDefName");
+    if (fieldDefName && (!fieldDefName.value || fieldDefName.value.includes("Field A"))) {
+      fieldDefName.value = newField.name;
+    }
+  } catch (err) {
+    console.error("Create field error:", err);
+    showAlert("error", `Error registering field: ${err.message}`);
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+  }
+}
+
+async function handleDeleteField(fieldId, fieldName) {
+  if (!confirm(`Are you sure you want to remove field "${fieldName}"? Historical analyses will remain in database.`)) {
+    return;
+  }
+
+  const email = currentUser?.email?.toLowerCase().trim();
+  if (!email) return;
+
+  try {
+    const res = await fetch(getApiUrl(`/api/v1/fields/${encodeURIComponent(fieldId)}?email=${encodeURIComponent(email)}`), {
+      method: "DELETE"
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to delete field.");
+    }
+
+    showAlert("success", `Field "${fieldName}" has been removed.`);
+
+    if (window.AgroVisionSync && typeof window.AgroVisionSync.emitFieldChanged === "function") {
+      window.AgroVisionSync.emitFieldChanged({ field_id: null, action: "deleted" });
+    }
+
+    await loadUserFields();
+  } catch (err) {
+    console.error("Delete field error:", err);
+    showAlert("error", `Could not delete field: ${err.message}`);
+  }
+}
+
+function handleSetActiveField(fieldId) {
+  const targetField = userFieldsList.find(f => f.id === fieldId);
+  if (!targetField) return;
+
+  localStorage.setItem("agrovision_active_field_id", targetField.id);
+  localStorage.setItem("agrovision_selected_field", targetField.name);
+
+  const fieldDefName = document.getElementById("fieldDefName");
+  const fieldLat = document.getElementById("fieldLat");
+  const fieldLon = document.getElementById("fieldLon");
+  const fieldSoilType = document.getElementById("fieldSoilType");
+  const fieldIrrigation = document.getElementById("fieldIrrigation");
+  const headerStation = document.getElementById("headerStationName");
+
+  if (fieldDefName) fieldDefName.value = targetField.name;
+  if (fieldLat) fieldLat.value = targetField.latitude;
+  if (fieldLon) fieldLon.value = targetField.longitude;
+  if (fieldSoilType && targetField.soil_type) fieldSoilType.value = targetField.soil_type;
+  if (fieldIrrigation && targetField.irrigation_type) fieldIrrigation.value = targetField.irrigation_type;
+  if (headerStation) headerStation.textContent = targetField.name;
+
+  renderFieldsTable(userFieldsList);
+  showAlert("info", `Active monitoring station set to "${targetField.name}".`);
+
+  if (window.AgroVisionSync && typeof window.AgroVisionSync.emitFieldChanged === "function") {
+    window.AgroVisionSync.emitFieldChanged({ field_id: targetField.id, name: targetField.name, field: targetField });
+  }
+}
+
 // Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
   loadUserSettings();
+  loadUserFields();
+
+  if (window.AgroVisionSync && typeof window.AgroVisionSync.onFieldChanged === "function") {
+    window.AgroVisionSync.onFieldChanged(() => {
+      loadUserFields();
+    });
+  }
 });

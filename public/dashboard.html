@@ -104,8 +104,8 @@
           </div>
         </div>
 
-        <!-- Center/Left: Global Search -->
-        <div class="header-search-wrap">
+        <!-- Center/Left: Global Search with Live Suggestion Dropdown -->
+        <div class="header-search-wrap" style="position:relative;">
           <span class="header-search-icon">🔍</span>
           <input
             type="search"
@@ -115,6 +115,7 @@
             aria-label="Search analyses, symptoms, reports"
             onkeydown="handleGlobalSearch(event)"
           />
+          <div id="globalSearchSuggestions" class="search-suggestions-dropdown" style="display:none; position:absolute; top:calc(100% + 6px); left:0; width:340px;"></div>
         </div>
 
         <!-- Right: Date, Farm Location, Notifications, User Profile -->
@@ -126,10 +127,12 @@
             <span id="globalHeaderDate">Today</span>
           </div>
 
-          <!-- Farm Location Badge -->
-          <div class="header-location-badge" style="display:flex; align-items:center; gap:6px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; color:#0d3b2e;">
-            <span>📍</span>
-            <span id="globalHeaderLocation">Wardha Farm Station</span>
+          <!-- Live Global Field Selector Dropdown -->
+          <div class="header-field-selector-wrap" title="Active Monitored Farm Field">
+            <span style="font-size:13px;">📍</span>
+            <select id="globalHeaderFieldSelector" class="header-field-select" onchange="handleHeaderFieldChange(event)" aria-label="Select Farm Field">
+              <option value="">Loading fields…</option>
+            </select>
           </div>
 
           <!-- Presentation Mode Toggle -->
@@ -1373,6 +1376,28 @@
 
       </div>
 
+      <!-- Shared Global Footer -->
+      <footer class="dash-footer">
+        <div class="dash-footer-inner">
+          <div class="footer-left">
+            <span class="footer-brand">🌿 <strong>AgroVision</strong> · Smart Cotton Farming</span>
+            <span class="footer-copy">© 2026 AgroVision Technologies. All rights reserved.</span>
+          </div>
+          <div class="footer-links">
+            <a href="about.html">About</a>
+            <a href="services.html">Services</a>
+            <a href="assistant.html">AI Advisor</a>
+            <a href="settings.html">Settings</a>
+          </div>
+          <div class="footer-right">
+            <span class="footer-status-badge status-online" id="globalFooterStatusBadge">
+              <span class="status-pulse-dot" style="background:#059669;"></span> System Online
+            </span>
+            <span class="footer-version">v2.4.0</span>
+          </div>
+        </div>
+      </footer>
+
     </main>
   </div>
 
@@ -1405,9 +1430,10 @@
   </nav>
 
   <script src="js/config.js"></script>
-  <script src="js/auth.js?v=9"></script>
+  <script src="js/auth.js?v=11"></script>
+  <script src="js/sync_bus.js"></script>
   <script src="js/sidebar.js"></script>
   <script src="js/header.js"></script>
-  <script src="js/dashboard.js?v=9"></script>
+  <script src="js/dashboard.js?v=11"></script>
 </body>
 </html>

@@ -844,6 +844,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Read active field coordinates from sync bus
+  const activeField = window.AgroVisionSync ? window.AgroVisionSync.getActiveField() : null;
+  if (activeField) {
+    if (activeField.latitude) currentFieldLat = activeField.latitude;
+    if (activeField.longitude) currentFieldLon = activeField.longitude;
+    if (activeField.field_name) currentFieldName = activeField.field_name;
+  }
+
   const refreshBtn = document.getElementById("refreshWeatherBtn") || document.getElementById("weatherRefreshBtn");
   if (refreshBtn) {
     refreshBtn.addEventListener("click", () => fetchFieldWeather(currentFieldLat, currentFieldLon, true));
@@ -851,6 +859,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initial fetch
   fetchFieldWeather(currentFieldLat, currentFieldLon, false);
+
+  // Hook sync bus field changes
+  if (window.AgroVisionSync) {
+    window.AgroVisionSync.on("fieldChanged", (newField) => {
+      if (newField) {
+        if (newField.latitude) currentFieldLat = newField.latitude;
+        if (newField.longitude) currentFieldLon = newField.longitude;
+        if (newField.field_name) currentFieldName = newField.field_name;
+        fetchFieldWeather(currentFieldLat, currentFieldLon, false);
+      }
+    });
+  }
 });
 
 // =========================================================
@@ -1005,6 +1025,11 @@ async function runAnalysis() {
 
     // Update stepper badges
     updateStepperProgress();
+
+    // Broadcast live data synchronization across all open tabs & pages
+    if (window.AgroVisionSync) {
+      window.AgroVisionSync.emit("analysisSaved", data);
+    }
 
     // Switch view to combined advisory (master view)
     switchView('combined');
@@ -1561,6 +1586,11 @@ async function runCombinedSynthesis() {
     updateDecisionTrace(6, "completed", "6. Final Advisory", "Advisory Ready");
 
     renderFigure7(data);
+
+    if (window.AgroVisionSync) {
+      window.AgroVisionSync.emit("analysisSaved", data);
+    }
+
     switchView('combined');
 
   } catch (err) {

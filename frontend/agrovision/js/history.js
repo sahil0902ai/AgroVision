@@ -44,6 +44,23 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // Hook Real-time Sync Bus
+  if (window.AgroVisionSync) {
+    window.AgroVisionSync.on("analysisSaved", () => {
+      loadHistoryData();
+    });
+    window.AgroVisionSync.on("fieldChanged", (field) => {
+      const fieldFilter = document.getElementById("historyFilterField");
+      if (fieldFilter && field && field.field_name) {
+        fieldFilter.value = field.field_name;
+        handleFilterChange();
+      }
+    });
+    window.AgroVisionSync.on("tabFocused", () => {
+      loadHistoryData();
+    });
+  }
 });
 
 // ---------------------------------------------------------

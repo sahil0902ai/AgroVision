@@ -693,8 +693,8 @@
           </div>
         </div>
 
-        <!-- Center/Left: Global Search -->
-        <div class="header-search-wrap">
+        <!-- Center/Left: Global Search with Live Suggestion Dropdown -->
+        <div class="header-search-wrap" style="position:relative;">
           <span class="header-search-icon">🔍</span>
           <input
             type="search"
@@ -704,6 +704,7 @@
             aria-label="Search fields, analyses, reports"
             onkeydown="handleGlobalSearch(event)"
           />
+          <div id="globalSearchSuggestions" class="search-suggestions-dropdown" style="display:none; position:absolute; top:calc(100% + 6px); left:0; width:340px;"></div>
         </div>
 
         <!-- Right: Date, Field Selector, Notifications, User Profile -->
@@ -715,10 +716,12 @@
             <span id="globalHeaderDate">Today</span>
           </div>
 
-          <!-- Farm Station Badge -->
-          <div class="header-location-badge" id="globalHeaderLocation">
+          <!-- Live Global Field Selector Dropdown -->
+          <div class="header-field-selector-wrap" title="Active Monitored Farm Field">
             <span style="font-size:13px;">📍</span>
-            <span>Wardha Farm Station</span>
+            <select id="globalHeaderFieldSelector" class="header-field-select" onchange="handleHeaderFieldChange(event)" aria-label="Select Farm Field">
+              <option value="">Loading fields…</option>
+            </select>
           </div>
 
           <!-- System Notifications -->
@@ -1494,6 +1497,29 @@
         </div>
 
       </div>
+
+      <!-- Shared Global Footer -->
+      <footer class="dash-footer">
+        <div class="dash-footer-inner">
+          <div class="footer-left">
+            <span class="footer-brand">🌿 <strong>AgroVision</strong> · Smart Cotton Farming</span>
+            <span class="footer-copy">© 2026 AgroVision Technologies. All rights reserved.</span>
+          </div>
+          <div class="footer-links">
+            <a href="about.html">About</a>
+            <a href="services.html">Services</a>
+            <a href="assistant.html">AI Advisor</a>
+            <a href="settings.html">Settings</a>
+          </div>
+          <div class="footer-right">
+            <span class="footer-status-badge status-online" id="globalFooterStatusBadge">
+              <span class="status-pulse-dot" style="background:#059669;"></span> System Online
+            </span>
+            <span class="footer-version">v2.4.0</span>
+          </div>
+        </div>
+      </footer>
+
     </main>
   </div>
 
@@ -1534,6 +1560,8 @@
       </div>
 
     </div>
+  </div>
+
   <!-- Universal Mobile Bottom Navigation Bar -->
   <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
     <a href="overview.html" class="bottom-nav-item active">
@@ -1565,6 +1593,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/auth.js?v=11"></script>
+  <script src="js/sync_bus.js"></script>
   <script src="js/sidebar.js"></script>
   <script src="js/header.js"></script>
   <script src="js/overview.js?v=11"></script>

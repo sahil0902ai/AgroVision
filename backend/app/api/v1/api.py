@@ -1,11 +1,14 @@
-from .endpoints import analytics, health, predict, records, pages, contact, seo
+from .endpoints import analytics, health, predict, records, pages, contact, seo, fields, notifications
 from fastapi import APIRouter
 
 api_router = APIRouter()
 api_router.include_router(predict.router, tags=["predict"])
 api_router.include_router(records.router, tags=["records"])
 api_router.include_router(analytics.router, tags=["analytics"])
+api_router.include_router(fields.router, tags=["fields"])
+api_router.include_router(notifications.router, tags=["notifications"])
 api_router.include_router(health.router, tags=["health"])
 api_router.include_router(pages.router, tags=["Core Pages"])
 api_router.include_router(contact.router, tags=["Contact"])
 api_router.include_router(seo.router, tags=["SEO"])
+

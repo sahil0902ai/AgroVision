@@ -39,7 +39,30 @@ function escapeHtml(text) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const activeField = window.AgroVisionSync ? window.AgroVisionSync.getActiveField() : null;
+  if (activeField && activeField.field_name) {
+    activeFilters.field = activeField.field_name;
+  }
   loadAnalyticsData();
+
+  if (window.AgroVisionSync) {
+    window.AgroVisionSync.on("fieldChanged", (field) => {
+      if (field && field.field_name) {
+        activeFilters.field = field.field_name;
+        const fieldSelect = document.getElementById("slicerField");
+        if (fieldSelect) fieldSelect.value = field.field_name;
+        applyAnalyticsFilters();
+      }
+    });
+
+    window.AgroVisionSync.on("analysisSaved", () => {
+      loadAnalyticsData();
+    });
+
+    window.AgroVisionSync.on("tabFocused", () => {
+      loadAnalyticsData();
+    });
+  }
 });
 
 // =========================================================

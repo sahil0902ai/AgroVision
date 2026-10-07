@@ -1135,6 +1135,13 @@ function renderCanvasEnvDonutFallback(ctx, canvas, categories, hasData) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Read active field coordinates
+  const activeField = window.AgroVisionSync ? window.AgroVisionSync.getActiveField() : null;
+  if (activeField && activeField.latitude && activeField.longitude) {
+    currentOverviewLat = activeField.latitude;
+    currentOverviewLon = activeField.longitude;
+  }
+
   loadOverviewData();
   fetchVisualDistribution();
   fetchEnvironmentalDistribution();
@@ -1154,6 +1161,26 @@ document.addEventListener("DOMContentLoaded", () => {
     searchInput.addEventListener("input", (e) => {
       currentSearchQuery = (e.target.value || "").trim().toLowerCase();
       renderOverviewDashboard();
+    });
+  }
+
+  // Hook Real-Time Synchronization Bus
+  if (window.AgroVisionSync) {
+    window.AgroVisionSync.on("fieldChanged", (newField) => {
+      if (newField && newField.latitude && newField.longitude) {
+        currentOverviewLat = newField.latitude;
+        currentOverviewLon = newField.longitude;
+        fetchOverviewWeather(currentOverviewLat, currentOverviewLon, false);
+      }
+      renderOverviewDashboard();
+    });
+
+    window.AgroVisionSync.on("analysisSaved", () => {
+      loadOverviewData();
+    });
+
+    window.AgroVisionSync.on("tabFocused", () => {
+      loadOverviewData();
     });
   }
 });

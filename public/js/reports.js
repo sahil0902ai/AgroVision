@@ -34,6 +34,19 @@ document.addEventListener("DOMContentLoaded", () => {
   if (modalSelect) {
     modalSelect.addEventListener("change", updateModalPreview);
   }
+
+  // Hook sync bus
+  if (window.AgroVisionSync) {
+    window.AgroVisionSync.on("analysisSaved", () => {
+      fetchReportsList();
+    });
+    window.AgroVisionSync.on("fieldChanged", () => {
+      fetchReportsList();
+    });
+    window.AgroVisionSync.on("tabFocused", () => {
+      fetchReportsList();
+    });
+  }
 });
 
 // =========================================================
