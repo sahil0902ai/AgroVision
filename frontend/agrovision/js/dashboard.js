@@ -1638,35 +1638,6 @@ function renderFigure6(data, payload) {
       </div>
     `).join("");
   }
-    const ozoneWidth = Math.min(100, Math.max(5, (ozone / 120.0) * 100)).toFixed(1);
-
-    const rows = [
-      { icon: "🌡️", name: "Temperature", val: `${temp.toFixed(1)} °C`, status: tempStatus, width: tempWidth },
-      { icon: "💧", name: "Humidity", val: `${hum.toFixed(0)} %`, status: humStatus, width: humWidth },
-      { icon: "🌱", name: "Soil Moisture", val: `${soil.toFixed(0)} %`, status: soilStatus, width: soilWidth },
-      { icon: "🌧️", name: "Rainfall (today)", val: `${rain.toFixed(1)} mm`, status: rainStatus, width: rainWidth },
-      { icon: "🫧", name: "Air Quality (AQI)", val: `${Math.round(aqi)}`, status: aqiStatus, width: aqiWidth },
-      { icon: "☀️", name: "Ozone", val: `${Math.round(ozone)} ppb`, status: ozoneStatus, width: ozoneWidth }
-    ];
-
-    factorsList.innerHTML = rows.map(r => `
-      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:9px 14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:15px;">${r.icon}</span>
-            <span style="font-size:12.5px; font-weight:700; color:#334155;">${r.name}</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span style="font-size:13px; font-weight:800; color:#0f172a;">${r.val}</span>
-            <span style="background:${r.status.bg}; color:${r.status.color}; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px;">${r.status.text}</span>
-          </div>
-        </div>
-        <div style="width:100%; height:6px; background:#e2e8f0; border-radius:999px; overflow:hidden;">
-          <div style="width:${r.width}%; height:100%; background:${r.status.bar}; border-radius:999px; transition:width 0.4s ease;"></div>
-        </div>
-      </div>
-    `).join("");
-  }
 }
 
 // =========================================================

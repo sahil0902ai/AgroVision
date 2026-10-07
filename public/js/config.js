@@ -4,17 +4,27 @@
    ========================================================= */
 
 (function () {
-  // Default to relative path (works with local FastAPI and Vercel proxy rewrites)
   const savedApiBase = localStorage.getItem("agrovision_api_base");
   
+  let defaultBase = "";
+  // Check if opened directly via file:// protocol
+  if (window.location.protocol === "file:") {
+    defaultBase = "http://127.0.0.1:8000";
+  } 
+  // Check if opened on localhost / 127.0.0.1 with port other than 8000 (e.g. Live Server port 5500, Vite port 3000/5173)
+  else if ((window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "8000") {
+    defaultBase = "http://127.0.0.1:8000";
+  }
+
   window.AGROVISION_CONFIG = {
-    // If backend is deployed on Render/Railway/Fly.io, set this or enter it via settings
-    API_BASE: savedApiBase || "",
+    // API base URL
+    API_BASE: (savedApiBase !== null && savedApiBase !== undefined) ? savedApiBase : defaultBase,
     
     // Helper to construct full API URL
     getApiUrl: function (path) {
       if (!path.startsWith("/")) path = "/" + path;
-      return (this.API_BASE || "") + path;
+      const base = this.API_BASE || "";
+      return base + path;
     },
     
     // Set custom API Base URL at runtime
