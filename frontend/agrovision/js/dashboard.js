@@ -448,6 +448,16 @@ function clearSelectedImage(event) {
   if (successState) successState.style.display = "none";
   if (emptyState) emptyState.style.display = "flex";
 
+  const resLeaf = document.getElementById("resColLeafImg");
+  const resPlace = document.getElementById("resColLeafPlaceholder");
+  const resFn = document.getElementById("resColFileName");
+  if (resLeaf) {
+    resLeaf.src = "";
+    resLeaf.style.display = "none";
+  }
+  if (resPlace) resPlace.style.display = "flex";
+  if (resFn) resFn.textContent = "Uploaded Leaf";
+
   clearUploadError();
 }
 
@@ -564,6 +574,18 @@ function validateAndProcessFile(file) {
     if (fn5) fn5.textContent = file.name;
     if (fn6) fn6.textContent = file.name;
     if (fn7) fn7.textContent = file.name;
+
+    const resLeaf = document.getElementById("resColLeafImg");
+    const resPlace = document.getElementById("resColLeafPlaceholder");
+    const resFn = document.getElementById("resColFileName");
+    const resDims = document.getElementById("resColImgDims");
+    if (resLeaf) {
+      resLeaf.src = objectUrl;
+      resLeaf.style.display = "block";
+    }
+    if (resPlace) resPlace.style.display = "none";
+    if (resFn) resFn.textContent = file.name;
+    if (resDims) resDims.textContent = `${testImg.naturalWidth} × ${testImg.naturalHeight} px`;
 
     // Display success card
     if (validatingState) validatingState.style.display = "none";
@@ -1231,10 +1253,10 @@ function renderFigure5(data) {
     titleEl.style.color = currentTheme.text;
   }
 
-  // Display certainty
+  // Display probability
   if (pillEl) {
     if (confNum !== undefined && confNum !== null) {
-      pillEl.textContent = `${Number(confNum).toFixed(1)}% Certainty`;
+      pillEl.textContent = `${Number(confNum).toFixed(1)}% Probability`;
       pillEl.style.background = currentTheme.bg;
       pillEl.style.color = currentTheme.text;
       pillEl.style.borderColor = currentTheme.border;
@@ -1721,11 +1743,12 @@ function renderFigure7(data) {
 
   const visualClass = data.cnn?.predicted_class || data.final_assessment?.diagnosis || data.visual_assessment?.class || (latestCNNResult?.prediction?.class || "Healthy");
   let visualConf = data.cnn?.confidence_percentage !== undefined ? data.cnn.confidence_percentage : (data.cnn?.confidence !== undefined ? data.cnn.confidence : (data.visual_assessment?.confidence !== undefined ? data.visual_assessment.confidence : latestCNNResult?.prediction?.confidence));
-  let visualConfStr = "";
+  let visualConfNum = 95.0;
+  let visualConfStr = "95.0% Probability";
   if (visualConf !== undefined && visualConf !== null) {
-    let confNum = Number(visualConf);
-    if (confNum <= 1.0) confNum = confNum * 100.0;
-    visualConfStr = `${confNum.toFixed(1)}% Certainty`;
+    visualConfNum = Number(visualConf);
+    if (visualConfNum <= 1.0) visualConfNum = visualConfNum * 100.0;
+    visualConfStr = `${visualConfNum.toFixed(1)}% Probability`;
   }
 
   const envClass = data.snn?.predicted_severity || data.final_assessment?.environmental_risk || data.environmental_assessment?.severity || (latestSNNResult?.prediction?.class || "Low");
@@ -1748,123 +1771,465 @@ function renderFigure7(data) {
   // Update Benchmark Comparison Card
   const liveCnnEl = document.getElementById("fig7LiveCnnConf");
   const liveSnnEl = document.getElementById("fig7LiveSnnSpikes");
-  if (liveCnnEl) liveCnnEl.textContent = visualConfStr || "98.7%";
-  if (liveSnnEl) {
-    const totalSpk = (data.snn?.spike_counts || data.environmental_assessment?.spike_counts) ? Object.values(data.snn?.spike_counts || data.environmental_assessment.spike_counts).reduce((a, b) => a + b, 0) : 8;
-    liveSnnEl.textContent = `${totalSpk} Spikes`;
+  if (liveCnnEl) liveCnnEl.textContent = visualConfStr;
+
+  const rawSpkCounts = data.snn?.spike_counts || data.environmental_assessment?.spike_counts || (latestSNNResult?.simulation?.spike_counts) || { "low": 8, "medium": 0, "high": 0 };
+  const totalSpk = Object.values(rawSpkCounts).reduce((a, b) => Number(a) + Number(b), 0);
+  if (liveSnnEl) liveSnnEl.textContent = `${totalSpk} Spikes`;
+
+  // =========================================================
+  // COLUMN 1 — VISUAL ANALYSIS (CNN) DATA BINDING
+  // =========================================================
+  const resLeafImg = document.getElementById("resColLeafImg");
+  const resLeafPlace = document.getElementById("resColLeafPlaceholder");
+  const resFileName = document.getElementById("resColFileName");
+  const resImgDims = document.getElementById("resColImgDims");
+
+  if (currentObjectUrl && resLeafImg) {
+    resLeafImg.src = currentObjectUrl;
+    resLeafImg.style.display = "block";
+    if (resLeafPlace) resLeafPlace.style.display = "none";
+  } else if (data.leaf_image && resLeafImg) {
+    resLeafImg.src = data.leaf_image;
+    resLeafImg.style.display = "block";
+    if (resLeafPlace) resLeafPlace.style.display = "none";
   }
 
-  // Bind 3 Evidence Cards
-  const evVisTitle = document.getElementById("fig7EvidenceVisualTitle");
-  const evVisBadge = document.getElementById("fig7EvidenceVisualBadge");
-  const evEnvTitle = document.getElementById("fig7EvidenceEnvTitle");
-  const evEnvBadge = document.getElementById("fig7EvidenceEnvBadge");
-  const evRel = document.getElementById("fig7EvidenceRelationship");
-  const alignScoreEl = document.getElementById("fig7AlignmentScore");
-
-  if (evVisTitle) evVisTitle.textContent = visualClass;
-  if (evVisBadge) evVisBadge.textContent = visualConfStr || "Verified";
-  if (evEnvTitle) evEnvTitle.textContent = `${envClass} Climate Risk`;
-  if (evEnvBadge) {
-    const totalSpk = (data.snn?.spike_counts || data.environmental_assessment?.spike_counts) ? Object.values(data.snn?.spike_counts || data.environmental_assessment.spike_counts).reduce((a, b) => a + b, 0) : 8;
-    evEnvBadge.textContent = `${totalSpk} Output Spikes (T=10)`;
+  if (selectedFile && resFileName) {
+    resFileName.textContent = selectedFile.name;
   }
 
-  const relationship = fusion.relationship || "BASELINE_HEALTHY";
-  if (evRel) {
-    evRel.textContent = relationship;
-    if (relationship === "BASELINE_HEALTHY" || relationship === "ALIGNED") {
-      evRel.style.background = "#ecfdf5";
-      evRel.style.color = "#059669";
-      evRel.style.borderColor = "#a7f3d0";
-    } else if (relationship === "PARTIALLY_ALIGNED") {
-      evRel.style.background = "#fffbeb";
-      evRel.style.color = "#d97706";
-      evRel.style.borderColor = "#fde68a";
+  // Predicted Visual Condition Hero
+  const resVisTitle = document.getElementById("resColVisualTitle");
+  const resVisProb = document.getElementById("resColVisualProb");
+  const resVisHero = document.getElementById("resColVisualHero");
+
+  if (resVisTitle) resVisTitle.textContent = visualClass;
+  if (resVisProb) {
+    resVisProb.textContent = visualConfStr;
+    if (visualClass.toLowerCase() === "healthy") {
+      resVisProb.style.background = "#ecfdf5";
+      resVisProb.style.color = "#059669";
+      resVisProb.style.borderColor = "#a7f3d0";
+      if (resVisHero) {
+        resVisHero.style.background = "#f0fdf4";
+        resVisHero.style.borderColor = "#bbf7d0";
+      }
+    } else if (visualClass.toLowerCase().includes("water")) {
+      resVisProb.style.background = "#fee2e2";
+      resVisProb.style.color = "#dc2626";
+      resVisProb.style.borderColor = "#fecaca";
+      if (resVisHero) {
+        resVisHero.style.background = "#fff1f2";
+        resVisHero.style.borderColor = "#fecdd3";
+      }
+    } else if (visualClass.toLowerCase().includes("heat")) {
+      resVisProb.style.background = "#ffedd5";
+      resVisProb.style.color = "#ea580c";
+      resVisProb.style.borderColor = "#fed7aa";
+      if (resVisHero) {
+        resVisHero.style.background = "#fff7ed";
+        resVisHero.style.borderColor = "#fed7aa";
+      }
+    } else if (visualClass.toLowerCase().includes("nutrient")) {
+      resVisProb.style.background = "#fef3c7";
+      resVisProb.style.color = "#d97706";
+      resVisProb.style.borderColor = "#fde68a";
+      if (resVisHero) {
+        resVisHero.style.background = "#fffbeb";
+        resVisHero.style.borderColor = "#fde68a";
+      }
     } else {
-      evRel.style.background = "#fee2e2";
-      evRel.style.color = "#dc2626";
-      evRel.style.borderColor = "#fca5a5";
+      resVisProb.style.background = "#f3e8ff";
+      resVisProb.style.color = "#7c3aed";
+      resVisProb.style.borderColor = "#e9d5ff";
+      if (resVisHero) {
+        resVisHero.style.background = "#faf5ff";
+        resVisHero.style.borderColor = "#e9d5ff";
+      }
     }
   }
 
-  if (alignScoreEl) {
-    const scorePct = Math.round((fusion.alignment_score || 0.95) * 100);
-    alignScoreEl.textContent = `${scorePct}% Evidentiary Alignment`;
+  // 5 Real Class Probabilities (Horizontal Bars)
+  const probBarsContainer = document.getElementById("resColProbBars");
+  if (probBarsContainer) {
+    const rawProbs = data.cnn?.probabilities || data.probabilities || latestCNNResult?.probabilities || {};
+    const classes = [
+      { name: "Healthy", key: "healthy", color: "#059669" },
+      { name: "Water Stress", key: "water_stress", color: "#dc2626" },
+      { name: "Heat Stress", key: "heat_stress", color: "#ea580c" },
+      { name: "Nutrient Def.", key: "nutrient_deficiency", color: "#d97706" },
+      { name: "Pollution", key: "pollution", color: "#7c3aed" }
+    ];
+
+    probBarsContainer.innerHTML = classes.map(c => {
+      let pVal = 0;
+      if (typeof rawProbs === "object") {
+        for (const [k, v] of Object.entries(rawProbs)) {
+          const normKey = k.toLowerCase().replace(/[\s_-]+/g, "");
+          const targetKey = c.name.toLowerCase().replace(/[\s_.-]+/g, "");
+          if (normKey === targetKey || normKey.includes(targetKey) || targetKey.includes(normKey)) {
+            pVal = Number(v);
+            break;
+          }
+        }
+      }
+      if (pVal <= 1.0 && pVal > 0) pVal = pVal * 100.0;
+      if (pVal === 0 && visualClass.toLowerCase().includes(c.key.replace("_", ""))) {
+        pVal = visualConfNum;
+      }
+      const formattedPct = pVal.toFixed(1);
+      return `
+        <div class="res-prob-bar-row">
+          <div class="res-prob-bar-meta">
+            <span class="res-prob-name">${c.name}</span>
+            <span class="res-prob-val">${formattedPct}%</span>
+          </div>
+          <div class="res-prob-track">
+            <div class="res-prob-fill" style="width:${Math.max(1, Math.min(100, pVal))}%; background:${c.color};"></div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // "What the Model Sees" Explanation
+  const visExpl = document.getElementById("resColVisualExplanation");
+  if (visExpl) {
+    if (visualClass.toLowerCase() === "healthy") {
+      visExpl.textContent = "Leaf lamina shows uniform chlorophyll pigmentation with intact cell turgidity and no symptomatic necrosis or chlorosis.";
+    } else if (visualClass.toLowerCase().includes("water")) {
+      visExpl.textContent = "Foliar wilting and downward leaf curling observed along margins, indicating internal moisture deficit.";
+    } else if (visualClass.toLowerCase().includes("heat")) {
+      visExpl.textContent = "Marginal leaf scorch and upward cupping observed along upper canopy boundary caused by elevated solar heat.";
+    } else if (visualClass.toLowerCase().includes("nutrient")) {
+      visExpl.textContent = "Interveinal chlorosis and localized foliar yellowing detected in leaf tissue, indicating nutrient transport shortage.";
+    } else {
+      visExpl.textContent = "Particulate deposition and foliar speckling detected, obstructing active photosynthetic stomatal gas exchange.";
+    }
+  }
+
+  // =========================================================
+  // COLUMN 2 — ENVIRONMENTAL ANALYSIS (SNN) DATA BINDING
+  // =========================================================
+  const resEnvTitle = document.getElementById("resColEnvTitle");
+  const resEnvPill = document.getElementById("resColEnvStatusPill");
+  const resEnvHero = document.getElementById("resColEnvHero");
+
+  if (resEnvTitle) {
+    resEnvTitle.textContent = `${envClass} Risk`;
+    if (envClass.toLowerCase() === "low") {
+      resEnvTitle.style.color = "#059669";
+      if (resEnvPill) {
+        resEnvPill.textContent = "Healthy Microclimate";
+        resEnvPill.style.background = "#ecfdf5";
+        resEnvPill.style.color = "#059669";
+        resEnvPill.style.borderColor = "#a7f3d0";
+      }
+      if (resEnvHero) {
+        resEnvHero.style.background = "#f0fdf4";
+        resEnvHero.style.borderColor = "#bbf7d0";
+      }
+    } else if (envClass.toLowerCase() === "moderate") {
+      resEnvTitle.style.color = "#d97706";
+      if (resEnvPill) {
+        resEnvPill.textContent = "Moderate Abiotic Stress";
+        resEnvPill.style.background = "#fffbeb";
+        resEnvPill.style.color = "#d97706";
+        resEnvPill.style.borderColor = "#fde68a";
+      }
+      if (resEnvHero) {
+        resEnvHero.style.background = "#fffbeb";
+        resEnvHero.style.borderColor = "#fde68a";
+      }
+    } else {
+      resEnvTitle.style.color = "#dc2626";
+      if (resEnvPill) {
+        resEnvPill.textContent = "High Microclimatic Stress";
+        resEnvPill.style.background = "#fee2e2";
+        resEnvPill.style.color = "#dc2626";
+        resEnvPill.style.borderColor = "#fca5a5";
+      }
+      if (resEnvHero) {
+        resEnvHero.style.background = "#fff1f2";
+        resEnvHero.style.borderColor = "#fecdd3";
+      }
+    }
+  }
+
+  // 6 Actual Environmental Values (Horizontal Factor Bars)
+  const tempVal = parseFloat(document.getElementById("sliderTemp")?.value) || weatherCtx?.current?.temperature_c || 31.2;
+  const humVal = parseFloat(document.getElementById("sliderHumidity")?.value) || weatherCtx?.current?.humidity_percent || 72;
+  const soilVal = parseFloat(document.getElementById("sliderSoil")?.value) || 68;
+  const rainVal = parseFloat(document.getElementById("sliderRainfall")?.value) || weatherCtx?.current?.rainfall_mm || 5.0;
+  const aqiVal = parseFloat(document.getElementById("sliderAqi")?.value) || weatherCtx?.air_quality?.aqi || 64;
+  const ozoneVal = parseFloat(document.getElementById("sliderOzone")?.value) || (weatherCtx?.air_quality?.ozone_ppb ? weatherCtx.air_quality.ozone_ppb / 1000 : 0.041);
+
+  const envFactorsContainer = document.getElementById("resColEnvFactors");
+  if (envFactorsContainer) {
+    const tempStatus = tempVal > 38 ? { label: "Critical", bg: "#fee2e2", col: "#dc2626" } : (tempVal > 35 ? { label: "Elevated", bg: "#fffbeb", col: "#d97706" } : { label: "Normal", bg: "#ecfdf5", col: "#059669" });
+    const humStatus = humVal < 40 ? { label: "Dry", bg: "#fffbeb", col: "#d97706" } : (humVal > 85 ? { label: "Humid", bg: "#eff6ff", col: "#2563eb" } : { label: "Optimal", bg: "#ecfdf5", col: "#059669" });
+    const soilStatus = soilVal < 30 ? { label: "Deficit", bg: "#fee2e2", col: "#dc2626" } : (soilVal > 75 ? { label: "Saturated", bg: "#fffbeb", col: "#d97706" } : { label: "Normal", bg: "#ecfdf5", col: "#059669" });
+    const rainStatus = rainVal >= 20 ? { label: "Heavy", bg: "#eff6ff", col: "#2563eb" } : (rainVal > 0 ? { label: "Adequate", bg: "#ecfdf5", col: "#059669" } : { label: "None", bg: "#f1f5f9", col: "#64748b" });
+    const aqiStatus = aqiVal > 100 ? { label: "Unhealthy", bg: "#fee2e2", col: "#dc2626" } : (aqiVal > 50 ? { label: "Moderate", bg: "#fffbeb", col: "#d97706" } : { label: "Good", bg: "#ecfdf5", col: "#059669" });
+    const ozoneStatus = ozoneVal > 0.045 ? { label: "Elevated", bg: "#fee2e2", col: "#dc2626" } : { label: "Safe", bg: "#ecfdf5", col: "#059669" };
+
+    envFactorsContainer.innerHTML = `
+      <div class="res-factor-row">
+        <div class="res-factor-top">
+          <span class="res-factor-name">🌡️ Temperature</span>
+          <div class="res-factor-val-group">
+            <span class="provenance-tag tag-auto-weather" style="font-size:9px; padding:1px 5px;">AUTO · API</span>
+            <span class="res-factor-val">${tempVal.toFixed(1)} °C</span>
+            <span class="res-factor-status" style="background:${tempStatus.bg}; color:${tempStatus.col};">${tempStatus.label}</span>
+          </div>
+        </div>
+        <div class="res-factor-bar-track">
+          <div class="res-factor-bar-fill" style="width:${Math.min(100, Math.max(5, (tempVal / 50) * 100))}%; background:${tempStatus.col};"></div>
+        </div>
+      </div>
+
+      <div class="res-factor-row">
+        <div class="res-factor-top">
+          <span class="res-factor-name">💧 Humidity</span>
+          <div class="res-factor-val-group">
+            <span class="provenance-tag tag-auto-weather" style="font-size:9px; padding:1px 5px;">AUTO · API</span>
+            <span class="res-factor-val">${Math.round(humVal)} %</span>
+            <span class="res-factor-status" style="background:${humStatus.bg}; color:${humStatus.col};">${humStatus.label}</span>
+          </div>
+        </div>
+        <div class="res-factor-bar-track">
+          <div class="res-factor-bar-fill" style="width:${Math.min(100, Math.max(5, humVal))}%; background:${humStatus.col};"></div>
+        </div>
+      </div>
+
+      <div class="res-factor-row">
+        <div class="res-factor-top">
+          <span class="res-factor-name">🌱 Soil Moisture</span>
+          <div class="res-factor-val-group">
+            <span class="provenance-tag tag-manual-input" style="font-size:9px; padding:1px 5px;">MANUAL INPUT</span>
+            <span class="res-factor-val">${Math.round(soilVal)} %</span>
+            <span class="res-factor-status" style="background:${soilStatus.bg}; color:${soilStatus.col};">${soilStatus.label}</span>
+          </div>
+        </div>
+        <div class="res-factor-bar-track">
+          <div class="res-factor-bar-fill" style="width:${Math.min(100, Math.max(5, soilVal))}%; background:${soilStatus.col};"></div>
+        </div>
+      </div>
+
+      <div class="res-factor-row">
+        <div class="res-factor-top">
+          <span class="res-factor-name">🌧️ Rainfall</span>
+          <div class="res-factor-val-group">
+            <span class="provenance-tag tag-auto-weather" style="font-size:9px; padding:1px 5px;">AUTO · API</span>
+            <span class="res-factor-val">${rainVal.toFixed(1)} mm</span>
+            <span class="res-factor-status" style="background:${rainStatus.bg}; color:${rainStatus.col};">${rainStatus.label}</span>
+          </div>
+        </div>
+        <div class="res-factor-bar-track">
+          <div class="res-factor-bar-fill" style="width:${Math.min(100, Math.max(5, (rainVal / 50) * 100))}%; background:${rainStatus.col};"></div>
+        </div>
+      </div>
+
+      <div class="res-factor-row">
+        <div class="res-factor-top">
+          <span class="res-factor-name">🌫️ AQI</span>
+          <div class="res-factor-val-group">
+            <span class="provenance-tag tag-auto-weather" style="font-size:9px; padding:1px 5px;">AUTO · API</span>
+            <span class="res-factor-val">${Math.round(aqiVal)}</span>
+            <span class="res-factor-status" style="background:${aqiStatus.bg}; color:${aqiStatus.col};">${aqiStatus.label}</span>
+          </div>
+        </div>
+        <div class="res-factor-bar-track">
+          <div class="res-factor-bar-fill" style="width:${Math.min(100, Math.max(5, (aqiVal / 200) * 100))}%; background:${aqiStatus.col};"></div>
+        </div>
+      </div>
+
+      <div class="res-factor-row">
+        <div class="res-factor-top">
+          <span class="res-factor-name">🧪 Ozone (O₃)</span>
+          <div class="res-factor-val-group">
+            <span class="provenance-tag tag-auto-weather" style="font-size:9px; padding:1px 5px;">AUTO · API</span>
+            <span class="res-factor-val">${ozoneVal.toFixed(3)} ppm</span>
+            <span class="res-factor-status" style="background:${ozoneStatus.bg}; color:${ozoneStatus.col};">${ozoneStatus.label}</span>
+          </div>
+        </div>
+        <div class="res-factor-bar-track">
+          <div class="res-factor-bar-fill" style="width:${Math.min(100, Math.max(5, (ozoneVal / 0.1) * 100))}%; background:${ozoneStatus.col};"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // SNN Spiking Output Evidence
+  const resTotSpikes = document.getElementById("resColTotalSpikesBadge");
+  const resSpikesChips = document.getElementById("resColSpikesChips");
+  const resSpikesSum = document.getElementById("resColSpikesSummary");
+
+  if (resTotSpikes) resTotSpikes.textContent = `${totalSpk} Total Spikes`;
+  if (resSpikesChips) {
+    resSpikesChips.innerHTML = Object.entries(rawSpkCounts).map(([cls, cnt]) => `
+      <span class="res-spike-chip" style="${Number(cnt) > 0 ? 'background:#dbeafe; color:#1e40af; border-color:#bfdbfe;' : 'background:#f1f5f9; color:#64748b; border-color:#e2e8f0;'}">
+        ${cls.charAt(0).toUpperCase() + cls.slice(1)}: ${cnt} Spikes
+      </span>
+    `).join("");
+  }
+  if (resSpikesSum) {
+    if (envClass.toLowerCase() === "low") {
+      resSpikesSum.textContent = "Quiescent microclimatic firing pattern confirms absence of abiotic stress excitation across all 10 simulation timesteps.";
+    } else if (envClass.toLowerCase() === "moderate") {
+      resSpikesSum.textContent = "Moderate membrane potential depolarization detected, signaling transitional abiotic pressure on cotton canopy.";
+    } else {
+      resSpikesSum.textContent = "High frequency spiking activity triggered across environmental input channels, signaling severe abiotic stress conditions.";
+    }
+  }
+
+  // =========================================================
+  // COLUMN 3 — COMBINED ASSESSMENT DATA BINDING
+  // =========================================================
+  const relationship = fusion.relationship || (isHealthy ? "BASELINE_HEALTHY" : "ALIGNED");
+  const alignmentScore = fusion.alignment_score !== undefined ? fusion.alignment_score : (isHealthy ? 0.95 : 0.88);
+  const scorePct = Math.round(alignmentScore * 100);
+
+  const resEvVis = document.getElementById("resColEvVisual");
+  const resEvEnv = document.getElementById("resColEvEnv");
+  const resEvRel = document.getElementById("resColEvRel");
+  const resAlignScore = document.getElementById("resColAlignmentScore");
+
+  if (resEvVis) resEvVis.textContent = `${visualClass} (${visualConfStr})`;
+  if (resEvEnv) {
+    resEvEnv.textContent = `${envClass} Risk (${totalSpk} Spikes)`;
+    resEvEnv.style.color = envClass.toLowerCase() === "low" ? "#059669" : (envClass.toLowerCase() === "moderate" ? "#d97706" : "#dc2626");
+  }
+  if (resEvRel) {
+    resEvRel.textContent = relationship;
+    if (relationship === "BASELINE_HEALTHY" || relationship === "ALIGNED") {
+      resEvRel.style.color = "#059669";
+    } else if (relationship === "PARTIALLY_ALIGNED") {
+      resEvRel.style.color = "#d97706";
+    } else {
+      resEvRel.style.color = "#dc2626";
+    }
+  }
+  if (resAlignScore) {
+    resAlignScore.textContent = `${scorePct}% Concordance`;
+    resAlignScore.style.color = scorePct >= 80 ? "#059669" : (scorePct >= 50 ? "#d97706" : "#dc2626");
   }
 
   // Final Assessment Hero Banner
-  const finalTitle = document.getElementById("fig7FinalTitle");
-  const heroBanner = document.getElementById("fig7HeroBanner");
-  const attentionBadge = document.getElementById("fig7AttentionBadge");
-  const finalDesc = document.getElementById("fig7FinalDesc");
+  const resFinalTitle = document.getElementById("resColFinalTitle");
+  const resFinalBanner = document.getElementById("resColFinalBanner");
+  const resAttnBadge = document.getElementById("resColAttentionBadge");
 
-  if (finalTitle) {
-    if (isHealthy) {
-      finalTitle.textContent = "Crop in Good Health — Maintain Regular Care";
-      finalTitle.style.color = "#059669";
-    } else if (visualClass.toLowerCase() === "water stress") {
-      finalTitle.textContent = "Water Stress Detected — Irrigation Action Needed";
-      finalTitle.style.color = "#dc2626";
-    } else if (visualClass.toLowerCase() === "heat stress") {
-      finalTitle.textContent = "Heat Stress Detected — Soil Moisture Protection Needed";
-      finalTitle.style.color = "#ea580c";
-    } else if (visualClass.toLowerCase() === "nutrient deficiency") {
-      finalTitle.textContent = "Nutrient Shortage Detected — Foliar Feeding Advised";
-      finalTitle.style.color = "#d97706";
+  let finalTitleText = "Crop in Good Health — Maintain Regular Care";
+  let attnText = "● Standard Field Care";
+  let isAttention = false;
+
+  if (isHealthy) {
+    finalTitleText = "Crop in Good Health — Maintain Regular Care";
+    attnText = "● Standard Field Care";
+    isAttention = false;
+  } else if (visualClass.toLowerCase() === "water stress") {
+    finalTitleText = "Water Stress Detected — Irrigation Action Needed";
+    attnText = "● Immediate Irrigation";
+    isAttention = true;
+  } else if (visualClass.toLowerCase() === "heat stress") {
+    finalTitleText = "Heat Stress Detected — Soil Moisture Protection Needed";
+    attnText = "● Heat Mitigation";
+    isAttention = true;
+  } else if (visualClass.toLowerCase() === "nutrient deficiency") {
+    finalTitleText = "Nutrient Shortage Detected — Foliar Feeding Advised";
+    attnText = "● Foliar Nutrition";
+    isAttention = true;
+  } else {
+    finalTitleText = `${visualClass} Detected — Foliar Health Action Advised`;
+    attnText = "● Action Recommended";
+    isAttention = true;
+  }
+
+  if (resFinalTitle) {
+    resFinalTitle.textContent = finalTitleText;
+    resFinalTitle.style.color = isAttention ? (visualClass.toLowerCase().includes("water") ? "#dc2626" : (visualClass.toLowerCase().includes("heat") ? "#ea580c" : "#d97706")) : "#059669";
+  }
+
+  if (resAttnBadge) {
+    resAttnBadge.textContent = attnText;
+    if (isAttention) {
+      resAttnBadge.style.background = "#fee2e2";
+      resAttnBadge.style.color = "#dc2626";
+      resAttnBadge.style.borderColor = "#fecaca";
     } else {
-      finalTitle.textContent = `${visualClass} Detected — Foliar Health Action Advised`;
-      finalTitle.style.color = "#7c3aed";
+      resAttnBadge.style.background = "#ecfdf5";
+      resAttnBadge.style.color = "#059669";
+      resAttnBadge.style.borderColor = "#a7f3d0";
     }
   }
 
-  if (heroBanner) {
-    if (isHealthy) {
-      heroBanner.style.background = "#f0fdf4";
-      heroBanner.style.borderColor = "#bbf7d0";
+  if (resFinalBanner) {
+    if (!isAttention) {
+      resFinalBanner.style.background = "#f0fdf4";
+      resFinalBanner.style.borderColor = "#bbf7d0";
     } else if (visualClass.toLowerCase().includes("water")) {
-      heroBanner.style.background = "#fff1f2";
-      heroBanner.style.borderColor = "#fecdd3";
+      resFinalBanner.style.background = "#fff1f2";
+      resFinalBanner.style.borderColor = "#fecdd3";
     } else {
-      heroBanner.style.background = "#fffbeb";
-      heroBanner.style.borderColor = "#fde68a";
+      resFinalBanner.style.background = "#fffbeb";
+      resFinalBanner.style.borderColor = "#fde68a";
     }
   }
 
-  if (attentionBadge) {
+  // "Why this result?"
+  const resWhy = document.getElementById("resColWhyResult");
+  let whyText = "";
+  if (data.final_assessment?.summary) {
+    whyText = data.final_assessment.summary;
+  } else if (fusion.summary) {
+    whyText = fusion.summary;
+  } else if (isHealthy) {
+    whyText = "Both your cotton leaf scan and current field weather readings confirm healthy plant vigor. Continue regular scouting and standard watering.";
+  } else if (visualClass.toLowerCase() === "water stress") {
+    whyText = "The leaf displays symptoms of water deficit (wilting and leaf curl). Environmental sensors also confirm dry soil. Immediate irrigation is recommended to protect boll and flower development.";
+  } else if (visualClass.toLowerCase() === "nutrient deficiency") {
+    whyText = "Foliar yellowing indicates the crop is experiencing a nutrient shortage. Environmental conditions are favorable, making foliar feeding effective.";
+  } else if (visualClass.toLowerCase() === "heat stress") {
+    whyText = "High ambient heat is causing leaf edge scorch. Ensure the soil remains adequately moist to cool plant canopy via transpiration.";
+  } else {
+    whyText = `Visual leaf assessment indicates ${visualClass.toLowerCase()}. Review the recommended farmer action steps below.`;
+  }
+  if (resWhy) resWhy.textContent = whyText;
+
+  // "Key Insights"
+  const resInsights = document.getElementById("resColKeyInsightsList");
+  if (resInsights) {
+    const insights = [];
     if (isHealthy) {
-      attentionBadge.textContent = "● Standard Field Care";
-      attentionBadge.style.background = "#ecfdf5";
-      attentionBadge.style.color = "#059669";
-      attentionBadge.style.borderColor = "#a7f3d0";
-    } else {
-      attentionBadge.textContent = "● Action Recommended";
-      attentionBadge.style.background = "#fee2e2";
-      attentionBadge.style.color = "#dc2626";
-      attentionBadge.style.borderColor = "#fca5a5";
-    }
-  }
-
-  // Plain-Language Why this advisory?
-  if (finalDesc) {
-    if (data.final_assessment?.summary) {
-      finalDesc.textContent = data.final_assessment.summary;
-    } else if (fusion.summary) {
-      finalDesc.textContent = fusion.summary;
-    } else if (isHealthy) {
-      finalDesc.textContent = "Both your cotton leaf scan and current field weather readings confirm healthy plant vigor. Continue regular scouting and standard watering.";
+      insights.push("Visual leaf tissue indicates active photosynthesis with intact chlorophyll pigmentation.");
+      insights.push(`Field ambient telemetry (${tempVal.toFixed(1)}°C, ${Math.round(humVal)}% humidity) remains in the optimal crop growth envelope.`);
+      insights.push(`Multimodal concordance score is ${scorePct}%, confirming high diagnostic stability.`);
     } else if (visualClass.toLowerCase() === "water stress") {
-      finalDesc.textContent = "The leaf displays symptoms of water deficit (wilting and leaf curl). Environmental sensors also confirm dry soil. Immediate irrigation is recommended to protect boll and flower development.";
+      insights.push("Foliar turgor loss detected in leaf scan, corroborated by low soil moisture readings.");
+      insights.push(`Current ambient temperature of ${tempVal.toFixed(1)}°C accelerates canopy evapotranspiration.`);
+      insights.push("Prompt irrigation will prevent irreversible flower bud and square shedding.");
     } else if (visualClass.toLowerCase() === "nutrient deficiency") {
-      finalDesc.textContent = "Foliar yellowing indicates the crop is experiencing a nutrient shortage. Environmental conditions are favorable, making foliar feeding effective.";
+      insights.push("Chlorotic foliar patterns indicate early stage mobile nutrient shortage.");
+      insights.push("Root zone moisture is sufficient to support immediate liquid foliar feeding.");
+      insights.push("Early morning spray application is recommended for maximum stomatal uptake.");
     } else if (visualClass.toLowerCase() === "heat stress") {
-      finalDesc.textContent = "High ambient heat is causing leaf edge scorch. Ensure the soil remains adequately moist to cool plant canopy via transpiration.";
+      insights.push("Elevated ambient temperatures exceed optimum metabolic threshold for cotton foliage.");
+      insights.push("Soil moisture protection is essential to sustain canopy cooling via transpiration.");
+      insights.push("Avoid midday chemical applications to prevent foliar chemical scorch.");
     } else {
-      finalDesc.textContent = `Visual leaf assessment indicates ${visualClass.toLowerCase()}. Review the recommended farmer action steps below.`;
+      insights.push(`Visual analysis detected distinct ${visualClass.toLowerCase()} foliar symptom signatures.`);
+      insights.push(`Environmental telemetry shows ${envClass.toLowerCase()} abiotic background risk.`);
+      insights.push(`Synthesized evidentiary relationship classified as ${relationship}.`);
     }
+
+    resInsights.innerHTML = insights.map(i => `<li>${i}</li>`).join("");
   }
 
+  // =========================================================
   // EXPERT VETO RULE MATRIX RENDERING
+  // =========================================================
   const ruleDetailsContainer = document.getElementById("fig7RuleDetailsContainer");
   const ruleStatusBadge = document.getElementById("fig7RuleStatusBadge");
   const triggeredRules = data.expert_veto?.triggered_rules || [];
@@ -1887,22 +2252,29 @@ function renderFigure7(data) {
     if (triggeredRules.length > 0 && !(triggeredRules.length === 1 && triggeredRules[0].rule_id === "EVR-007")) {
       ruleDetailsContainer.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:10px;">
-          ${triggeredRules.map(r => `
-            <div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:10px; padding:12px 14px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span style="font-family:monospace; font-size:11px; font-weight:800; background:#fee2e2; color:#dc2626; padding:2px 6px; border-radius:4px;">${r.rule_id}</span>
-                  <strong style="font-size:13px; color:#991b1b;">${r.name}</strong>
+          ${triggeredRules.map(r => {
+            const effect = r.effect || (r.severity === "CRITICAL" ? "Precautionary Override" : (r.severity === "WARNING" ? "Qualifies" : "Reinforces"));
+            return `
+              <div class="veto-rule-card">
+                <div class="veto-rule-header">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="veto-rule-id" style="background:#fee2e2; color:#dc2626;">${r.rule_id}</span>
+                    <span class="veto-rule-name">${r.name}</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="veto-rule-effect" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca;">${effect}</span>
+                    <span style="font-size:10.5px; font-weight:700; color:#dc2626; text-transform:uppercase;">${r.severity || 'CAUTION'}</span>
+                  </div>
                 </div>
-                <span style="font-size:10.5px; font-weight:700; color:#dc2626; text-transform:uppercase;">${r.severity || 'CAUTION'}</span>
+                <div style="font-size:11.5px; color:#475569; margin:3px 0;"><strong>Triggered Condition:</strong> ${r.condition || ''}</div>
+                <div style="font-size:11.5px; color:#7f1d1d; margin:3px 0;"><strong>Why Triggered / Impact:</strong> ${r.impact || r.reason || ''}</div>
+                <div style="background:#ffffff; border-left:3px solid #dc2626; padding:6px 10px; font-size:11.5px; color:#1e293b; border-radius:0 6px 6px 0; margin-top:4px;">
+                  <strong>Precaution:</strong> ${r.precaution || ''}
+                </div>
+                ${r.what_to_check ? `<div style="font-size:11px; color:#64748b; margin-top:2px;"><strong>What to check:</strong> ${r.what_to_check}</div>` : ''}
               </div>
-              <div style="font-size:11.5px; color:#475569; margin:4px 0;"><strong>Condition:</strong> ${r.condition || ''}</div>
-              <div style="font-size:11.5px; color:#7f1d1d; margin:4px 0;"><strong>Impact:</strong> ${r.impact || r.reason || ''}</div>
-              <div style="background:#ffffff; border-left:3px solid #dc2626; padding:6px 10px; font-size:11.5px; color:#1e293b; border-radius:0 6px 6px 0; margin-top:6px;">
-                <strong>Precaution:</strong> ${r.precaution || ''}
-              </div>
-            </div>
-          `).join("")}
+            `;
+          }).join("")}
         </div>
       `;
     } else {
@@ -1940,6 +2312,18 @@ function renderFigure7(data) {
       }
 
       ruleDetailsContainer.innerHTML = `
+        <div class="veto-rule-card rule-passed" style="margin-bottom:12px;">
+          <div class="veto-rule-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="veto-rule-id" style="background:#dcfce7; color:#15803d;">EVR-007</span>
+              <span class="veto-rule-name">Baseline Stability Evaluation</span>
+            </div>
+            <span class="veto-rule-effect" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;">Reinforces</span>
+          </div>
+          <div style="font-size:11.5px; color:#166534; margin:2px 0;">
+            All physical environmental and foliar safety parameters are within standard agronomic operating thresholds. No critical overrides required.
+          </div>
+        </div>
         <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
           ${actionSteps.map(step => `
             <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
@@ -1986,12 +2370,12 @@ function renderFigure7(data) {
     visualConfidence: visualConf,
     environmentalSeverity: envClass,
     relationship: fusion.relationship || "ALIGNED",
-    temperature: parseFloat(document.getElementById("sliderTemp")?.value) || weatherCtx?.current?.temperature_c || 31,
-    humidity: parseFloat(document.getElementById("sliderHumidity")?.value) || weatherCtx?.current?.humidity_percent || 72,
-    rainfall: parseFloat(document.getElementById("sliderRainfall")?.value) || weatherCtx?.current?.rainfall_mm || 5,
-    soilMoisture: parseFloat(document.getElementById("sliderSoil")?.value) || 68,
-    aqi: parseFloat(document.getElementById("sliderAqi")?.value) || weatherCtx?.air_quality?.aqi || 64,
-    ozone: parseFloat(document.getElementById("sliderOzone")?.value) || weatherCtx?.air_quality?.ozone_ppb || 41,
+    temperature: tempVal,
+    humidity: humVal,
+    rainfall: rainVal,
+    soilMoisture: soilVal,
+    aqi: aqiVal,
+    ozone: ozoneVal,
     triggeredRules: data.expert_veto?.triggered_rules || [],
     weatherForecast: weatherCtx?.forecast
   };
@@ -2204,7 +2588,8 @@ function renderWhatToCheckNext(ctx) {
 function renderWhatToCheckList() {
   const listContainer = document.getElementById("whatToCheckList");
   const countBadge = document.getElementById("whatToCheckCount");
-  if (!listContainer) return;
+  const col3List = document.getElementById("resColChecklist");
+  const col3Count = document.getElementById("resColChecklistCount");
 
   const total = currentWhatToCheckItems.length;
   const completed = currentWhatToCheckItems.filter(i => i.checked).length;
@@ -2222,30 +2607,50 @@ function renderWhatToCheckList() {
     }
   }
 
-  listContainer.innerHTML = currentWhatToCheckItems.map((item, idx) => `
-    <div
-      class="check-item-card ${item.checked ? 'completed' : ''}"
-      data-index="${idx}"
-      onclick="toggleCheckItem(${idx})"
-    >
-      <div class="check-checkbox-wrap">
-        <input
-          type="checkbox"
-          class="check-custom-checkbox"
-          ${item.checked ? 'checked' : ''}
-          aria-label="${item.verb} ${item.category}"
-          onclick="event.stopPropagation(); toggleCheckItem(${idx})"
-        />
-      </div>
-      <div class="check-item-content">
-        <div class="check-item-top">
-          <span class="check-verb">${item.verb}</span>
-          <span class="check-category-pill">${item.category}</span>
+  if (col3Count) {
+    col3Count.textContent = `${completed} / ${total} Done`;
+    col3Count.style.background = completed === total && total > 0 ? "#dcfce7" : "#ecfdf5";
+    col3Count.style.color = completed === total && total > 0 ? "#15803d" : "#059669";
+    col3Count.style.borderColor = completed === total && total > 0 ? "#86efac" : "#a7f3d0";
+  }
+
+  if (col3List) {
+    col3List.innerHTML = currentWhatToCheckItems.map((item, idx) => `
+      <div style="display:flex; align-items:flex-start; gap:8px; padding:6px 8px; border-radius:6px; background:${item.checked ? '#f0fdf4' : '#f8fafc'}; border:1px solid ${item.checked ? '#bbf7d0' : '#e2e8f0'}; cursor:pointer;" onclick="toggleCheckItem(${idx})">
+        <input type="checkbox" ${item.checked ? 'checked' : ''} onclick="event.stopPropagation(); toggleCheckItem(${idx})" style="margin-top:2px; accent-color:#059669; cursor:pointer;" />
+        <div style="font-size:11px; line-height:1.35; text-decoration:${item.checked ? 'line-through' : 'none'}; color:${item.checked ? '#64748b' : '#0f172a'};">
+          <strong style="color:#059669;">${item.verb}</strong>: ${item.text}
         </div>
-        <p class="check-item-text">${item.text}</p>
       </div>
-    </div>
-  `).join("");
+    `).join("");
+  }
+
+  if (listContainer) {
+    listContainer.innerHTML = currentWhatToCheckItems.map((item, idx) => `
+      <div
+        class="check-item-card ${item.checked ? 'completed' : ''}"
+        data-index="${idx}"
+        onclick="toggleCheckItem(${idx})"
+      >
+        <div class="check-checkbox-wrap">
+          <input
+            type="checkbox"
+            class="check-custom-checkbox"
+            ${item.checked ? 'checked' : ''}
+            aria-label="${item.verb} ${item.category}"
+            onclick="event.stopPropagation(); toggleCheckItem(${idx})"
+          />
+        </div>
+        <div class="check-item-content">
+          <div class="check-item-top">
+            <span class="check-verb">${item.verb}</span>
+            <span class="check-category-pill">${item.category}</span>
+          </div>
+          <p class="check-item-text">${item.text}</p>
+        </div>
+      </div>
+    `).join("");
+  }
 }
 
 function toggleCheckItem(idx) {

@@ -823,7 +823,7 @@
           <div>
             <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Diagnosed Leaf Condition</div>
             <div id="fig5ClassTitle" style="font-size:1.6rem; font-weight:800; color:#0d3b2e; margin:2px 0 6px;">Healthy Leaf</div>
-            <span id="fig5ConfPill" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; border:1px solid #a7f3d0; margin-bottom:14px;">98.7% Certainty</span>
+            <span id="fig5ConfPill" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; border:1px solid #a7f3d0; margin-bottom:14px;">98.7% Probability</span>
 
             <!-- Class Probabilities -->
             <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; margin-bottom:8px; letter-spacing:0.05em;">Possible Conditions Checked:</div>
@@ -1074,7 +1074,39 @@
       <!-- ============================================================
            STEP 4: Combined Advisory (Judge Mode & Master Analysis View)
            ============================================================ -->
-      <div id="viewCombined" class="panel" style="display:none; flex-direction:column; gap:16px; width:100%; max-width:100%; margin:0; background:#ffffff; border-radius:18px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.02); box-sizing:border-box;">
+      <div id="viewCombined" class="panel report-master-shell" style="display:none;">
+
+        <!-- 4-Step Guided Workflow Stepper -->
+        <div class="view-stepper" style="margin-bottom:14px;">
+          <button class="view-step-btn completed" onclick="switchView('input')">
+            <span class="view-step-badge">1</span>
+            <div class="view-step-text-wrap">
+              <span class="view-step-num">Step 1</span>
+              <span class="view-step-name">Leaf &amp; Conditions</span>
+            </div>
+          </button>
+          <button class="view-step-btn completed" onclick="switchView('cnn')">
+            <span class="view-step-badge">2</span>
+            <div class="view-step-text-wrap">
+              <span class="view-step-num">Step 2</span>
+              <span class="view-step-name">Visual Check (CNN)</span>
+            </div>
+          </button>
+          <button class="view-step-btn completed" onclick="switchView('snn')">
+            <span class="view-step-badge">3</span>
+            <div class="view-step-text-wrap">
+              <span class="view-step-num">Step 3</span>
+              <span class="view-step-name">Environmental Check (SNN)</span>
+            </div>
+          </button>
+          <button class="view-step-btn active" onclick="switchView('combined')">
+            <span class="view-step-badge">4</span>
+            <div class="view-step-text-wrap">
+              <span class="view-step-num">Step 4</span>
+              <span class="view-step-name">Combined Assessment</span>
+            </div>
+          </button>
+        </div>
 
         <!-- Header: Live Analysis Metadata Bar -->
         <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:14px; flex-wrap:wrap; gap:12px;">
@@ -1098,108 +1130,372 @@
           </div>
         </div>
 
-        <!-- Three Multi-modal Evidence Synthesis Cards -->
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:14px;">
-          
-          <!-- 1. Leaf Scan (CNN) -->
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <span style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">1. Visual Evidence</span>
+        <!-- ============================================================
+             THREE-COLUMN ALIGNED LAYOUT: CNN | SNN | COMBINED
+             ============================================================ -->
+        <div class="result-3col-grid">
+
+          <!-- ============================================================
+               COLUMN 1 — VISUAL ANALYSIS (CNN)
+               ============================================================ -->
+          <div class="report-col-card">
+            
+            <div class="report-col-header">
+              <div class="report-col-title">
+                <span>🍃</span>
+                <span>Visual Analysis (CNN)</span>
+              </div>
               <span class="provenance-tag tag-cnn-model">CNN MODEL</span>
             </div>
-            <div id="fig7EvidenceVisualTitle" style="font-size:14px; font-weight:800; color:#0d3b2e; margin:4px 0;">Healthy Leaf</div>
-            <span id="fig7EvidenceVisualBadge" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px;">98.7% Certainty</span>
+
+            <!-- Uploaded Real Leaf Thumbnail -->
+            <div class="res-leaf-preview-box">
+              <img id="resColLeafImg" class="res-leaf-thumb" src="" alt="Uploaded Cotton Leaf" style="display:none;" />
+              <div id="resColLeafPlaceholder" style="font-size:2rem; color:#94a3b8; display:flex; align-items:center; justify-content:center; height:100%;">🍃</div>
+              <div class="res-leaf-meta">
+                <span class="res-leaf-filename" id="resColFileName">Uploaded Leaf</span>
+                <span class="res-leaf-submeta" id="resColImgDims">224 × 224 Normalized RGB</span>
+              </div>
+            </div>
+
+            <!-- Predicted Visual Condition Hero -->
+            <div class="res-diag-hero" id="resColVisualHero" style="background:#f0fdf4; border:1px solid #bbf7d0;">
+              <span class="res-diag-label">Predicted Visual Condition</span>
+              <div class="res-diag-title" id="resColVisualTitle">Healthy Leaf</div>
+              <span class="res-prob-pill" id="resColVisualProb" style="background:#ecfdf5; color:#059669; border-color:#a7f3d0;">98.7% Probability</span>
+            </div>
+
+            <!-- 5 Real Class Probabilities (Horizontal Bars) -->
+            <div>
+              <div style="font-size:10.5px; font-weight:700; text-transform:uppercase; color:#64748b; margin-bottom:8px; letter-spacing:0.04em;">
+                5-Class Probability Distribution
+              </div>
+              <div class="res-prob-bars-list" id="resColProbBars">
+                <!-- Dynamically populated with 5 horizontal bars -->
+                <div class="res-prob-bar-row">
+                  <div class="res-prob-bar-meta">
+                    <span class="res-prob-name">Healthy</span>
+                    <span class="res-prob-val">98.7%</span>
+                  </div>
+                  <div class="res-prob-track">
+                    <div class="res-prob-fill" style="width:98.7%; background:#059669;"></div>
+                  </div>
+                </div>
+                <div class="res-prob-bar-row">
+                  <div class="res-prob-bar-meta">
+                    <span class="res-prob-name">Water Stress</span>
+                    <span class="res-prob-val">0.5%</span>
+                  </div>
+                  <div class="res-prob-track">
+                    <div class="res-prob-fill" style="width:0.5%; background:#dc2626;"></div>
+                  </div>
+                </div>
+                <div class="res-prob-bar-row">
+                  <div class="res-prob-bar-meta">
+                    <span class="res-prob-name">Heat Stress</span>
+                    <span class="res-prob-val">0.3%</span>
+                  </div>
+                  <div class="res-prob-track">
+                    <div class="res-prob-fill" style="width:0.3%; background:#ea580c;"></div>
+                  </div>
+                </div>
+                <div class="res-prob-bar-row">
+                  <div class="res-prob-bar-meta">
+                    <span class="res-prob-name">Nutrient Def.</span>
+                    <span class="res-prob-val">0.3%</span>
+                  </div>
+                  <div class="res-prob-track">
+                    <div class="res-prob-fill" style="width:0.3%; background:#d97706;"></div>
+                  </div>
+                </div>
+                <div class="res-prob-bar-row">
+                  <div class="res-prob-bar-meta">
+                    <span class="res-prob-name">Pollution</span>
+                    <span class="res-prob-val">0.2%</span>
+                  </div>
+                  <div class="res-prob-track">
+                    <div class="res-prob-fill" style="width:0.2%; background:#7c3aed;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- "What the Model Sees" -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+              <div style="font-size:11px; font-weight:700; color:#334155; text-transform:uppercase; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+                <span>🔍</span>
+                <span>What the Model Sees</span>
+              </div>
+              <p id="resColVisualExplanation" style="margin:0; font-size:11.5px; color:#475569; line-height:1.5;">
+                Leaf lamina shows uniform chlorophyll pigmentation with intact cell turgidity and no symptomatic necrosis or chlorosis.
+              </p>
+            </div>
+
+            <!-- Expandable Technical Details (CNN) -->
+            <details class="tech-drawer-details" style="margin-top:auto;">
+              <summary class="tech-drawer-summary" style="font-size:11px; padding:8px 10px;">
+                <span>⚙️ Technical Specs (CNN)</span>
+                <span>▾</span>
+              </summary>
+              <div class="tech-drawer-body" style="font-size:10.5px; padding:8px 10px;">
+                <div style="margin-bottom:3px;"><strong>Architecture:</strong> ResNet-18 (5-class Softmax)</div>
+                <div style="margin-bottom:3px;"><strong>Input Shape:</strong> 224 × 224 × 3 RGB Normalized</div>
+                <div><strong>Inference Mode:</strong> PyTorch Deterministic Eval</div>
+              </div>
+            </details>
+
           </div>
 
-          <!-- 2. Weather Risk (SNN) -->
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <span style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">2. Climate Evidence</span>
+          <!-- ============================================================
+               COLUMN 2 — ENVIRONMENTAL ANALYSIS (SNN)
+               ============================================================ -->
+          <div class="report-col-card">
+            
+            <div class="report-col-header">
+              <div class="report-col-title">
+                <span>⛅</span>
+                <span>Environmental Analysis (SNN)</span>
+              </div>
               <span class="provenance-tag tag-snn-model">SNN MODEL</span>
             </div>
-            <div id="fig7EvidenceEnvTitle" style="font-size:14px; font-weight:800; color:#059669; margin:4px 0;">Low Risk</div>
-            <span id="fig7EvidenceEnvBadge" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px;">8 Output Spikes (T=10)</span>
+
+            <!-- Environmental Stress Level Hero -->
+            <div class="res-diag-hero" id="resColEnvHero" style="background:#f0fdf4; border:1px solid #bbf7d0;">
+              <span class="res-diag-label">Environmental Stress Level</span>
+              <div class="res-diag-title" id="resColEnvTitle" style="color:#059669;">Low Risk</div>
+              <span class="res-prob-pill" id="resColEnvStatusPill" style="background:#ecfdf5; color:#059669; border-color:#a7f3d0;">Healthy Microclimate</span>
+            </div>
+
+            <!-- 6 Actual Environmental Values (Horizontal Factor Bars) -->
+            <div>
+              <div style="font-size:10.5px; font-weight:700; text-transform:uppercase; color:#64748b; margin-bottom:8px; letter-spacing:0.04em;">
+                Telemetry Factors &amp; Provenance
+              </div>
+              <div class="res-factors-list" id="resColEnvFactors">
+                <!-- Temperature -->
+                <div class="res-factor-row">
+                  <div class="res-factor-top">
+                    <span class="res-factor-name">🌡️ Temperature</span>
+                    <div class="res-factor-val-group">
+                      <span class="provenance-tag tag-auto-weather" style="font-size:9px; padding:1px 5px;">AUTO · API</span>
+                      <span class="res-factor-val" id="resColFactorTemp">31.2 °C</span>
+                      <span class="res-factor-status" style="background:#ecfdf5; color:#059669;">Normal</span>
+                    </div>
+                  </div>
+                  <div class="res-factor-bar-track">
+                    <div class="res-factor-bar-fill" style="width:62%; background:#059669;"></div>
+                  </div>
+                </div>
+
+                <!-- Humidity -->
+                <div class="res-factor-row">
+                  <div class="res-factor-top">
+                    <span class="res-factor-name">💧 Humidity</span>
+                    <div class="res-factor-val-group">
+                      <span class="provenance-tag tag-auto-weather" style="font-size:9px; padding:1px 5px;">AUTO · API</span>
+                      <span class="res-factor-val" id="resColFactorHum">72 %</span>
+                      <span class="res-factor-status" style="background:#ecfdf5; color:#059669;">Optimal</span>
+                    </div>
+                  </div>
+                  <div class="res-factor-bar-track">
+                    <div class="res-factor-bar-fill" style="width:72%; background:#059669;"></div>
+                  </div>
+                </div>
+
+                <!-- Soil Moisture -->
+                <div class="res-factor-row">
+                  <div class="res-factor-top">
+                    <span class="res-factor-name">🌱 Soil Moisture</span>
+                    <div class="res-factor-val-group">
+                      <span class="provenance-tag tag-manual-input" style="font-size:9px; padding:1px 5px;">MANUAL INPUT</span>
+                      <span class="res-factor-val" id="resColFactorSoil">68 %</span>
+                      <span class="res-factor-status" style="background:#ecfdf5; color:#059669;">Normal</span>
+                    </div>
+                  </div>
+                  <div class="res-factor-bar-track">
+                    <div class="res-factor-bar-fill" style="width:68%; background:#059669;"></div>
+                  </div>
+                </div>
+
+                <!-- Rainfall -->
+                <div class="res-factor-row">
+                  <div class="res-factor-top">
+                    <span class="res-factor-name">🌧️ Rainfall</span>
+                    <div class="res-factor-val-group">
+                      <span class="provenance-tag tag-auto-weather" style="font-size:9px; padding:1px 5px;">AUTO · API</span>
+                      <span class="res-factor-val" id="resColFactorRain">5.0 mm</span>
+                      <span class="res-factor-status" style="background:#ecfdf5; color:#059669;">Adequate</span>
+                    </div>
+                  </div>
+                  <div class="res-factor-bar-track">
+                    <div class="res-factor-bar-fill" style="width:25%; background:#059669;"></div>
+                  </div>
+                </div>
+
+                <!-- AQI -->
+                <div class="res-factor-row">
+                  <div class="res-factor-top">
+                    <span class="res-factor-name">🌫️ AQI</span>
+                    <div class="res-factor-val-group">
+                      <span class="provenance-tag tag-auto-weather" style="font-size:9px; padding:1px 5px;">AUTO · API</span>
+                      <span class="res-factor-val" id="resColFactorAqi">64</span>
+                      <span class="res-factor-status" style="background:#ecfdf5; color:#059669;">Moderate</span>
+                    </div>
+                  </div>
+                  <div class="res-factor-bar-track">
+                    <div class="res-factor-bar-fill" style="width:32%; background:#059669;"></div>
+                  </div>
+                </div>
+
+                <!-- Ozone -->
+                <div class="res-factor-row">
+                  <div class="res-factor-top">
+                    <span class="res-factor-name">🧪 Ozone (O₃)</span>
+                    <div class="res-factor-val-group">
+                      <span class="provenance-tag tag-auto-weather" style="font-size:9px; padding:1px 5px;">AUTO · API</span>
+                      <span class="res-factor-val" id="resColFactorOzone">0.041 ppm</span>
+                      <span class="res-factor-status" style="background:#ecfdf5; color:#059669;">Safe</span>
+                    </div>
+                  </div>
+                  <div class="res-factor-bar-track">
+                    <div class="res-factor-bar-fill" style="width:41%; background:#059669;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SNN Spiking Output Evidence -->
+            <div class="res-spikes-box" id="resColSpikesBox">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:10.5px; font-weight:700; text-transform:uppercase;">LIF Spiking Activity (T=10)</span>
+                <span id="resColTotalSpikesBadge" style="font-size:10px; font-weight:800; background:#dbeafe; color:#1e40af; padding:1px 6px; border-radius:4px;">8 Total Spikes</span>
+              </div>
+              <div class="res-spikes-grid" id="resColSpikesChips">
+                <span class="res-spike-chip">Low Risk: 8 Spikes</span>
+                <span class="res-spike-chip" style="background:#f1f5f9; color:#64748b; border-color:#e2e8f0;">Mod Risk: 0 Spikes</span>
+                <span class="res-spike-chip" style="background:#f1f5f9; color:#64748b; border-color:#e2e8f0;">High Risk: 0 Spikes</span>
+              </div>
+              <div id="resColSpikesSummary" style="font-size:10.5px; color:#1e40af; line-height:1.4;">
+                Quiescent microclimatic firing pattern confirms absence of abiotic stress excitation across all 10 simulation timesteps.
+              </div>
+            </div>
+
+            <!-- Expandable Technical Details (SNN) -->
+            <details class="tech-drawer-details" style="margin-top:auto;">
+              <summary class="tech-drawer-summary" style="font-size:11px; padding:8px 10px;">
+                <span>⚙️ Technical Specs (SNN)</span>
+                <span>▾</span>
+              </summary>
+              <div class="tech-drawer-body" style="font-size:10.5px; padding:8px 10px;">
+                <div style="margin-bottom:3px;"><strong>Neuron Model:</strong> Leaky Integrate-and-Fire (LIF)</div>
+                <div style="margin-bottom:3px;"><strong>Embedding Vector:</strong> 33-dimensional telemetry</div>
+                <div><strong>Simulation Steps:</strong> T = 10, Decay β = 0.95</div>
+              </div>
+            </details>
+
           </div>
 
-          <!-- 3. Concordance Status -->
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <span style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">3. Concordance Status</span>
+          <!-- ============================================================
+               COLUMN 3 — COMBINED ASSESSMENT
+               ============================================================ -->
+          <div class="report-col-card">
+            
+            <div class="report-col-header">
+              <div class="report-col-title">
+                <span>🎯</span>
+                <span>Combined Assessment</span>
+              </div>
               <span class="provenance-tag tag-rule-engine">FUSION ENGINE</span>
             </div>
-            <div style="margin:4px 0;">
-              <span id="fig7EvidenceRelationship" style="background:#ecfdf5; color:#059669; font-size:11.5px; font-weight:800; padding:2px 10px; border-radius:999px; border:1px solid #a7f3d0; display:inline-block;">BASELINE HEALTHY</span>
+
+            <!-- Synthesized Evidence Grid -->
+            <div class="res-synthesis-grid">
+              <div class="res-synthesis-tile">
+                <span class="res-synthesis-lbl">Visual Evidence (CNN)</span>
+                <span class="res-synthesis-val" id="resColEvVisual">Healthy Leaf (98.7%)</span>
+              </div>
+              <div class="res-synthesis-tile">
+                <span class="res-synthesis-lbl">Climate Evidence (SNN)</span>
+                <span class="res-synthesis-val" id="resColEvEnv" style="color:#059669;">Low Risk (8 Spikes)</span>
+              </div>
+              <div class="res-synthesis-tile">
+                <span class="res-synthesis-lbl">Evidence Relationship</span>
+                <span class="res-synthesis-val" id="resColEvRel" style="color:#059669;">BASELINE_HEALTHY</span>
+              </div>
+              <div class="res-synthesis-tile">
+                <span class="res-synthesis-lbl">Alignment Score</span>
+                <span class="res-synthesis-val" id="resColAlignmentScore" style="color:#059669;">95% Concordance</span>
+              </div>
             </div>
-            <span id="fig7AlignmentScore" style="font-size:10.5px; color:#059669; font-weight:700;">95% Evidentiary Alignment</span>
+
+            <!-- Prominent Final Assessment Hero Banner -->
+            <div class="res-final-banner" id="resColFinalBanner" style="background:#f0fdf4; border:1.5px solid #bbf7d0;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                <span style="font-size:10px; font-weight:700; text-transform:uppercase; color:#475569; letter-spacing:0.04em;">AgroVision Final Assessment</span>
+                <span id="resColAttentionBadge" style="font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;">● Standard Field Care</span>
+              </div>
+              <div class="res-final-title" id="resColFinalTitle">Crop in Good Health — Maintain Regular Care</div>
+            </div>
+
+            <!-- "Why this result?" (Agronomic Synthesis) -->
+            <div class="res-reasoning-box">
+              <div style="font-size:11px; font-weight:700; color:#065f46; text-transform:uppercase; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+                <span>📄</span>
+                <span>Why this result?</span>
+              </div>
+              <p id="resColWhyResult" style="margin:0; font-size:11.5px; color:#1e293b; line-height:1.5;">
+                Both your cotton leaf scan and current field weather readings confirm healthy plant vigor. Continue regular scouting and standard watering.
+              </p>
+            </div>
+
+            <!-- "Key Insights" -->
+            <div class="res-insights-box">
+              <div style="font-size:11px; font-weight:700; color:#334155; text-transform:uppercase; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+                <span>💡</span>
+                <span>Key Insights</span>
+              </div>
+              <ul class="res-insights-list" id="resColKeyInsightsList">
+                <li>Visual leaf tissue indicates active photosynthesis with intact chlorophyll.</li>
+                <li>Field ambient conditions remain within optimal thermal and moisture envelope.</li>
+                <li>Multimodal alignment score is 95%, confirming high diagnostic stability.</li>
+              </ul>
+            </div>
+
+            <!-- "What to Check Next / Recommended Checks" -->
+            <div class="res-checklist-box">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="font-size:11px; font-weight:700; color:#0d3b2e; text-transform:uppercase; display:flex; align-items:center; gap:6px;">
+                  <span>✅</span>
+                  <span>What to Check Next</span>
+                </div>
+                <span id="resColChecklistCount" style="font-size:10.5px; font-weight:700; color:#059669; background:#ecfdf5; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">0 / 3 Done</span>
+              </div>
+              <div id="resColChecklist" style="display:flex; flex-direction:column; gap:6px;">
+                <!-- Populated dynamically with checkboxes -->
+              </div>
+            </div>
+
           </div>
+
         </div>
 
-        <!-- Prominent Final Assessment Hero Banner -->
-        <div id="fig7HeroBanner" style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:14px; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-          <div style="display:flex; align-items:center; gap:14px;">
-            <div style="width:48px; height:48px; border-radius:12px; background:#ffffff; border:1px solid #bbf7d0; display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0;">🌾</div>
-            <div>
-              <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.05em;">Recommended Crop Status</div>
-              <div id="fig7FinalTitle" style="font-size:1.5rem; font-weight:800; color:#059669; margin:2px 0 0;">Crop in Good Health — Maintain Regular Care</div>
-            </div>
-          </div>
-          <span id="fig7AttentionBadge" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:5px 14px; border-radius:999px; border:1px solid #a7f3d0;">● Standard Field Care</span>
-        </div>
-
-        <!-- Plain Language Explanation -->
-        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:14px 18px; margin-bottom:14px;">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-            <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#0369a1;">
-              <span>📄</span>
-              <span>Why this advisory? (Agronomic Synthesis)</span>
-            </div>
-            <span class="provenance-tag tag-gemini-ai">GEMINI AI</span>
-          </div>
-          <p id="fig7FinalDesc" style="margin:0; font-size:12.5px; color:#334155; line-height:1.55;">
-            Both your cotton leaf scan and current field weather readings confirm healthy plant vigor. Continue regular scouting and standard watering.
-          </p>
-        </div>
-
-        <!-- EXPERT VETO RULE ENGINE MATRIX -->
-        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:18px 20px; margin-bottom:14px;" id="fig7ExpertSection">
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <!-- ============================================================
+             EXPERT VETO RULE ENGINE MATRIX
+             ============================================================ -->
+        <div class="expert-veto-master-card" id="fig7ExpertSection">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:12px; flex-wrap:wrap; gap:8px;">
             <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:16px;">🛡️</span>
-              <h4 style="margin:0; font-size:13.5px; font-weight:800; color:#0f172a;">Expert Veto Rule Engine Evaluation</h4>
-              <span class="provenance-tag tag-rule-engine">RULE ENGINE</span>
+              <span style="font-size:18px;">🛡️</span>
+              <div>
+                <h4 style="margin:0; font-size:14px; font-weight:800; color:#0f172a;">Expert Veto Rule Engine Evaluation</h4>
+                <div style="font-size:11px; color:#64748b;">Deterministic agronomic physical safety gates evaluated against sensor telemetry &amp; visual evidence</div>
+              </div>
             </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span id="fig7RuleStatusBadge" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px; border:1px solid #a7f3d0;">Passed · No Safety Overrides</span>
-            </div>
-          </div>
-
-          <div style="background:#f8fafc; border-left:3.5px solid #64748b; padding:8px 12px; font-size:11px; color:#475569; border-radius:0 6px 6px 0; margin-bottom:12px; line-height:1.45;">
-            <strong>Deterministic Agronomic Gate:</strong> The Expert Veto Engine evaluates deterministic physical safety thresholds to qualify AI model recommendations. It never silently overwrites raw model outputs.
+            <span id="fig7RuleStatusBadge" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; border:1px solid #a7f3d0;">Passed · No Safety Overrides</span>
           </div>
 
           <div id="fig7RuleDetailsContainer">
-            <!-- Populated dynamically with clear, step-by-step farmer instructions & triggered rule details -->
-          </div>
-        </div>
-
-        <!-- WHAT TO CHECK NEXT PANEL (Farmer-Friendly Action Checklist) -->
-        <div class="what-to-check-panel" id="whatToCheckPanel">
-          <div class="what-to-check-header">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div style="width:32px; height:32px; border-radius:8px; background:#ecfdf5; border:1px solid #a7f3d0; display:flex; align-items:center; justify-content:center; font-size:16px;">
-                ✅
-              </div>
-              <div>
-                <h4 style="margin:0; font-size:14px; font-weight:800; color:#0d3b2e;">What to Check Next (Field Validation Checklist)</h4>
-                <div style="font-size:11px; color:#64748b;">Actionable field checklist generated from visual diagnosis, sensor telemetry &amp; backend rules</div>
-              </div>
-            </div>
-            <span class="what-to-check-count" id="whatToCheckCount">0 / 6 Completed</span>
-          </div>
-
-          <!-- Dynamic Checklist Items Container -->
-          <div class="what-to-check-list" id="whatToCheckList">
-            <!-- Dynamically populated based on actual analysis context -->
+            <!-- Dynamically populated with structured cards showing Rule ID, condition, effect, precaution, what to check -->
           </div>
         </div>
 
@@ -1222,7 +1518,7 @@
                 </div>
                 <div class="benchmark-stat-box" style="text-align:right;">
                   <span class="benchmark-stat-num" style="color:#059669;" id="fig7LiveCnnConf">98.7%</span>
-                  <span class="benchmark-stat-lbl">Current Sample Certainty</span>
+                  <span class="benchmark-stat-lbl">Current Sample Probability</span>
                 </div>
               </div>
             </div>
@@ -1247,7 +1543,7 @@
         </div>
 
         <!-- Live Farm Weather Reference -->
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 16px; margin-bottom:14px;" id="fig7WeatherBox">
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 16px;" id="fig7WeatherBox">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <div style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:#0d3b2e;">
               <span>🌤️</span>
@@ -1276,7 +1572,7 @@
         </div>
 
         <!-- Comprehensive Collapsible Technical Drawers for Judges & Researchers -->
-        <div style="margin-top:6px; display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; flex-direction:column; gap:8px;">
           
           <!-- Drawer 1: Multimodal Fusion & Concordance Formulation -->
           <details class="tech-drawer-details">

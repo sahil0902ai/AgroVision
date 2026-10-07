@@ -237,7 +237,7 @@ function renderRecordDetail(r) {
   if (cnnPrimaryClass) cnnPrimaryClass.textContent = topClass;
 
   const cnnConfidenceText = document.getElementById("cnnConfidenceText");
-  if (cnnConfidenceText) cnnConfidenceText.textContent = `Confidence: ${topPct.toFixed(1)}% model certainty`;
+  if (cnnConfidenceText) cnnConfidenceText.textContent = `Probability: ${topPct.toFixed(1)}% model probability`;
 
   const cnnSymptomDesc = document.getElementById("cnnSymptomDesc");
   if (cnnSymptomDesc) {
@@ -702,7 +702,7 @@ function renderRecordDetail(r) {
   }
 
   if (finalHeroSummary) {
-    finalHeroSummary.textContent = fusionObj.summary || `Visual leaf assessment identifies ${topClass} (${topPct.toFixed(1)}% model certainty) corroborated by ${sev} environmental stress severity across microclimatic sensor parameters.`;
+    finalHeroSummary.textContent = fusionObj.summary || `Visual leaf assessment identifies ${topClass} (${topPct.toFixed(1)}% model probability) corroborated by ${sev} environmental stress severity across microclimatic sensor parameters.`;
   }
 
   if (finalMetaGrid) {
