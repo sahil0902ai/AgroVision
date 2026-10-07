@@ -365,7 +365,6 @@ function renderOverviewDashboard() {
 
     renderRecentAnalysesTable();
   }
-  }
 }
 
 async function loadOverviewData() {
