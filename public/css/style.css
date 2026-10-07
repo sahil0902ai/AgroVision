@@ -5573,3 +5573,455 @@ body.dash-body {
   max-width: 180px !important;
   flex: 0 0 auto !important;
 }
+
+/* =========================================================
+   AGROVISION JUDGE MODE & PRESENTATION MODE SYSTEM
+   ========================================================= */
+
+/* 1. Data Provenance Badges */
+.provenance-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2.5px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.provenance-tag.tag-auto-weather {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+.provenance-tag.tag-manual-input {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.provenance-tag.tag-field-profile {
+  background: #f0f9ff;
+  color: #0284c7;
+  border-color: #bae6fd;
+}
+
+.provenance-tag.tag-farmer-upload {
+  background: #f0fdf4;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.provenance-tag.tag-cnn-model {
+  background: #eef2ff;
+  color: #4f46e5;
+  border-color: #c7d2fe;
+}
+
+.provenance-tag.tag-snn-model {
+  background: #faf5ff;
+  color: #7c3aed;
+  border-color: #e9d5ff;
+}
+
+.provenance-tag.tag-rule-engine {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.provenance-tag.tag-database {
+  background: #ecfeff;
+  color: #0891b2;
+  border-color: #a5f3fc;
+}
+
+.provenance-tag.tag-gemini-ai {
+  background: linear-gradient(135deg, #ecfdf5 0%, #f5f3ff 100%);
+  color: #059669;
+  border-color: #c4b5fd;
+}
+
+/* 2. Decision Trace Pipeline Bar */
+.decision-trace-bar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  box-sizing: border-box;
+}
+
+.trace-step {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.trace-step.completed {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.trace-step.active {
+  background: #ecfdf5;
+  border-color: #059669;
+  box-shadow: 0 0 0 2px rgba(5,150,105,0.15);
+}
+
+.trace-step.pending {
+  opacity: 0.6;
+}
+
+.trace-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.trace-number {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.trace-step.completed .trace-number {
+  color: #059669;
+}
+
+.trace-status-icon {
+  font-size: 11px;
+}
+
+.trace-step-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trace-meta-sub {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trace-step.completed .trace-meta-sub {
+  color: #059669;
+  font-weight: 600;
+}
+
+/* 3. SNN 10-Timestep Spike Raster Matrix */
+.spike-raster-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.spike-raster-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.spike-raster-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spike-raster-row {
+  display: grid;
+  grid-template-columns: 100px repeat(10, 1fr) 60px;
+  gap: 6px;
+  align-items: center;
+}
+
+.spike-raster-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.spike-cell {
+  height: 24px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  color: transparent;
+  transition: all 0.2s ease;
+}
+
+.spike-cell.active-low {
+  background: #10b981;
+  border-color: #059669;
+  color: #ffffff;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+}
+
+.spike-cell.active-mod {
+  background: #f59e0b;
+  border-color: #d97706;
+  color: #ffffff;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+}
+
+.spike-cell.active-high {
+  background: #ef4444;
+  border-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+.spike-count-val {
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+  color: #0f172a;
+}
+
+/* 4. Model Benchmark vs Live Inference Card */
+.benchmark-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+.benchmark-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.benchmark-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0d3b2e;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.benchmark-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.benchmark-tile {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.benchmark-model-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.benchmark-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 4px;
+}
+
+.benchmark-stat-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.benchmark-stat-num {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.benchmark-stat-lbl {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* 5. Technical Drawers (Collapsible Accordions) */
+.tech-drawer-details {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  transition: border-color 0.15s ease;
+}
+
+.tech-drawer-details[open] {
+  border-color: #cbd5e1;
+}
+
+.tech-drawer-summary {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.tech-drawer-summary::-webkit-details-marker {
+  display: none;
+}
+
+.tech-drawer-body {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.tech-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-top: 6px;
+}
+
+.tech-table th {
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.tech-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #475569;
+}
+
+.tech-table tr:hover td {
+  background: #f8fafc;
+}
+
+/* 6. Presentation Mode / Projector Optimization */
+.dash-shell.presentation-mode-active .sidebar {
+  display: none !important;
+}
+
+.dash-shell.presentation-mode-active .dash-main {
+  padding: 20px 48px 80px !important;
+  max-width: 100% !important;
+}
+
+.dash-shell.presentation-mode-active .page-container-pbi,
+.dash-shell.presentation-mode-active #viewCombined,
+.dash-shell.presentation-mode-active #viewCNN,
+.dash-shell.presentation-mode-active #viewSNN {
+  max-width: 1400px !important;
+}
+
+.dash-shell.presentation-mode-active .exit-presentation-bar {
+  display: flex !important;
+}
+
+.exit-presentation-bar {
+  display: none;
+  background: #0d3b2e;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 14px rgba(13, 59, 46, 0.25);
+}
+
+.presentation-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.presentation-toggle-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.presentation-toggle-btn.active {
+  background: #0d3b2e;
+  color: #ffffff;
+  border-color: #0d3b2e;
+}
+
+@media (max-width: 900px) {
+  .decision-trace-bar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .spike-raster-row {
+    grid-template-columns: 80px repeat(10, 1fr) 40px;
+    gap: 3px;
+  }
+}
+
+@media (max-width: 600px) {
+  .decision-trace-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .benchmark-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
