@@ -1028,153 +1028,177 @@
         </div>
 
         <!-- ============================================================
-             POWER BI COMBINED MULTIMODAL ASSESSMENT VIEW
+             EXACT REFERENCE MATCH: COMBINED MULTIMODAL ASSESSMENT
              ============================================================ -->
-        <div style="display:flex; flex-direction:column; gap:16px; width:100%;">
+        <div class="exact-assessment-shell" id="exactAssessmentShell">
 
-          <!-- 1. Power BI KPI Row (4 Metric Tiles) -->
-          <div class="combined-kpi-grid">
+          <!-- 1. Top Header: Icon + "Combined Assessment" + "✓ Completed" Badge -->
+          <div class="exact-assessment-header">
+            <div class="exact-title-group">
+              <span class="exact-title-icon">🧩</span>
+              <span class="exact-title-text">Combined Assessment</span>
+            </div>
+            <span class="exact-completed-badge" id="exactCompletedBadge">
+              <span>✓</span> Completed
+            </span>
+          </div>
+
+          <!-- 2. Evidence Grid (3 Cards) -->
+          <div class="exact-evidence-grid">
             
-            <!-- KPI 1: Overall Crop Status -->
-            <div class="combined-kpi-card">
-              <div class="combined-kpi-top">
-                <span class="combined-kpi-lbl"><span>🌿</span> Crop Health Status</span>
-                <span class="provenance-tag tag-rule-engine" id="combinedKpiStatusTag">FUSED DIAGNOSIS</span>
+            <!-- Card 1: Visual Evidence (CNN) -->
+            <div class="exact-evidence-card">
+              <div class="exact-evidence-lbl">
+                Visual Evidence<br><span style="color:#94a3b8; font-weight:500;">(CNN)</span>
               </div>
-              <div class="combined-kpi-val" id="combinedKpiStatusVal">Healthy Crop</div>
-              <div class="combined-kpi-sub" id="combinedKpiStatusSub">Multimodal diagnosis confirmed</div>
+              <div class="exact-evidence-val" id="exactEvidVisVal" style="color:#059669;">Healthy</div>
+              <div class="exact-evidence-sub" id="exactEvidVisConf" style="color:#059669;">98.7% Confidence</div>
             </div>
 
-            <!-- KPI 2: Multimodal Concordance -->
-            <div class="combined-kpi-card">
-              <div class="combined-kpi-top">
-                <span class="combined-kpi-lbl"><span>🧬</span> Concordance</span>
-                <span class="provenance-tag tag-gemini-ai" id="combinedKpiConcordTag">ALIGNED</span>
+            <!-- Card 2: Environmental Evidence (SNN) -->
+            <div class="exact-evidence-card">
+              <div class="exact-evidence-lbl">
+                Environmental Evidence<br><span style="color:#94a3b8; font-weight:500;">(SNN)</span>
               </div>
-              <div class="combined-kpi-val" id="combinedKpiConcordVal" style="color:#059669;">95% Score</div>
-              <div class="combined-kpi-sub" id="combinedKpiConcordSub">High inter-modality agreement</div>
+              <div class="exact-evidence-val" id="exactEvidEnvVal" style="color:#2563eb;">Low Stress</div>
+              <div class="exact-evidence-sub" id="exactEvidEnvRisk" style="color:#64748b;">Low Risk</div>
             </div>
 
-            <!-- KPI 3: Expert Safety Gate -->
-            <div class="combined-kpi-card">
-              <div class="combined-kpi-top">
-                <span class="combined-kpi-lbl"><span>🛡️</span> Safety Gate</span>
-                <span class="provenance-tag tag-database" id="combinedKpiSafetyTag">EVR-007</span>
+            <!-- Card 3: Evidence Alignment -->
+            <div class="exact-evidence-card">
+              <div class="exact-evidence-lbl">
+                Evidence Alignment<br><span style="color:#94a3b8; font-weight:500;">&nbsp;</span>
               </div>
-              <div class="combined-kpi-val" id="combinedKpiSafetyVal" style="color:#059669; font-size:1.25rem;">Passed</div>
-              <div class="combined-kpi-sub" id="combinedKpiSafetySub">Deterministic agronomic check</div>
-            </div>
-
-            <!-- KPI 4: Decision Confidence & Latency -->
-            <div class="combined-kpi-card">
-              <div class="combined-kpi-top">
-                <span class="combined-kpi-lbl"><span>⚡</span> Confidence &amp; Speed</span>
-                <span class="provenance-tag tag-cnn-model">LIVE EVAL</span>
-              </div>
-              <div class="combined-kpi-val" id="combinedKpiConfidenceVal" style="color:#0f172a;">98.7%</div>
-              <div class="combined-kpi-sub" id="combinedKpiLatencySub">Pipeline latency: 26.7 ms</div>
+              <div class="exact-evidence-val" id="exactEvidAlignVal" style="color:#d97706;">Partially Aligned</div>
+              <div class="exact-evidence-sub" style="color:#64748b;">Multimodal Fusion</div>
             </div>
 
           </div>
 
-          <!-- 2. Final Decision Hero Banner -->
-          <div class="res-final-banner" id="resColFinalBanner" style="background:#f0fdf4; border:1.5px solid #bbf7d0; margin:0;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-              <span style="font-size:10.5px; font-weight:700; text-transform:uppercase; color:#475569; letter-spacing:0.04em;">AgroVision Multimodal Synthesis</span>
-              <span id="resColAttentionBadge" style="font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;">● Standard Field Care</span>
+          <!-- 3. Final Assessment Box -->
+          <div class="exact-final-box" id="exactFinalBox">
+            <div class="exact-final-header">
+              <div class="exact-final-header-left">
+                <span style="font-size:18px;">🍃</span>
+                <span>Final Assessment</span>
+              </div>
+              <span class="exact-action-badge" id="exactActionBadge">• Action Recommended</span>
             </div>
-            <div class="res-final-title" id="resColFinalTitle" style="margin-top:6px;">Crop in Good Health — Maintain Regular Care</div>
+            <div class="exact-final-title" id="exactFinalTitle">Water Stress Observable</div>
+            <p class="exact-final-desc" id="exactFinalDesc">
+              Visual symptoms indicate water stress while environmental conditions are in low-risk range. This suggests localized stress due to irrigation, soil variation, or microclimate.
+            </p>
           </div>
 
-          <!-- 3. Power BI Interactive Charts Row -->
-          <div class="combined-charts-grid">
-            
-            <!-- Chart Card 1: Multimodal Concordance & Weight Breakdown -->
-            <div class="combined-pbi-card">
-              <div class="combined-pbi-header">
-                <div class="combined-pbi-title">
-                  <span>📊</span>
-                  <span>Multimodal Evidence Weight &amp; Concordance</span>
+          <!-- 4. Assessment Breakdown Card (Donut Chart & 3 Legend Items) -->
+          <div class="exact-section-card">
+            <div class="exact-section-title">Assessment Breakdown</div>
+            <div class="exact-breakdown-layout">
+              
+              <!-- Donut Chart with Center Value -->
+              <div class="exact-donut-wrap">
+                <canvas id="exactDonutChart"></canvas>
+                <div class="exact-donut-center">
+                  <div class="exact-donut-val" id="exactDonutScore">72%</div>
+                  <div class="exact-donut-sub">Overall Confidence</div>
                 </div>
-                <span class="provenance-tag tag-rule-engine">FUSION ENGINE</span>
-              </div>
-              <div style="font-size:11px; color:#64748b; margin-bottom:12px;">
-                Evidentiary balance between foliar visual features (CNN), microclimatic telemetry (SNN), and safety rules.
-              </div>
-              <div style="position:relative; height:190px; width:100%;">
-                <canvas id="combinedConcordanceChart"></canvas>
-              </div>
-            </div>
-
-            <!-- Chart Card 2: Stress Risk Factor Comparison (Horizontal Power BI Bar Chart) -->
-            <div class="combined-pbi-card">
-              <div class="combined-pbi-header">
-                <div class="combined-pbi-title">
-                  <span>📈</span>
-                  <span>Stress by Analysis (5-Class Comparison)</span>
-                </div>
-                <span class="provenance-tag tag-cnn-model">REAL TELEMETRY</span>
-              </div>
-              <div style="font-size:11px; color:#64748b; margin-bottom:12px;">
-                Predicted probabilities and risk severity across all five diagnostic cotton stress categories.
-              </div>
-              <div style="position:relative; height:190px; width:100%;">
-                <canvas id="combinedStressFactorChart"></canvas>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- 4. Agronomic Synthesis Narrative & Action Checklist -->
-          <div class="combined-synthesis-grid">
-
-            <!-- Left: Why This Result & Key Insights -->
-            <div style="display:flex; flex-direction:column; gap:12px;">
-              <!-- "Why this result?" -->
-              <div class="res-reasoning-box" style="margin:0;">
-                <div style="font-size:11px; font-weight:700; color:#065f46; text-transform:uppercase; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
-                  <span>📄</span>
-                  <span>Why this result? (Agronomic Synthesis)</span>
-                </div>
-                <p id="resColWhyResult" style="margin:0; font-size:12px; color:#1e293b; line-height:1.55;">
-                  Both your cotton leaf scan and current field weather readings confirm healthy plant vigor. Continue regular scouting and standard watering.
-                </p>
               </div>
 
-              <!-- "Key Insights" -->
-              <div class="res-insights-box" style="margin:0;">
-                <div style="font-size:11px; font-weight:700; color:#334155; text-transform:uppercase; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
-                  <span>💡</span>
-                  <span>Key Analytical Insights</span>
-                </div>
-                <ul class="res-insights-list" id="resColKeyInsightsList" style="margin:0 0 0 16px; padding:0;">
-                  <li>Visual leaf tissue indicates active photosynthesis with intact chlorophyll pigmentation.</li>
-                  <li>Field ambient telemetry remains within the optimal crop thermal and moisture envelope.</li>
-                  <li>Multimodal concordance score is 95%, confirming high diagnostic stability.</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Right: Actionable Field Validation Checklist -->
-            <div class="res-checklist-box" style="margin:0; display:flex; flex-direction:column; justify-content:space-between;">
-              <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">
-                  <div style="font-size:11px; font-weight:700; color:#0d3b2e; text-transform:uppercase; display:flex; align-items:center; gap:6px;">
-                    <span>✅</span>
-                    <span>What to Check Next (Farmer Actions)</span>
+              <!-- 3-Item Legend -->
+              <div class="exact-breakdown-legend">
+                
+                <!-- Legend Item 1: Visual Evidence (CNN) -->
+                <div class="exact-legend-row">
+                  <div class="exact-legend-left">
+                    <span class="exact-dot" style="background:#10b981;"></span>
+                    <span>Visual Evidence (CNN)</span>
                   </div>
-                  <span id="resColChecklistCount" style="font-size:10.5px; font-weight:700; color:#059669; background:#ecfdf5; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">0 / 3 Done</span>
+                  <span class="exact-legend-pct" id="exactLegendCnnPct">45%</span>
                 </div>
-                <div id="resColChecklist" style="display:flex; flex-direction:column; gap:8px;">
-                  <!-- Populated dynamically with interactive checkboxes -->
+
+                <!-- Legend Item 2: Environmental Evidence (SNN) -->
+                <div class="exact-legend-row">
+                  <div class="exact-legend-left">
+                    <span class="exact-dot" style="background:#3b82f6;"></span>
+                    <span>Environmental Evidence (SNN)</span>
+                  </div>
+                  <span class="exact-legend-pct" id="exactLegendSnnPct">35%</span>
                 </div>
+
+                <!-- Legend Item 3: Rule & Context Check -->
+                <div class="exact-legend-row">
+                  <div class="exact-legend-left">
+                    <span class="exact-dot" style="background:#f59e0b;"></span>
+                    <span>Rule &amp; Context Check</span>
+                  </div>
+                  <span class="exact-legend-pct" id="exactLegendRulePct">20%</span>
+                </div>
+
               </div>
-              <div style="font-size:10.5px; color:#64748b; margin-top:12px; border-top:1px solid #f1f5f9; padding-top:8px;">
-                💡 Checklist items are customized to your specific field telemetry and foliar symptoms.
+
+            </div>
+          </div>
+
+          <!-- 5. Key Insights Card -->
+          <div class="exact-section-card">
+            <div class="exact-section-title">Key Insights</div>
+            <div class="exact-insights-list" id="exactInsightsList">
+              <div class="exact-insight-item">
+                <span class="exact-check-icon">✓</span>
+                <span>Leaf shows signs of dehydration and edge burn consistent with water stress.</span>
+              </div>
+              <div class="exact-insight-item">
+                <span class="exact-check-icon">✓</span>
+                <span>Environmental parameters are within optimal range overall.</span>
+              </div>
+              <div class="exact-insight-item">
+                <span class="exact-check-icon">✓</span>
+                <span>Stress may be localized or due to short-term irrigation gap.</span>
+              </div>
+              <div class="exact-insight-item">
+                <span class="exact-check-icon">✓</span>
+                <span>Continue monitoring soil moisture &amp; plant recovery.</span>
               </div>
             </div>
-
           </div>
+
+          <!-- 6. Recommended Actions Card (3 Action Tiles) -->
+          <div class="exact-section-card">
+            <div class="exact-section-title">Recommended Actions</div>
+            <div class="exact-actions-grid" id="exactActionsGrid">
+              
+              <div class="exact-action-tile">
+                <div class="exact-action-top">
+                  <span>💧</span>
+                  <span>Improve Irrigation</span>
+                </div>
+                <p class="exact-action-desc">Increase watering frequency in affected zone.</p>
+              </div>
+
+              <div class="exact-action-tile">
+                <div class="exact-action-top">
+                  <span>🌱</span>
+                  <span>Soil Moisture Check</span>
+                </div>
+                <p class="exact-action-desc">Verify soil moisture at deeper root zone.</p>
+              </div>
+
+              <div class="exact-action-tile">
+                <div class="exact-action-top">
+                  <span>📈</span>
+                  <span>Monitor Recovery</span>
+                </div>
+                <p class="exact-action-desc">Reassess in 48–72 hours for improvement.</p>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 7. View Full Report Button -->
+          <a href="reports.html" class="exact-btn-report" id="exactReportBtn">
+            <span>📄</span>
+            <span>View Full Report</span>
+          </a>
 
         </div>
 

@@ -1900,6 +1900,50 @@ function renderCombinedStressFactorChart(data) {
   });
 }
 
+let exactDonutChartInstance = null;
+
+function renderExactDonutChart(data, fusion, cnnWeight, snnWeight, ruleWeight) {
+  const canvas = document.getElementById("exactDonutChart");
+  if (!canvas || typeof Chart === "undefined") return;
+
+  if (exactDonutChartInstance) {
+    try { exactDonutChartInstance.destroy(); } catch (e) {}
+    exactDonutChartInstance = null;
+  }
+
+  const ctx = canvas.getContext("2d");
+  exactDonutChartInstance = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Visual Evidence (CNN)", "Environmental Evidence (SNN)", "Rule & Context Check"],
+      datasets: [{
+        data: [cnnWeight, snnWeight, ruleWeight],
+        backgroundColor: [
+          "#10b981",
+          "#3b82f6",
+          "#f59e0b"
+        ],
+        borderWidth: 2,
+        borderColor: "#ffffff",
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      cutout: "75%",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (item) => ` ${item.label}: ${item.raw}%`
+          }
+        }
+      }
+    }
+  });
+}
+
 function renderFigure7(data) {
   if (!data) return;
   const fusion = data.fusion || {};
@@ -1909,11 +1953,11 @@ function renderFigure7(data) {
   const visualClass = data.cnn?.predicted_class || data.final_assessment?.diagnosis || data.visual_assessment?.class || (latestCNNResult?.prediction?.class || "Healthy");
   let visualConf = data.cnn?.confidence_percentage !== undefined ? data.cnn.confidence_percentage : (data.cnn?.confidence !== undefined ? data.cnn.confidence : (data.visual_assessment?.confidence !== undefined ? data.visual_assessment.confidence : latestCNNResult?.prediction?.confidence));
   let visualConfNum = 95.0;
-  let visualConfStr = "95.0% Probability";
+  let visualConfStr = "95.0% Confidence";
   if (visualConf !== undefined && visualConf !== null) {
     visualConfNum = Number(visualConf);
     if (visualConfNum <= 1.0) visualConfNum = visualConfNum * 100.0;
-    visualConfStr = `${visualConfNum.toFixed(1)}% Probability`;
+    visualConfStr = `${visualConfNum.toFixed(1)}% Confidence`;
   }
 
   const envClass = data.snn?.predicted_severity || data.final_assessment?.environmental_risk || data.environmental_assessment?.severity || (latestSNNResult?.prediction?.class || "Low");
@@ -1960,290 +2004,242 @@ function renderFigure7(data) {
   const vetoPassed = triggeredRules.length === 0 || (triggeredRules.length === 1 && triggeredRules[0].rule_id === "EVR-007");
 
   // =========================================================
-  // POWER BI KPI ROW BINDING
+  // EXACT REFERENCE MATCH BINDINGS
   // =========================================================
-  const kpiStatusVal = document.getElementById("combinedKpiStatusVal");
-  const kpiStatusTag = document.getElementById("combinedKpiStatusTag");
-  const kpiStatusSub = document.getElementById("combinedKpiStatusSub");
-  if (kpiStatusVal) {
-    kpiStatusVal.textContent = isHealthy ? "Healthy Crop" : visualClass;
-    kpiStatusVal.style.color = isHealthy ? "#059669" : (visualClass.toLowerCase().includes("water") ? "#dc2626" : "#ea580c");
+
+  // 1. Evidence Cards (Top 3 Cards)
+  const exactVisVal = document.getElementById("exactEvidVisVal");
+  const exactVisConf = document.getElementById("exactEvidVisConf");
+  if (exactVisVal) {
+    exactVisVal.textContent = visualClass;
+    if (visualClass.toLowerCase() === "healthy") {
+      exactVisVal.style.color = "#059669";
+    } else if (visualClass.toLowerCase().includes("water")) {
+      exactVisVal.style.color = "#dc2626";
+    } else if (visualClass.toLowerCase().includes("heat")) {
+      exactVisVal.style.color = "#ea580c";
+    } else if (visualClass.toLowerCase().includes("nutrient")) {
+      exactVisVal.style.color = "#d97706";
+    } else {
+      exactVisVal.style.color = "#7c3aed";
+    }
   }
-  if (kpiStatusTag) {
-    kpiStatusTag.textContent = isHealthy ? "OPTIMAL VIGOR" : "ATTENTION";
-  }
-  if (kpiStatusSub) {
-    kpiStatusSub.textContent = isHealthy ? "No biotic or abiotic stress detected" : `Foliar ${visualClass.toLowerCase()} pattern identified`;
+  if (exactVisConf) {
+    exactVisConf.textContent = visualConfStr;
+    if (visualClass.toLowerCase() === "healthy") {
+      exactVisConf.style.color = "#059669";
+    } else if (visualClass.toLowerCase().includes("water")) {
+      exactVisConf.style.color = "#dc2626";
+    } else if (visualClass.toLowerCase().includes("heat")) {
+      exactVisConf.style.color = "#ea580c";
+    } else if (visualClass.toLowerCase().includes("nutrient")) {
+      exactVisConf.style.color = "#d97706";
+    } else {
+      exactVisConf.style.color = "#7c3aed";
+    }
   }
 
-  const kpiConcordVal = document.getElementById("combinedKpiConcordVal");
-  const kpiConcordTag = document.getElementById("combinedKpiConcordTag");
-  const kpiConcordSub = document.getElementById("combinedKpiConcordSub");
-  if (kpiConcordVal) {
-    kpiConcordVal.textContent = `${scorePct}% Score`;
-    kpiConcordVal.style.color = scorePct >= 80 ? "#059669" : (scorePct >= 50 ? "#d97706" : "#dc2626");
+  const exactEnvVal = document.getElementById("exactEvidEnvVal");
+  const exactEnvRisk = document.getElementById("exactEvidEnvRisk");
+  if (exactEnvVal) {
+    const envStressLabel = envClass.toLowerCase().includes("stress") ? envClass : `${envClass} Stress`;
+    exactEnvVal.textContent = envStressLabel;
+    if (envClass.toLowerCase().includes("low")) {
+      exactEnvVal.style.color = "#2563eb";
+    } else if (envClass.toLowerCase().includes("mod")) {
+      exactEnvVal.style.color = "#d97706";
+    } else {
+      exactEnvVal.style.color = "#dc2626";
+    }
   }
-  if (kpiConcordTag) {
-    kpiConcordTag.textContent = relationship;
-  }
-  if (kpiConcordSub) {
-    kpiConcordSub.textContent = scorePct >= 80 ? "High inter-modality agreement" : "Partial modality divergence";
-  }
-
-  const kpiSafetyVal = document.getElementById("combinedKpiSafetyVal");
-  const kpiSafetyTag = document.getElementById("combinedKpiSafetyTag");
-  const kpiSafetySub = document.getElementById("combinedKpiSafetySub");
-  if (kpiSafetyVal) {
-    kpiSafetyVal.textContent = vetoPassed ? "Passed" : `${triggeredRules.length} Overrides`;
-    kpiSafetyVal.style.color = vetoPassed ? "#059669" : "#dc2626";
-  }
-  if (kpiSafetyTag) {
-    kpiSafetyTag.textContent = vetoPassed ? "EVR-007" : (triggeredRules[0]?.rule_id || "EVR-SAFETY");
-  }
-  if (kpiSafetySub) {
-    kpiSafetySub.textContent = vetoPassed ? "Deterministic safety verified" : "Safety rule intervention triggered";
+  if (exactEnvRisk) {
+    exactEnvRisk.textContent = `${envClass} Risk`;
   }
 
-  const kpiConfidenceVal = document.getElementById("combinedKpiConfidenceVal");
-  const kpiLatencySub = document.getElementById("combinedKpiLatencySub");
-  if (kpiConfidenceVal) {
-    kpiConfidenceVal.textContent = `${visualConfNum.toFixed(1)}%`;
-  }
-  if (kpiLatencySub) {
-    kpiLatencySub.textContent = `Pipeline latency: ${measuredLatencies.total_ms.toFixed(1)} ms`;
+  const exactAlignVal = document.getElementById("exactEvidAlignVal");
+  if (exactAlignVal) {
+    let alignText = "Partially Aligned";
+    let alignColor = "#d97706";
+    const relUpper = (relationship || "").toUpperCase();
+    if (relUpper === "BASELINE_HEALTHY" || (isHealthy && relUpper === "ALIGNED")) {
+      alignText = "Healthy Baseline";
+      alignColor = "#059669";
+    } else if (relUpper === "ALIGNED") {
+      alignText = "Fully Aligned";
+      alignColor = "#059669";
+    } else if (relUpper === "CONFLICTING") {
+      alignText = "Conflicting Evidence";
+      alignColor = "#dc2626";
+    } else {
+      alignText = "Partially Aligned";
+      alignColor = "#d97706";
+    }
+    exactAlignVal.textContent = alignText;
+    exactAlignVal.style.color = alignColor;
   }
 
-  // =========================================================
-  // FINAL DECISION HERO BANNER
-  // =========================================================
-  const resFinalTitle = document.getElementById("resColFinalTitle");
-  const resFinalBanner = document.getElementById("resColFinalBanner");
-  const resAttnBadge = document.getElementById("resColAttentionBadge");
-
-  let finalTitleText = "Crop in Good Health — Maintain Regular Care";
-  let attnText = "● Standard Field Care";
-  let isAttention = false;
+  // 2. Final Assessment Hero Box
+  const exactFinalBox = document.getElementById("exactFinalBox");
+  const exactActionBadge = document.getElementById("exactActionBadge");
+  const exactFinalTitle = document.getElementById("exactFinalTitle");
+  const exactFinalDesc = document.getElementById("exactFinalDesc");
 
   if (isHealthy) {
-    finalTitleText = "Crop in Good Health — Maintain Regular Care";
-    attnText = "● Standard Field Care";
-    isAttention = false;
-  } else if (visualClass.toLowerCase() === "water stress") {
-    finalTitleText = "Water Stress Detected — Irrigation Action Needed";
-    attnText = "● Immediate Irrigation";
-    isAttention = true;
-  } else if (visualClass.toLowerCase() === "heat stress") {
-    finalTitleText = "Heat Stress Detected — Soil Moisture Protection Needed";
-    attnText = "● Heat Mitigation";
-    isAttention = true;
-  } else if (visualClass.toLowerCase() === "nutrient deficiency") {
-    finalTitleText = "Nutrient Shortage Detected — Foliar Feeding Advised";
-    attnText = "● Foliar Nutrition";
-    isAttention = true;
+    if (exactFinalBox) exactFinalBox.classList.add("is-healthy");
+    if (exactActionBadge) {
+      exactActionBadge.textContent = "• Standard Field Care";
+      exactActionBadge.className = "exact-action-badge badge-healthy";
+    }
+    if (exactFinalTitle) exactFinalTitle.textContent = "Crop in Good Health — Optimal Vigor";
+    if (exactFinalDesc) {
+      exactFinalDesc.textContent = data.final_assessment?.summary || fusion.summary || 
+        "Both your cotton leaf scan and environmental sensor telemetry indicate healthy crop vigor without biotic or abiotic distress. Continue routine monitoring and scheduled field care.";
+    }
   } else {
-    finalTitleText = `${visualClass} Detected — Foliar Health Action Advised`;
-    attnText = "● Action Recommended";
-    isAttention = true;
-  }
-
-  if (resFinalTitle) {
-    resFinalTitle.textContent = finalTitleText;
-    resFinalTitle.style.color = isAttention ? (visualClass.toLowerCase().includes("water") ? "#dc2626" : (visualClass.toLowerCase().includes("heat") ? "#ea580c" : "#d97706")) : "#059669";
-  }
-
-  if (resAttnBadge) {
-    resAttnBadge.textContent = attnText;
-    if (isAttention) {
-      resAttnBadge.style.background = "#fee2e2";
-      resAttnBadge.style.color = "#dc2626";
-      resAttnBadge.style.borderColor = "#fecaca";
-    } else {
-      resAttnBadge.style.background = "#ecfdf5";
-      resAttnBadge.style.color = "#059669";
-      resAttnBadge.style.borderColor = "#a7f3d0";
+    if (exactFinalBox) exactFinalBox.classList.remove("is-healthy");
+    if (exactActionBadge) {
+      exactActionBadge.textContent = "• Action Recommended";
+      exactActionBadge.className = "exact-action-badge badge-warning";
+    }
+    if (exactFinalTitle) {
+      exactFinalTitle.textContent = `${visualClass} Observable`;
+    }
+    if (exactFinalDesc) {
+      if (data.final_assessment?.summary) {
+        exactFinalDesc.textContent = data.final_assessment.summary;
+      } else if (fusion.summary) {
+        exactFinalDesc.textContent = fusion.summary;
+      } else if (visualClass.toLowerCase().includes("water")) {
+        exactFinalDesc.textContent = `Visual symptoms indicate water stress while environmental conditions reflect ${envClass.toLowerCase()} risk. This suggests localized stress due to irrigation variation, soil moisture gradient, or canopy microclimate.`;
+      } else if (visualClass.toLowerCase().includes("heat")) {
+        exactFinalDesc.textContent = `Visual symptoms show heat stress or foliar scorching with ambient temperature at ${tempVal.toFixed(1)}°C. Maintain adequate root moisture to support canopy cooling via transpiration.`;
+      } else if (visualClass.toLowerCase().includes("nutrient")) {
+        exactFinalDesc.textContent = `Visual symptoms indicate nutrient deficiency chlorosis. Ambient conditions are suitable for foliar nutrient absorption. Recommend targeted nutrient application.`;
+      } else {
+        exactFinalDesc.textContent = `Visual inspection identifies symptoms of ${visualClass.toLowerCase()}. Review recommended actions below to mitigate crop impact.`;
+      }
     }
   }
 
-  if (resFinalBanner) {
-    if (!isAttention) {
-      resFinalBanner.style.background = "#f0fdf4";
-      resFinalBanner.style.borderColor = "#bbf7d0";
-    } else if (visualClass.toLowerCase().includes("water")) {
-      resFinalBanner.style.background = "#fff1f2";
-      resFinalBanner.style.borderColor = "#fecdd3";
-    } else {
-      resFinalBanner.style.background = "#fffbeb";
-      resFinalBanner.style.borderColor = "#fde68a";
-    }
+  // 3. Assessment Breakdown & Donut Chart
+  const exactDonutScore = document.getElementById("exactDonutScore");
+  if (exactDonutScore) {
+    exactDonutScore.textContent = `${scorePct}%`;
   }
 
-  // =========================================================
-  // POWER BI CHARTS RENDERING
-  // =========================================================
-  renderCombinedConcordanceChart(data, fusion);
-  renderCombinedStressFactorChart(data);
-
-  // =========================================================
-  // "Why this result?" (Agronomic Synthesis)
-  // =========================================================
-  const resWhy = document.getElementById("resColWhyResult");
-  let whyText = "";
-  if (data.final_assessment?.summary) {
-    whyText = data.final_assessment.summary;
-  } else if (fusion.summary) {
-    whyText = fusion.summary;
-  } else if (isHealthy) {
-    whyText = "Both your cotton leaf scan and current field weather readings confirm healthy plant vigor. Continue regular scouting and standard watering.";
-  } else if (visualClass.toLowerCase() === "water stress") {
-    whyText = "The leaf displays symptoms of water deficit (wilting and leaf curl). Environmental sensors also confirm dry soil. Immediate irrigation is recommended to protect boll and flower development.";
-  } else if (visualClass.toLowerCase() === "nutrient deficiency") {
-    whyText = "Foliar yellowing indicates the crop is experiencing a nutrient shortage. Environmental conditions are favorable, making foliar feeding effective.";
-  } else if (visualClass.toLowerCase() === "heat stress") {
-    whyText = "High ambient heat is causing leaf edge scorch. Ensure the soil remains adequately moist to cool plant canopy via transpiration.";
-  } else {
-    whyText = `Visual leaf assessment indicates ${visualClass.toLowerCase()}. Review the recommended farmer action steps below.`;
+  // Compute breakdown weights summing to 100%
+  let cnnWeight = Math.min(60, Math.max(30, Math.round((visualConfNum / 100) * 45 + 5)));
+  let snnWeight = Math.min(45, Math.max(25, Math.round(alignmentScore * 35)));
+  let ruleWeight = 100 - (cnnWeight + snnWeight);
+  if (ruleWeight < 10) {
+    ruleWeight = 15;
+    cnnWeight = 100 - snnWeight - ruleWeight;
   }
-  if (resWhy) resWhy.textContent = whyText;
 
-  // =========================================================
-  // "Key Insights"
-  // =========================================================
-  const resInsights = document.getElementById("resColKeyInsightsList");
-  if (resInsights) {
+  const exactLegCnn = document.getElementById("exactLegendCnnPct");
+  const exactLegSnn = document.getElementById("exactLegendSnnPct");
+  const exactLegRule = document.getElementById("exactLegendRulePct");
+  if (exactLegCnn) exactLegCnn.textContent = `${cnnWeight}%`;
+  if (exactLegSnn) exactLegSnn.textContent = `${snnWeight}%`;
+  if (exactLegRule) exactLegRule.textContent = `${ruleWeight}%`;
+
+  renderExactDonutChart(data, fusion, cnnWeight, snnWeight, ruleWeight);
+
+  // 4. Key Insights
+  const exactInsightsList = document.getElementById("exactInsightsList");
+  if (exactInsightsList) {
     const insights = [];
     if (isHealthy) {
-      insights.push("Visual leaf tissue indicates active photosynthesis with intact chlorophyll pigmentation.");
-      insights.push(`Field ambient telemetry (${tempVal.toFixed(1)}°C, ${Math.round(humVal)}% humidity) remains in the optimal crop growth envelope.`);
-      insights.push(`Multimodal concordance score is ${scorePct}%, confirming high diagnostic stability.`);
-    } else if (visualClass.toLowerCase() === "water stress") {
-      insights.push("Foliar turgor loss detected in leaf scan, corroborated by low soil moisture readings.");
-      insights.push(`Current ambient temperature of ${tempVal.toFixed(1)}°C accelerates canopy evapotranspiration.`);
-      insights.push("Prompt irrigation will prevent irreversible flower bud and square shedding.");
-    } else if (visualClass.toLowerCase() === "nutrient deficiency") {
-      insights.push("Chlorotic foliar patterns indicate early stage mobile nutrient shortage.");
-      insights.push("Root zone moisture is sufficient to support immediate liquid foliar feeding.");
-      insights.push("Early morning spray application is recommended for maximum stomatal uptake.");
-    } else if (visualClass.toLowerCase() === "heat stress") {
-      insights.push("Elevated ambient temperatures exceed optimum metabolic threshold for cotton foliage.");
-      insights.push("Soil moisture protection is essential to sustain canopy cooling via transpiration.");
-      insights.push("Avoid midday chemical applications to prevent foliar chemical scorch.");
+      insights.push("Leaf foliar tissue shows intact chlorophyll pigmentation and healthy cellular structure.");
+      insights.push(`Environmental parameters (${tempVal.toFixed(1)}°C, ${Math.round(humVal)}% RH) are well within optimal growth thresholds.`);
+      insights.push(`Multimodal alignment score of ${scorePct}% confirms high diagnostic certainty.`);
+      insights.push("No immediate corrective intervention required; continue standard field maintenance.");
+    } else if (visualClass.toLowerCase().includes("water")) {
+      insights.push("Leaf shows signs of dehydration and edge wilting consistent with water stress.");
+      insights.push(`Environmental conditions show ${envClass.toLowerCase()} risk with soil moisture at ${Math.round(soilVal)}%.`);
+      insights.push("Stress may be localized due to uneven drip line pressure or short-term irrigation gap.");
+      insights.push("Prompt root-zone re-hydration will prevent blossom drop and square shedding.");
+    } else if (visualClass.toLowerCase().includes("heat")) {
+      insights.push("Upper canopy leaves display marginal scorch and upward curl from solar thermal load.");
+      insights.push(`Ambient temperature of ${tempVal.toFixed(1)}°C exceeds optimum metabolic envelope for cotton.`);
+      insights.push("Canopy transpiration cooling requires protected root-zone hydration.");
+      insights.push("Avoid midday agrochemical applications to prevent chemical burn.");
+    } else if (visualClass.toLowerCase().includes("nutrient")) {
+      insights.push("Interveinal chlorosis pattern indicates early mobile nutrient deficiency (e.g. Nitrogen / Zinc).");
+      insights.push("Soil moisture and root activity are favorable for liquid nutrient uptake.");
+      insights.push("Early morning foliar spray ensures maximum stomatal absorption.");
+      insights.push("Monitor emerging shoots over 5–7 days for green recovery.");
     } else {
-      insights.push(`Visual analysis detected distinct ${visualClass.toLowerCase()} foliar symptom signatures.`);
-      insights.push(`Environmental telemetry shows ${envClass.toLowerCase()} abiotic background risk.`);
-      insights.push(`Synthesized evidentiary relationship classified as ${relationship}.`);
+      insights.push(`Leaf surface visual inspection confirms distinct ${visualClass.toLowerCase()} symptoms.`);
+      insights.push(`Background climate telemetry indicates ${envClass.toLowerCase()} abiotic baseline.`);
+      insights.push(`Multimodal synthesis relationship evaluated as ${relationship.replace(/_/g, " ")}.`);
+      insights.push("Implement field actions below to protect crop yield potential.");
     }
 
-    resInsights.innerHTML = insights.map(i => `<li>${i}</li>`).join("");
+    exactInsightsList.innerHTML = insights.map(text => `
+      <div class="exact-insight-item">
+        <span class="exact-check-icon">✓</span>
+        <span>${escapeHtml(text)}</span>
+      </div>
+    `).join("");
   }
 
-  // =========================================================
-  // EXPERT VETO RULE MATRIX RENDERING
-  // =========================================================
-  const ruleDetailsContainer = document.getElementById("fig7RuleDetailsContainer");
-  const ruleStatusBadge = document.getElementById("fig7RuleStatusBadge");
-
-  if (ruleStatusBadge) {
-    if (vetoPassed) {
-      ruleStatusBadge.textContent = "Passed · No Safety Overrides";
-      ruleStatusBadge.style.background = "#ecfdf5";
-      ruleStatusBadge.style.color = "#059669";
-      ruleStatusBadge.style.borderColor = "#a7f3d0";
+  // 5. Recommended Actions (3 Cards)
+  const exactActionsGrid = document.getElementById("exactActionsGrid");
+  if (exactActionsGrid) {
+    let actionItems = [];
+    if (isHealthy) {
+      actionItems = [
+        { icon: "💧", title: "Standard Irrigation", desc: "Maintain scheduled watering cycles without over-saturating." },
+        { icon: "🌱", title: "Canopy Scouting", desc: "Perform routine foliar scouting across representative field rows." },
+        { icon: "📈", title: "Monitor Growth", desc: "Log next weekly scan to track steady vegetative and boll progress." }
+      ];
+    } else if (visualClass.toLowerCase().includes("water")) {
+      actionItems = [
+        { icon: "💧", title: "Improve Irrigation", desc: "Increase watering frequency and volume in affected field zone." },
+        { icon: "🌱", title: "Soil Moisture Check", desc: "Verify moisture depth with a soil probe at 15–30 cm root zone." },
+        { icon: "📈", title: "Monitor Recovery", desc: "Reassess canopy turgor in 48–72 hours for leaf recovery." }
+      ];
+    } else if (visualClass.toLowerCase().includes("heat")) {
+      actionItems = [
+        { icon: "💧", title: "Evening Irrigation", desc: "Provide light evening irrigation to reduce soil heat load." },
+        { icon: "🛡️", title: "Canopy Protection", desc: "Avoid spraying chemicals when temperatures exceed 35°C." },
+        { icon: "📈", title: "Track Forecast", desc: "Monitor 3-day high temperatures to plan protective watering." }
+      ];
+    } else if (visualClass.toLowerCase().includes("nutrient")) {
+      actionItems = [
+        { icon: "🧪", title: "Foliar Spray", desc: "Apply balanced water-soluble NPK / micronutrient spray in early morning." },
+        { icon: "🌱", title: "Soil Fertility Test", desc: "Check root zone nutrient availability and pH balance." },
+        { icon: "📈", title: "Check New Leaves", desc: "Inspect terminal leaves in 5–7 days for color restoration." }
+      ];
     } else {
-      ruleStatusBadge.textContent = `${triggeredRules.length} Precaution Rule${triggeredRules.length > 1 ? 's' : ''} Triggered`;
-      ruleStatusBadge.style.background = "#fee2e2";
-      ruleStatusBadge.style.color = "#dc2626";
-      ruleStatusBadge.style.borderColor = "#fca5a5";
+      actionItems = [
+        { icon: "🚿", title: "Canopy Washing", desc: "Rinse leaf surfaces with clean water if dust or soot is observed." },
+        { icon: "🌱", title: "Root Aeration", desc: "Ensure soil drainage and adequate root aeration." },
+        { icon: "📈", title: "Field Scouting", desc: "Re-scout field within 3 to 4 days to track progression." }
+      ];
     }
+
+    exactActionsGrid.innerHTML = actionItems.map(item => `
+      <div class="exact-action-tile">
+        <div class="exact-action-top">
+          <span>${item.icon}</span>
+          <span>${escapeHtml(item.title)}</span>
+        </div>
+        <p class="exact-action-desc">${escapeHtml(item.desc)}</p>
+      </div>
+    `).join("");
   }
 
-  if (ruleDetailsContainer) {
-    if (!vetoPassed) {
-      ruleDetailsContainer.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          ${triggeredRules.map(r => {
-            const effect = r.effect || (r.severity === "CRITICAL" ? "Precautionary Override" : (r.severity === "WARNING" ? "Qualifies" : "Reinforces"));
-            return `
-              <div class="veto-rule-card">
-                <div class="veto-rule-header">
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    <span class="veto-rule-id" style="background:#fee2e2; color:#dc2626;">${r.rule_id}</span>
-                    <span class="veto-rule-name">${r.name}</span>
-                  </div>
-                  <div style="display:flex; align-items:center; gap:6px;">
-                    <span class="veto-rule-effect" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca;">${effect}</span>
-                    <span style="font-size:10.5px; font-weight:700; color:#dc2626; text-transform:uppercase;">${r.severity || 'CAUTION'}</span>
-                  </div>
-                </div>
-                <div style="font-size:11.5px; color:#475569; margin:3px 0;"><strong>Triggered Condition:</strong> ${r.condition || ''}</div>
-                <div style="font-size:11.5px; color:#7f1d1d; margin:3px 0;"><strong>Why Triggered / Impact:</strong> ${r.impact || r.reason || ''}</div>
-                <div style="background:#ffffff; border-left:3px solid #dc2626; padding:6px 10px; font-size:11.5px; color:#1e293b; border-radius:0 6px 6px 0; margin-top:4px;">
-                  <strong>Precaution:</strong> ${r.precaution || ''}
-                </div>
-                ${r.what_to_check ? `<div style="font-size:11px; color:#64748b; margin-top:2px;"><strong>What to check:</strong> ${r.what_to_check}</div>` : ''}
-              </div>
-            `;
-          }).join("")}
-        </div>
-      `;
+  // 6. View Full Report Button Link
+  const exactReportBtn = document.getElementById("exactReportBtn");
+  if (exactReportBtn) {
+    if (recUuid) {
+      exactReportBtn.href = getApiUrl(`/api/v1/records/${encodeURIComponent(recUuid)}/report`);
+      exactReportBtn.target = "_blank";
     } else {
-      let actionSteps = [];
-      if (isHealthy) {
-        actionSteps = [
-          { icon: "💧", title: "Irrigation Schedule", text: "Maintain scheduled irrigation cycles. Soil moisture is currently adequate for growth." },
-          { icon: "🌱", title: "Crop Nutrition", text: "No corrective fertilizers needed today. Continue standard seasonal schedule." },
-          { icon: "🔍", title: "Next Field Check", text: "Re-check and scan cotton foliage in 5 to 7 days." }
-        ];
-      } else if (visualClass.toLowerCase() === "water stress") {
-        actionSteps = [
-          { icon: "💧", title: "Immediate Irrigation", text: "Apply 25-35 mm of irrigation within 24 to 48 hours to restore leaf turgor and prevent flower shedding." },
-          { icon: "🌱", title: "Soil Moisture Watch", text: "Check soil probe readings to ensure moisture penetrates the active root zone (15-30 cm)." },
-          { icon: "🔍", title: "Follow-up Scan", text: "Take another leaf photo 48 hours after watering to confirm recovery." }
-        ];
-      } else if (visualClass.toLowerCase() === "nutrient deficiency") {
-        actionSteps = [
-          { icon: "🌱", title: "Foliar Feeding", text: "Apply water-soluble 19:19:19 NPK or micro-nutrient spray (Zinc / Magnesium sulphate) in the early morning." },
-          { icon: "💧", title: "Soil Moisture", text: "Ensure adequate root moisture before fertilizer application to facilitate nutrient uptake." },
-          { icon: "🔍", title: "Inspect New Leaves", text: "Observe newly emerging leaves over the next 7 days for restored dark green color." }
-        ];
-      } else if (visualClass.toLowerCase() === "heat stress") {
-        actionSteps = [
-          { icon: "💧", title: "Light Evening Watering", text: "Provide light evening irrigation to reduce soil heat and maintain plant transpiration." },
-          { icon: "🌱", title: "Canopy Protection", text: "Avoid midday chemical spraying when temperatures exceed 36°C to prevent leaf scorch." },
-          { icon: "🔍", title: "Monitor Forecast", text: "Check upcoming 48-hour temperature forecast and plan watering ahead of heat peaks." }
-        ];
-      } else {
-        actionSteps = [
-          { icon: "🚿", title: "Canopy Rinse / Care", text: "Wash leaf surfaces with clean water spray if excessive dust or soot is present." },
-          { icon: "🌱", title: "Soil Health", text: "Ensure steady root aeration and balanced watering." },
-          { icon: "🔍", title: "Re-check", text: "Scout the field again in 3 to 4 days." }
-        ];
-      }
-
-      ruleDetailsContainer.innerHTML = `
-        <div class="veto-rule-card rule-passed" style="margin-bottom:12px;">
-          <div class="veto-rule-header">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span class="veto-rule-id" style="background:#dcfce7; color:#15803d;">EVR-007</span>
-              <span class="veto-rule-name">Baseline Stability Evaluation</span>
-            </div>
-            <span class="veto-rule-effect" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;">Reinforces</span>
-          </div>
-          <div style="font-size:11.5px; color:#166534; margin:2px 0;">
-            All physical environmental and foliar safety parameters are within standard agronomic operating thresholds. No critical overrides required.
-          </div>
-        </div>
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
-          ${actionSteps.map(step => `
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <span style="font-size:18px;">${step.icon}</span>
-                <strong style="font-size:12.5px; color:#0f172a;">${step.title}</strong>
-              </div>
-              <p style="margin:0; font-size:11.5px; color:#475569; line-height:1.45;">${step.text}</p>
-            </div>
-          `).join("")}
-        </div>
-      `;
+      exactReportBtn.href = "reports.html";
+      exactReportBtn.target = "_self";
     }
   }
 
@@ -2261,34 +2257,6 @@ function renderFigure7(data) {
     if (rainEl) rainEl.textContent = `${weatherCtx.current.rainfall_mm.toFixed(1)} mm`;
     if (aqiEl) aqiEl.textContent = `${Math.round(weatherCtx.air_quality?.aqi || 84)} AQI`;
   }
-
-  // Action Buttons
-  const reportBtn = document.getElementById("fig7ReportBtn");
-  if (reportBtn && recUuid) {
-    reportBtn.href = getApiUrl(`/api/v1/records/${recUuid}/report`);
-  }
-  const askAIBtn = document.getElementById("fig7AskAIBtn");
-  if (askAIBtn) {
-    askAIBtn.href = recUuid ? `assistant.html?record_id=${recUuid}` : "assistant.html";
-  }
-
-  // Extract real context for "What to Check Next" actionable checklist
-  const checkContext = {
-    visualClass: visualClass,
-    visualConfidence: visualConf,
-    environmentalSeverity: envClass,
-    relationship: fusion.relationship || "ALIGNED",
-    temperature: tempVal,
-    humidity: humVal,
-    rainfall: rainVal,
-    soilMoisture: soilVal,
-    aqi: aqiVal,
-    ozone: ozoneVal,
-    triggeredRules: triggeredRules,
-    weatherForecast: weatherCtx?.forecast
-  };
-
-  renderWhatToCheckNext(checkContext);
 }
 
 // =========================================================
