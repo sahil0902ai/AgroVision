@@ -743,11 +743,25 @@ async function fetchFieldWeather(lat = currentFieldLat, lon = currentFieldLon, f
   let data = null;
   const cacheKey = `${Number(lat).toFixed(3)}_${Number(lon).toFixed(3)}`;
 
-  // Check 60-second in-memory cache
-  if (!forceRefresh && dashboardWeatherMemoryCache.has(cacheKey)) {
-    const cached = dashboardWeatherMemoryCache.get(cacheKey);
-    if (Date.now() - cached.time < 60000) {
-      data = cached.data;
+  // Check 10-minute in-memory or session cache if not forced refresh
+  if (!forceRefresh) {
+    if (dashboardWeatherMemoryCache.has(cacheKey)) {
+      const cached = dashboardWeatherMemoryCache.get(cacheKey);
+      if (Date.now() - cached.time < 600000) {
+        data = cached.data;
+      }
+    }
+    if (!data) {
+      try {
+        const stored = sessionStorage.getItem(`agro_weather_${cacheKey}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && Date.now() - parsed.time < 600000) {
+            data = parsed.data;
+            dashboardWeatherMemoryCache.set(cacheKey, parsed);
+          }
+        }
+      } catch (_) {}
     }
   }
 
@@ -782,6 +796,9 @@ async function fetchFieldWeather(lat = currentFieldLat, lon = currentFieldLon, f
 
     if (data) {
       dashboardWeatherMemoryCache.set(cacheKey, { time: Date.now(), data });
+      try {
+        sessionStorage.setItem(`agro_weather_${cacheKey}`, JSON.stringify({ time: Date.now(), data }));
+      } catch (_) {}
     }
   }
 

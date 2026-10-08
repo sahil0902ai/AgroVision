@@ -533,6 +533,9 @@ document.addEventListener("click", (e) => {
 });
 
 // Setup on DOM Ready
+let lastTabHealthCheck = 0;
+let lastTabNotifCheck = 0;
+
 document.addEventListener("DOMContentLoaded", () => {
   // Update Date
   const dateEl = document.getElementById("globalHeaderDate");
@@ -589,8 +592,15 @@ document.addEventListener("DOMContentLoaded", () => {
       loadHeaderNotifications();
     });
     window.AgroVisionSync.on("tabFocused", () => {
-      loadHeaderNotifications();
-      checkSystemHealth();
+      const now = Date.now();
+      if (now - lastTabNotifCheck > 60000) {
+        lastTabNotifCheck = now;
+        loadHeaderNotifications();
+      }
+      if (now - lastTabHealthCheck > 60000) {
+        lastTabHealthCheck = now;
+        checkSystemHealth();
+      }
     });
   }
 });

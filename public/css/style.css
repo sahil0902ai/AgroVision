@@ -9150,5 +9150,197 @@ body.dash-body {
   box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
 }
 
+/* =========================================================
+   UNIVERSAL PERFORMANCE & RESPONSIVE ENGINE (ALL BREAKPOINTS)
+   ========================================================= */
+
+/* 1. Hardware-accelerated smooth animations */
+.agro-skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite ease-in-out;
+  border-radius: 8px;
+  will-change: background-position;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 2. Zero Horizontal Overflow Protection */
+html, body {
+  overflow-x: clip;
+  max-width: 100vw;
+  width: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+.dash-shell,
+.dash-main,
+.overview-container,
+.detail-container,
+.reports-container,
+.history-container,
+.assistant-shell {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* 3. Responsive Tables & Touch Scrolling */
+.table-responsive,
+.custom-table-container,
+.powerbi-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+/* 4. Large Desktop Breakpoint (1920x1080 / 1440x900) */
+@media (min-width: 1440px) {
+  .overview-container,
+  .detail-container,
+  .reports-container,
+  .history-container {
+    max-width: 1480px;
+  }
+}
+
+/* 5. Standard Laptop Breakpoint (1366x768 / 1280x800) */
+@media (max-width: 1366px) {
+  .dash-main {
+    padding: 20px 24px 60px;
+  }
+  .kpi-grid-4 {
+    gap: 12px;
+  }
+}
+
+/* 6. Tablet Landscape & Small Desktop (1024x768) */
+@media (max-width: 1024px) {
+  .dash-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 16px 20px 80px !important;
+  }
+  .kpi-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+  .overview-telemetry-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .charts-duo-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .combined-charts-grid,
+  .combined-synthesis-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .navbar .nav-links {
+    display: none;
+  }
+  .nav-toggle {
+    display: block;
+  }
+}
+
+/* 7. Tablet Portrait (768x1024) */
+@media (max-width: 768px) {
+  .dash-main {
+    padding: 14px 16px 84px !important;
+  }
+  .dash-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .header-left, .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .header-search-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .overview-hero-card {
+    grid-template-columns: 1fr !important;
+  }
+  .overview-telemetry-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .view-stepper {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .view-step-btn {
+    min-height: 46px !important;
+    padding: 8px 12px !important;
+    font-size: 11.5px !important;
+  }
+  .exact-evidence-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .exact-action-buttons-group {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .step-nav-bar {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .step-nav-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .step-nav-btn {
+    flex: 1;
+  }
+}
+
+/* 8. Mobile Phones (390x844 / 375x812 / 360x780) */
+@media (max-width: 480px) {
+  .dash-main {
+    padding: 12px 12px 90px !important;
+  }
+  .kpi-grid-4 {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .overview-telemetry-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .view-stepper {
+    grid-template-columns: 1fr !important;
+  }
+  .exact-action-buttons-group {
+    grid-template-columns: 1fr !important;
+  }
+  .exact-final-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .hero h1 {
+    font-size: 2.1rem !important;
+  }
+  .auth-card {
+    padding: 24px 18px !important;
+  }
+  .chat-bubble {
+    max-width: 90% !important;
+    font-size: 12.5px !important;
+  }
+  .header-location-pill {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .loc-name {
+    max-width: 140px !important;
+  }
+}
+
 
 

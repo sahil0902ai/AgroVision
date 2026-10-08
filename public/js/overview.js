@@ -401,9 +401,23 @@ async function loadOverviewData() {
     const data = await response.json();
     rawAllRecords = Array.isArray(data) ? data : (data.records || []);
 
+    // 1. Paint core dashboard (KPIs, hero, table)
     renderOverviewDashboard();
-    fetchVisualDistribution(userEmailParam);
-    fetchEnvironmentalDistribution(userEmailParam);
+
+    // 2. Immediately compute and paint both Visual and Climate distribution charts without redundant network calls
+    const vDist = computeVisualDistributionFromRecords(rawAllRecords);
+    latestVisualDistData = vDist;
+    const centerCountEl = document.getElementById("donutTotalCount");
+    if (centerCountEl) centerCountEl.textContent = String(vDist.total_analyses || 0);
+    renderVisualDistDonut(vDist);
+    renderVisualDistLegend(vDist.categories);
+
+    const eDist = computeEnvironmentalDistributionFromRecords(rawAllRecords);
+    latestEnvDistData = eDist;
+    const envCenterCountEl = document.getElementById("envDonutTotalCount");
+    if (envCenterCountEl) envCenterCountEl.textContent = String(eDist.total_analyses || 0);
+    renderEnvDistDonut(eDist);
+    renderEnvDistLegend(eDist.categories);
   } catch (err) {
     console.error("Error loading farm overview data:", err);
     if (tbody) {
@@ -467,13 +481,25 @@ async function fetchOverviewWeather(lat = currentOverviewLat, lon = currentOverv
   if (gridEl) gridEl.style.opacity = "0.6";
 
   let data = null;
-  const cacheKey = `${Number(lat).toFixed(3)}_${Number(lon).toFixed(3)}`;
-
-  // Check 60-second in-memory cache if not forced refresh
-  if (!forceRefresh && overviewWeatherMemoryCache.has(cacheKey)) {
-    const cached = overviewWeatherMemoryCache.get(cacheKey);
-    if (Date.now() - cached.time < 60000) {
-      data = cached.data;
+  // Check 10-minute in-memory or session cache if not forced refresh
+  if (!forceRefresh) {
+    if (overviewWeatherMemoryCache.has(cacheKey)) {
+      const cached = overviewWeatherMemoryCache.get(cacheKey);
+      if (Date.now() - cached.time < 600000) {
+        data = cached.data;
+      }
+    }
+    if (!data) {
+      try {
+        const stored = sessionStorage.getItem(`agro_weather_${cacheKey}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && Date.now() - parsed.time < 600000) {
+            data = parsed.data;
+            overviewWeatherMemoryCache.set(cacheKey, parsed);
+          }
+        }
+      } catch (_) {}
     }
   }
 
@@ -501,13 +527,11 @@ async function fetchOverviewWeather(lat = currentOverviewLat, lon = currentOverv
       }
     }
 
-    // 3. Authentic Station Baseline fallback (if completely offline)
-    if (!data) {
-      data = buildStationBaselineWeather(lat, lon);
-    }
-
     if (data) {
       overviewWeatherMemoryCache.set(cacheKey, { time: Date.now(), data });
+      try {
+        sessionStorage.setItem(`agro_weather_${cacheKey}`, JSON.stringify({ time: Date.now(), data }));
+      } catch (_) {}
     }
   }
 
@@ -1570,8 +1594,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   loadOverviewData();
-  fetchVisualDistribution();
-  fetchEnvironmentalDistribution();
 
   const refreshBtn = document.getElementById("overviewWeatherRefreshBtn");
   if (refreshBtn) {

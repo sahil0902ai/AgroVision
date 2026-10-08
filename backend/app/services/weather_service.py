@@ -238,43 +238,50 @@ class WeatherService:
             raise WeatherUnavailableError("OPENWEATHER_API_KEY is not configured on the server.")
 
         headers = {"User-Agent": "AgroVision-Cotton-Platform/1.0"}
-        
-        with httpx.Client(timeout=self.http_timeout, headers=headers) as client:
-            # 1. Current Weather
-            curr_url = (
-                f"https://api.openweathermap.org/data/2.5/weather"
-                f"?lat={lat}&lon={lon}&appid={self.api_key}&units=metric"
-            )
-            curr_resp = client.get(curr_url)
-            if curr_resp.status_code != 200:
-                raise WeatherUnavailableError(f"Current weather API error ({curr_resp.status_code}): {curr_resp.text}")
-            curr_data = curr_resp.json()
+        curr_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={self.api_key}&units=metric"
+        fore_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={self.api_key}&units=metric"
+        air_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={self.api_key}"
 
-            # 2. 5-Day / 3-Hour Forecast
-            fore_url = (
-                f"https://api.openweathermap.org/data/2.5/forecast"
-                f"?lat={lat}&lon={lon}&appid={self.api_key}&units=metric"
-            )
-            fore_data = {}
+        curr_data = None
+        fore_data = {}
+        air_data = {}
+
+        import concurrent.futures
+
+        def _fetch_one(url: str):
+            with httpx.Client(timeout=self.http_timeout, headers=headers) as client:
+                resp = client.get(url)
+                return resp.status_code, resp.json() if resp.status_code == 200 else resp.text
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            fut_curr = executor.submit(_fetch_one, curr_url)
+            fut_fore = executor.submit(_fetch_one, fore_url)
+            fut_air = executor.submit(_fetch_one, air_url)
+
             try:
-                fore_resp = client.get(fore_url)
-                if fore_resp.status_code == 200:
-                    fore_data = fore_resp.json()
+                status_curr, body_curr = fut_curr.result()
+                if status_curr == 200:
+                    curr_data = body_curr
+                else:
+                    raise WeatherUnavailableError(f"Current weather API error ({status_curr}): {body_curr}")
+            except Exception as e:
+                if isinstance(e, WeatherUnavailableError):
+                    raise
+                raise WeatherUnavailableError(f"Failed to query OpenWeather current: {e}")
+
+            try:
+                status_fore, body_fore = fut_fore.result()
+                if status_fore == 200:
+                    fore_data = body_fore
             except Exception as fe:
-                logger.warning(f"Forecast fetch failed: {fe}")
+                logger.warning(f"Concurrent forecast fetch failed: {fe}")
 
-            # 3. Air Pollution (AQI & Ozone)
-            air_url = (
-                f"http://api.openweathermap.org/data/2.5/air_pollution"
-                f"?lat={lat}&lon={lon}&appid={self.api_key}"
-            )
-            air_data = {}
             try:
-                air_resp = client.get(air_url)
-                if air_resp.status_code == 200:
-                    air_data = air_resp.json()
+                status_air, body_air = fut_air.result()
+                if status_air == 200:
+                    air_data = body_air
             except Exception as ae:
-                logger.warning(f"Air pollution fetch failed: {ae}")
+                logger.warning(f"Concurrent air pollution fetch failed: {ae}")
 
         return self._normalize_weather(lat, lon, curr_data, fore_data, air_data)
 

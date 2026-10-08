@@ -56,6 +56,77 @@
       } else {
         localStorage.removeItem("agrovision_api_base");
       }
+    },
+
+    // In-flight request deduplicator and TTL cache
+    _inflight: new Map(),
+    _memCache: new Map(),
+
+    fetchCached: async function (path, options = {}) {
+      const { ttlMs = 120000, forceRefresh = false, ...fetchOpts } = options;
+      const url = this.getApiUrl(path);
+      const method = (fetchOpts.method || "GET").toUpperCase();
+
+      // Non-GET requests should bypass cache and clear matching cache
+      if (method !== "GET" || forceRefresh) {
+        if (method !== "GET") {
+          this._memCache.clear();
+        }
+        return fetch(url, fetchOpts);
+      }
+
+      const now = Date.now();
+      const cached = this._memCache.get(url);
+      if (cached && (now - cached.timestamp < ttlMs)) {
+        return new Response(JSON.stringify(cached.data), {
+          status: 200,
+          headers: { "Content-Type": "application/json", "X-AgroVision-Cache": "HIT" }
+        });
+      }
+
+      // If identical request is currently in-flight, reuse promise
+      if (this._inflight.has(url)) {
+        return this._inflight.get(url).then(data => 
+          new Response(JSON.stringify(data), {
+            status: 200,
+            headers: { "Content-Type": "application/json", "X-AgroVision-Cache": "INFLIGHT" }
+          })
+        );
+      }
+
+      const promise = (async () => {
+        try {
+          const res = await fetch(url, fetchOpts);
+          if (res.ok) {
+            const data = await res.json();
+            this._memCache.set(url, { timestamp: Date.now(), data });
+            return data;
+          }
+          throw new Error(`HTTP ${res.status}`);
+        } finally {
+          this._inflight.delete(url);
+        }
+      })();
+
+      this._inflight.set(url, promise);
+
+      const resData = await promise;
+      return new Response(JSON.stringify(resData), {
+        status: 200,
+        headers: { "Content-Type": "application/json", "X-AgroVision-Cache": "MISS" }
+      });
+    },
+
+    invalidateCache: function (pattern) {
+      if (!pattern) {
+        this._memCache.clear();
+        return;
+      }
+      for (const key of this._memCache.keys()) {
+        if (key.includes(pattern)) {
+          this._memCache.delete(key);
+        }
+      }
     }
   };
 })();
