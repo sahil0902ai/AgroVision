@@ -60,86 +60,47 @@ function closeAllHeaderDropdowns() {
 }
 
 // =========================================================
-// Global Field Selector Management
+// Global Station Location Management
 // =========================================================
-let userRegisteredFields = [];
+const userRegisteredFields = [
+  { field_id: "field-a", field_name: "Wardha Farm Station", zone_label: "Vidarbha Central", latitude: 20.9750, longitude: 78.7200, crop_stage: "Flowering" },
+  { field_id: "field-b", field_name: "Yavatmal Research Plot", zone_label: "Vidarbha South", latitude: 20.4500, longitude: 77.9200, crop_stage: "Boll_Development" },
+  { field_id: "field-c", field_name: "Nagpur Rural Station", zone_label: "Vidarbha East", latitude: 21.1458, longitude: 79.0882, crop_stage: "Vegetative" }
+];
 
-async function loadGlobalHeaderFields() {
-  const selector = document.getElementById("globalHeaderFieldSelector");
-  if (!selector) return;
-
-  try {
-    const user = typeof requireLogin === "function" ? requireLogin() : null;
-    const userEmailParam = user && user.email ? `?user_email=${encodeURIComponent(user.email)}` : "";
-    const res = await fetch(getApiUrl(`/api/v1/fields${userEmailParam}`));
-    if (!res.ok) throw new Error("Could not fetch user fields");
-
-    const fields = await res.json();
-    userRegisteredFields = Array.isArray(fields) && fields.length > 0 ? fields : [];
-
-    selector.innerHTML = "";
-    if (userRegisteredFields.length === 0) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "No field added yet";
-      selector.appendChild(opt);
-    } else {
-      const activeField = window.AgroVisionSync ? window.AgroVisionSync.getActiveField() : null;
-      let selectedFound = false;
-
-      userRegisteredFields.forEach(f => {
-        const opt = document.createElement("option");
-        opt.value = f.field_id;
-        opt.textContent = `${f.field_name} (${f.zone_label || 'Active'})`;
-        opt.dataset.lat = f.latitude;
-        opt.dataset.lon = f.longitude;
-        opt.dataset.cropStage = f.crop_stage || "Flowering";
-        opt.dataset.soilType = f.soil_type || "Vertisol";
-        opt.dataset.fieldName = f.field_name;
-
-        if (activeField && activeField.field_id === f.field_id) {
-          opt.selected = true;
-          selectedFound = true;
-        }
-        selector.appendChild(opt);
-      });
-
-      if (!selectedFound && userRegisteredFields.length > 0) {
-        selector.selectedIndex = 0;
-        const first = userRegisteredFields[0];
-        if (window.AgroVisionSync) {
-          window.AgroVisionSync.setActiveField(first);
-        }
-      }
-    }
-
-    // Update location badge in header
-    updateHeaderLocationBadge();
-  } catch (err) {
-    console.warn("Could not load database fields for header:", err);
-  }
-}
-
-function handleHeaderFieldChange(event) {
-  const selector = event.target;
-  const fieldId = selector.value;
-  const selectedField = userRegisteredFields.find(f => f.field_id === fieldId);
-
-  if (selectedField && window.AgroVisionSync) {
-    window.AgroVisionSync.setActiveField(selectedField);
-    updateHeaderLocationBadge();
-  }
+function loadGlobalHeaderFields() {
+  updateHeaderLocationBadge();
 }
 
 function updateHeaderLocationBadge() {
   const locBadge = document.getElementById("globalHeaderLocation");
-  if (!locBadge) return;
+  if (locBadge) {
+    locBadge.innerHTML = `<span style="font-size:13px;">📍</span> <span>Wardha Farm Station (20.975°N, 78.720°E)</span>`;
+  }
+  const selector = document.getElementById("globalHeaderFieldSelector");
+  if (selector) {
+    const saved = localStorage.getItem("agrovision_active_station_id") || "field-a";
+    selector.innerHTML = userRegisteredFields.map(f => `
+      <option value="${f.field_id}" ${f.field_id === saved ? "selected" : ""}>
+        📍 ${f.field_name} (${f.latitude.toFixed(3)}°N, ${f.longitude.toFixed(3)}°E)
+      </option>
+    `).join("");
+  }
+}
 
-  const activeField = window.AgroVisionSync ? window.AgroVisionSync.getActiveField() : null;
-  if (activeField && activeField.field_name) {
-    locBadge.innerHTML = `<span style="font-size:13px;">📍</span> <span>${escapeHtml(activeField.field_name)}</span>`;
-  } else {
-    locBadge.innerHTML = `<span style="font-size:13px;">📍</span> <span>Central Cotton Belt</span>`;
+function handleHeaderFieldChange(event) {
+  const fieldId = event?.target?.value || "field-a";
+  localStorage.setItem("agrovision_active_station_id", fieldId);
+  const found = userRegisteredFields.find(f => f.field_id === fieldId) || userRegisteredFields[0];
+  if (window.AgroVisionSync) {
+    window.AgroVisionSync.emit("fieldChanged", found);
+  }
+  // If fetchFieldWeather or fetchOverviewWeather is in scope, trigger refresh
+  if (typeof fetchOverviewWeather === "function") {
+    fetchOverviewWeather(found.latitude, found.longitude, true);
+  }
+  if (typeof fetchFieldWeather === "function") {
+    fetchFieldWeather(found.latitude, found.longitude, true);
   }
 }
 
