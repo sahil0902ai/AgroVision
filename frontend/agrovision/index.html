@@ -77,73 +77,66 @@
       </div>
 
       <div class="hero-visual" aria-label="Live Cotton Crop Diagnostic Preview">
-        <!-- Cotton leaf card -->
-        <div class="leaf-frame">
-          <div class="sample-tag">📍 Field Crop Telemetry · Vidarbha Cotton</div>
-          <div class="leaf-photo">
-            <img src="images/cotton_field_hero.jpg" alt="Lush Indian Cotton Crop Field" class="hero-field-img">
-            <div class="leaf-overlay-badge">
-              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#22c55e;"></span>
-              Real-Time Field Telemetry Active
+        <!-- Full Single Larger Hero Showcase Card -->
+        <div class="hero-showcase-card">
+          <div class="hero-showcase-photo-wrap">
+            <img src="images/cotton_field_hero.jpg" alt="Lush Indian Cotton Crop Field in Vidarbha" class="hero-showcase-img">
+            
+            <!-- Top Provenance & Live Badges -->
+            <div class="hero-showcase-top-overlay">
+              <span class="hero-chip-pill chip-live">
+                <span class="live-dot-pulse"></span>
+                <span>Live Field Telemetry Active</span>
+              </span>
+              <span class="hero-chip-pill chip-location">
+                <span>📍 Vidarbha Cotton Belt</span>
+              </span>
             </div>
-          </div>
-        </div>
 
-        <!-- Result card -->
-        <div class="analysis-card" role="complementary" aria-label="Field analysis preview">
-          <div class="sample-badge" style="background:#ecfdf5; color:#059669; border-color:#a7f3d0;">Live Crop Diagnostic Sample</div>
-
-          <h4 class="card-title">Dual-Stream Stress Diagnosis</h4>
-
-          <div class="preview-subheading">CNN Leaf Visual Pathology</div>
-          <div class="stress-bar-group">
-            <div class="stress-bar-row">
-              <span class="stress-label"><span class="dot red" aria-hidden="true"></span>Water Stress</span>
-              <div class="stress-bar-track" aria-hidden="true"><div class="stress-bar-fill" style="width:68%;background:var(--red)"></div></div>
-              <span class="stress-val red">68%</span>
-            </div>
-            <div class="stress-bar-row">
-              <span class="stress-label"><span class="dot orange" aria-hidden="true"></span>Heat Stress</span>
-              <div class="stress-bar-track" aria-hidden="true"><div class="stress-bar-fill" style="width:18%;background:var(--orange)"></div></div>
-              <span class="stress-val orange">18%</span>
-            </div>
-            <div class="stress-bar-row">
-              <span class="stress-label"><span class="dot blue" aria-hidden="true"></span>Nutrient Def.</span>
-              <div class="stress-bar-track" aria-hidden="true"><div class="stress-bar-fill" style="width:8%;background:var(--blue)"></div></div>
-              <span class="stress-val blue">8%</span>
-            </div>
-            <div class="stress-bar-row">
-              <span class="stress-label"><span class="dot green" aria-hidden="true"></span>Healthy</span>
-              <div class="stress-bar-track" aria-hidden="true"><div class="stress-bar-fill" style="width:4%;background:var(--primary-green)"></div></div>
-              <span class="stress-val green">4%</span>
-            </div>
-            <div class="stress-bar-row">
-              <span class="stress-label"><span class="dot purple" aria-hidden="true"></span>Pollution</span>
-              <div class="stress-bar-track" aria-hidden="true"><div class="stress-bar-fill" style="width:2%;background:var(--purple)"></div></div>
-              <span class="stress-val purple">2%</span>
+            <!-- Glassmorphic Metrics Bottom Bar on the Image -->
+            <div class="hero-showcase-glass-bar">
+              <div class="hero-glass-metric">
+                <span class="hero-glass-icon">🍃</span>
+                <div>
+                  <div class="hero-glass-val">98.7% Confidence</div>
+                  <div class="hero-glass-lbl">ResNet-18 Vision</div>
+                </div>
+              </div>
+              <div class="hero-glass-metric">
+                <span class="hero-glass-icon">⛅</span>
+                <div>
+                  <div class="hero-glass-val">1.8ms Latency</div>
+                  <div class="hero-glass-lbl">SNN Climate Model</div>
+                </div>
+              </div>
+              <div class="hero-glass-metric">
+                <span class="hero-glass-icon">🛡️</span>
+                <div>
+                  <div class="hero-glass-val">Deterministic</div>
+                  <div class="hero-glass-lbl">Expert Safety Rules</div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="card-divider"></div>
-
-          <div class="preview-subheading">SNN Environmental Risk Analysis</div>
-          <div class="env-preview-row">
-            <div class="env-stress-badge env-high" style="font-weight:700;">⚠️ High Environmental Risk</div>
-            <div class="env-chips">
-              <span class="env-chip">🌡️ 32.4°C</span>
-              <span class="env-chip">💧 38% RH</span>
-              <span class="env-chip">🌱 0.19 m³/m³</span>
-              <span class="env-chip">💨 78 AQI</span>
+          <!-- Bottom Interactive Quick Insights Banner -->
+          <div class="hero-showcase-footer">
+            <div class="hero-footer-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:16px;">🌾</span>
+                <strong style="font-size:13px; color:#0f172a;">Multi-Stress Detection Scope (5 Folio-Classes)</strong>
+              </div>
+              <span style="font-size:11px; font-weight:700; color:#059669; background:#ecfdf5; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">
+                ✓ Real-Time Scan
+              </span>
             </div>
-          </div>
-
-          <div class="card-divider"></div>
-
-          <div class="alert-box" role="alert" style="margin-top:10px;">
-            <span aria-hidden="true">⚠️</span>
-            <div>
-              <strong>Actionable Farmer Advisory</strong>
-              <span>Visual water stress confirmed by low soil moisture (0.19 m³/m³). Schedule drip irrigation before midday heat spike.</span>
+            
+            <div class="hero-class-pills-row">
+              <span class="hero-class-pill pill-healthy">🍃 Healthy (Optimal Vigor)</span>
+              <span class="hero-class-pill pill-water">💧 Water Stress</span>
+              <span class="hero-class-pill pill-heat">☀️ Heat Stress</span>
+              <span class="hero-class-pill pill-nutrient">🍂 Nutrient Def.</span>
+              <span class="hero-class-pill pill-pollution">🌫️ Pollution</span>
             </div>
           </div>
         </div>

@@ -28,6 +28,10 @@
       "destination": "/history.html"
     },
     {
+      "source": "/reports",
+      "destination": "/reports.html"
+    },
+    {
       "source": "/assistant",
       "destination": "/assistant.html"
     },
