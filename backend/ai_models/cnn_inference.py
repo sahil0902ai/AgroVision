@@ -3,6 +3,7 @@ from io import BytesIO
 from pathlib import Path
 
 import torch
+import torch.nn.functional as F
 try:
     from ai_models.agrovision_cnn import CLASS_LABELS_MAP, CLASSES, AgroVisionCNN
 except ImportError:

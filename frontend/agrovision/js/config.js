@@ -4,8 +4,6 @@
    ========================================================= */
 
 (function () {
-  const savedApiBase = (typeof localStorage !== "undefined") ? localStorage.getItem("agrovision_api_base") : null;
-  
   let defaultBase = "";
   if (typeof window !== "undefined") {
     const isFile = window.location.protocol === "file:";
@@ -22,10 +20,23 @@
     }
   }
 
-  const effectiveBase = (savedApiBase && savedApiBase.trim().length > 0) ? savedApiBase.trim() : defaultBase;
+  let effectiveBase = defaultBase;
+  if (typeof localStorage !== "undefined") {
+    const saved = localStorage.getItem("agrovision_api_base");
+    if (saved && saved.trim()) {
+      const isLocalUrl = saved.includes("localhost") || saved.includes("127.0.0.1") || saved.includes("0.0.0.0");
+      const isLocalOrigin = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      // Only permit localhost API base if actually running on a local development origin
+      if (!isLocalUrl || isLocalOrigin) {
+        effectiveBase = saved.trim();
+      } else {
+        localStorage.removeItem("agrovision_api_base");
+      }
+    }
+  }
 
   window.AGROVISION_CONFIG = {
-    // API base URL
+    // Effective API base URL
     API_BASE: effectiveBase,
     
     // Helper to construct full API URL

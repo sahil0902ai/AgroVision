@@ -1302,7 +1302,108 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // Handle URL route and deep-link step parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const requestedStep = urlParams.get("step") || urlParams.get("view");
+  const recordId = urlParams.get("record_id") || urlParams.get("id") || urlParams.get("uuid");
+  const path = window.location.pathname.toLowerCase();
+
+  if (recordId) {
+    loadSavedAnalysisRecord(recordId);
+  } else if (requestedStep === "cnn" || path.endsWith("/analysis/cnn")) {
+    switchView("cnn");
+  } else if (requestedStep === "snn" || path.endsWith("/analysis/snn")) {
+    switchView("snn");
+  } else if (requestedStep === "combined" || requestedStep === "result" || path.endsWith("/analysis/result") || path.endsWith("/analysis/combined")) {
+    switchView("combined");
+  }
 });
+
+async function loadSavedAnalysisRecord(uuid) {
+  if (!uuid) return;
+  try {
+    const user = typeof requireLogin === "function" ? requireLogin() : null;
+    const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
+    const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(uuid)}?${userEmailParam}`));
+    if (!res.ok) return;
+    const record = await res.json();
+    if (!record) return;
+
+    latestCombinedData = record;
+
+    let cnnProbs = {};
+    try {
+      if (record.cnn_predictions_json) cnnProbs = JSON.parse(record.cnn_predictions_json);
+    } catch (_) {}
+
+    let topClass = record.visual_assessment?.class || "Healthy";
+    if (cnnProbs && Object.keys(cnnProbs).length > 0) {
+      topClass = Object.keys(cnnProbs).reduce((a, b) => cnnProbs[a] > cnnProbs[b] ? a : b).replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+    }
+
+    let snnSpikes = {};
+    try {
+      if (record.spike_counts_json) snnSpikes = JSON.parse(record.spike_counts_json);
+    } catch (_) {}
+
+    let fusionObj = {};
+    try {
+      if (record.fusion_json) fusionObj = JSON.parse(record.fusion_json);
+    } catch (_) {}
+
+    let vetoObj = {};
+    try {
+      if (record.expert_veto_json) vetoObj = JSON.parse(record.expert_veto_json);
+    } catch (_) {}
+
+    latestCNNResult = {
+      prediction: {
+        class: topClass,
+        confidence: record.confidence_score ? (record.confidence_score > 1 ? record.confidence_score / 100 : record.confidence_score) : 0.95
+      },
+      probabilities: cnnProbs,
+      image_url: record.image_path ? getApiUrl(`/${record.image_path}`) : null,
+      heatmap_url: record.heatmap_path ? getApiUrl(`/${record.heatmap_path}`) : null
+    };
+
+    latestSNNResult = {
+      predicted_severity: record.stress_severity || "Low",
+      spike_counts: snnSpikes,
+      confidence: 0.95
+    };
+
+    latestSNNPayload = {
+      temperature: record.temperature || 31.0,
+      humidity: record.humidity || 72.0,
+      rainfall: record.rainfall_mm || 5.0,
+      soil_moisture: record.soil_moisture || 0.68,
+      aqi: record.aqi || 64.0,
+      ozone: record.ozone || 0.041
+    };
+
+    renderFigure5(latestCNNResult);
+    renderFigure6(latestSNNResult, latestSNNPayload);
+    renderSpikeRaster(snnSpikes);
+    renderFigure7({
+      record_uuid: record.record_uuid,
+      cnn: latestCNNResult,
+      snn: latestSNNResult,
+      environment: latestSNNPayload,
+      fusion: fusionObj,
+      expert_veto: vetoObj,
+      final_assessment: {
+        diagnosis: topClass,
+        description: fusionObj.summary || record.final_assessment?.description || "Verified Multimodal Evaluation",
+        precautions: record.recommendations_json ? JSON.parse(record.recommendations_json) : []
+      }
+    });
+
+    switchView("combined");
+  } catch (err) {
+    console.warn("Could not load saved analysis record:", err);
+  }
+}
 
 // =========================================================
 // QUICK SAMPLE LEAF LOADER
@@ -3042,5 +3143,15 @@ function saveCurrentAnalysis() {
     return;
   }
   const uuid = latestCombinedData?.record_uuid || "SAVED-LOCAL";
+  const btn = document.getElementById("exactSaveBtn");
+  if (btn) {
+    btn.innerHTML = "<span>✓</span> <span>Saved to Field</span>";
+    btn.style.background = "#ecfdf5";
+    btn.style.color = "#059669";
+    btn.style.borderColor = "#a7f3d0";
+  }
+  if (window.AgroVisionSync && latestCombinedData) {
+    window.AgroVisionSync.emit("analysisSaved", latestCombinedData);
+  }
   alert(`Analysis session saved successfully!\nRecord ID: ${uuid}`);
 }

@@ -20,7 +20,39 @@
       "destination": "/overview.html"
     },
     {
+      "source": "/overview/:path*",
+      "destination": "/overview.html"
+    },
+    {
       "source": "/dashboard",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/dashboard/:path*",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/analysis",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/analysis/cnn",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/analysis/snn",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/analysis/result",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/analysis/combined",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/analysis/:path*",
       "destination": "/dashboard.html"
     },
     {
@@ -28,11 +60,23 @@
       "destination": "/history.html"
     },
     {
+      "source": "/history/:path*",
+      "destination": "/history.html"
+    },
+    {
       "source": "/reports",
       "destination": "/reports.html"
     },
     {
+      "source": "/reports/:path*",
+      "destination": "/reports.html"
+    },
+    {
       "source": "/assistant",
+      "destination": "/assistant.html"
+    },
+    {
+      "source": "/assistant/:path*",
       "destination": "/assistant.html"
     },
     {
@@ -49,6 +93,18 @@
     },
     {
       "source": "/analysis_detail",
+      "destination": "/analysis_detail.html"
+    },
+    {
+      "source": "/analysis_detail/:path*",
+      "destination": "/analysis_detail.html"
+    },
+    {
+      "source": "/records/:path*",
+      "destination": "/analysis_detail.html"
+    },
+    {
+      "source": "/record/:path*",
       "destination": "/analysis_detail.html"
     },
     {
