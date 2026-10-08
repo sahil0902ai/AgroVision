@@ -167,6 +167,68 @@ function renderSpikeRaster(spikeCounts) {
 
 
 // Formatters & Handlers for Environmental Sliders & Numeric Inputs
+// Dynamic Color Transitions for Environmental Sliders
+function updateSliderFill(type) {
+  const slider = document.getElementById(`slider${type}`);
+  if (!slider) return;
+  const min = parseFloat(slider.min) || 0;
+  const max = parseFloat(slider.max) || 100;
+  const val = parseFloat(slider.value) || 0;
+  const pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+
+  let activeColor = "#10b981"; // Default optimal emerald
+
+  if (type === "Temp") {
+    // 0 to 50 °C
+    if (val < 18) activeColor = "#38bdf8"; // Cool blue
+    else if (val <= 28) activeColor = "#10b981"; // Optimal lush green
+    else if (val <= 36) activeColor = "#f59e0b"; // Warm amber
+    else activeColor = "#ef4444"; // Heat stress alert red
+  } else if (type === "Humidity") {
+    // 0 to 100 %
+    if (val < 35) activeColor = "#f97316"; // Dry orange
+    else if (val <= 75) activeColor = "#10b981"; // Optimal lush green
+    else activeColor = "#0284c7"; // High humidity ocean blue
+  } else if (type === "Rainfall") {
+    // 0 to 200 mm
+    if (val < 10) activeColor = "#06b6d4"; // Light rainfall cyan
+    else if (val <= 60) activeColor = "#0284c7"; // Moderate rainfall blue
+    else activeColor = "#4f46e5"; // Heavy rainfall deep indigo
+  } else if (type === "Soil") {
+    // 0 to 100 %
+    if (val < 30) activeColor = "#ef4444"; // Dry drought red
+    else if (val <= 50) activeColor = "#f59e0b"; // Moderate amber
+    else if (val <= 80) activeColor = "#10b981"; // Optimal moisture green
+    else activeColor = "#0284c7"; // Saturated waterlogged blue
+  } else if (type === "Aqi") {
+    // 0 to 500
+    if (val <= 50) activeColor = "#10b981"; // Good clean green
+    else if (val <= 100) activeColor = "#eab308"; // Moderate yellow
+    else if (val <= 150) activeColor = "#f97316"; // Unhealthy orange
+    else if (val <= 250) activeColor = "#ef4444"; // Severe red
+    else activeColor = "#7e22ce"; // Hazardous purple
+  } else if (type === "Ozone") {
+    // 0 to 200
+    if (val <= 45) activeColor = "#10b981"; // Safe green
+    else if (val <= 90) activeColor = "#f59e0b"; // Moderate amber
+    else activeColor = "#8b5cf6"; // High ozone purple
+  }
+
+  // Set dynamic fill background and thumb color
+  slider.style.background = `linear-gradient(to right, ${activeColor} 0%, ${activeColor} ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`;
+  slider.style.setProperty("--thumb-color", activeColor);
+
+  const numInput = document.getElementById(`numInput${type}`);
+  if (numInput) {
+    numInput.style.borderColor = activeColor;
+  }
+}
+
+function updateAllSliderFills() {
+  ["Temp", "Humidity", "Rainfall", "Soil", "Aqi", "Ozone"].forEach(updateSliderFill);
+}
+
+// Formatters & Handlers for Environmental Sliders & Numeric Inputs
 function handleSliderChange(type) {
   const slider = document.getElementById(`slider${type}`);
   const numInput = document.getElementById(`numInput${type}`);
@@ -177,6 +239,8 @@ function handleSliderChange(type) {
       numInput.value = Math.round(parseFloat(slider.value));
     }
   }
+
+  updateSliderFill(type);
   
   // Update badge if modified manually while in auto mode
   if (type !== "Soil") {
@@ -202,6 +266,8 @@ function handleNumInputChange(type) {
     }
   }
 
+  updateSliderFill(type);
+
   // Update badge if modified manually while in auto mode
   if (type !== "Soil") {
     const pill = document.getElementById(`sourcePill${type}`);
@@ -224,6 +290,7 @@ function updateEnvDisplay() {
         numInput.value = Math.round(parseFloat(slider.value));
       }
     }
+    updateSliderFill(type);
   });
 }
 
@@ -1170,6 +1237,9 @@ document.addEventListener("DOMContentLoaded", () => {
       numInput.addEventListener("change", () => handleNumInputChange(type));
     }
   });
+
+  // Initialize dynamic slider colors & fills
+  updateAllSliderFills();
 
   // Read active field coordinates from sync bus
   const activeField = window.AgroVisionSync ? window.AgroVisionSync.getActiveField() : null;

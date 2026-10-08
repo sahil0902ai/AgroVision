@@ -60,36 +60,127 @@ function closeAllHeaderDropdowns() {
 }
 
 // =========================================================
-// Global Station Location Management
+// Global Station Location Management & Live GPS Detection
 // =========================================================
-const userRegisteredFields = [
+let userRegisteredFields = [
   { field_id: "field-a", field_name: "Wardha Farm Station", zone_label: "Vidarbha Central", latitude: 20.9750, longitude: 78.7200, crop_stage: "Flowering" },
   { field_id: "field-b", field_name: "Yavatmal Research Plot", zone_label: "Vidarbha South", latitude: 20.4500, longitude: 77.9200, crop_stage: "Boll_Development" },
   { field_id: "field-c", field_name: "Nagpur Rural Station", zone_label: "Vidarbha East", latitude: 21.1458, longitude: 79.0882, crop_stage: "Vegetative" }
 ];
+
+// Restore any saved GPS coordinates
+try {
+  const savedGps = localStorage.getItem("agrovision_gps_coords");
+  if (savedGps) {
+    const coords = JSON.parse(savedGps);
+    if (coords && coords.lat && coords.lon) {
+      userRegisteredFields.unshift({
+        field_id: "field-gps",
+        field_name: "📍 Current GPS Location",
+        zone_label: "Live Device GPS",
+        latitude: parseFloat(coords.lat),
+        longitude: parseFloat(coords.lon),
+        crop_stage: "Active Monitored"
+      });
+    }
+  }
+} catch (_) {}
 
 function loadGlobalHeaderFields() {
   updateHeaderLocationBadge();
 }
 
 function updateHeaderLocationBadge() {
-  const locBadge = document.getElementById("globalHeaderLocation");
-  if (locBadge) {
-    locBadge.innerHTML = `<span style="font-size:13px;">📍</span> <span>Wardha Farm Station (20.975°N, 78.720°E)</span>`;
-  }
   const selector = document.getElementById("globalHeaderFieldSelector");
+  const saved = localStorage.getItem("agrovision_active_station_id") || "field-a";
+  const activeObj = userRegisteredFields.find(f => f.field_id === saved) || userRegisteredFields[0];
+
+  const locBadge = document.getElementById("globalHeaderLocation");
+  if (locBadge && activeObj) {
+    locBadge.innerHTML = `<span style="font-size:13px;">📍</span> <span>${escapeHtml(activeObj.field_name)} (${activeObj.latitude.toFixed(3)}°N, ${activeObj.longitude.toFixed(3)}°E)</span>`;
+  }
+
   if (selector) {
-    const saved = localStorage.getItem("agrovision_active_station_id") || "field-a";
-    selector.innerHTML = userRegisteredFields.map(f => `
+    let optionsHtml = userRegisteredFields.map(f => `
       <option value="${f.field_id}" ${f.field_id === saved ? "selected" : ""}>
-        📍 ${f.field_name} (${f.latitude.toFixed(3)}°N, ${f.longitude.toFixed(3)}°E)
+        ${f.field_id === 'field-gps' ? '📍' : '🌾'} ${f.field_name} (${f.latitude.toFixed(3)}°N, ${f.longitude.toFixed(3)}°E)
       </option>
     `).join("");
+
+    // Add detect location option if not already present
+    if (!userRegisteredFields.some(f => f.field_id === "field-gps")) {
+      optionsHtml += `<option value="detect-gps">🛰️ Detect My Exact Location (GPS)…</option>`;
+    }
+
+    selector.innerHTML = optionsHtml;
   }
+}
+
+function detectCurrentLocation() {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by your browser/device.");
+    return;
+  }
+
+  const selector = document.getElementById("globalHeaderFieldSelector");
+  if (selector) {
+    const originalText = selector.options[selector.selectedIndex]?.text;
+    if (selector.options[selector.selectedIndex]) {
+      selector.options[selector.selectedIndex].text = "📡 Detecting GPS coordinates…";
+    }
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = parseFloat(pos.coords.latitude.toFixed(4));
+      const lon = parseFloat(pos.coords.longitude.toFixed(4));
+
+      let gpsField = userRegisteredFields.find(f => f.field_id === "field-gps");
+      if (!gpsField) {
+        gpsField = {
+          field_id: "field-gps",
+          field_name: "📍 Current GPS Location",
+          zone_label: "Live Device GPS",
+          latitude: lat,
+          longitude: lon,
+          crop_stage: "Active Monitored"
+        };
+        userRegisteredFields.unshift(gpsField);
+      } else {
+        gpsField.latitude = lat;
+        gpsField.longitude = lon;
+      }
+
+      localStorage.setItem("agrovision_active_station_id", "field-gps");
+      localStorage.setItem("agrovision_gps_coords", JSON.stringify({ lat, lon }));
+
+      updateHeaderLocationBadge();
+
+      if (window.AgroVisionSync) {
+        window.AgroVisionSync.emit("fieldChanged", gpsField);
+      }
+      if (typeof fetchOverviewWeather === "function") {
+        fetchOverviewWeather(lat, lon, true);
+      }
+      if (typeof fetchFieldWeather === "function") {
+        fetchFieldWeather(lat, lon, true);
+      }
+    },
+    (err) => {
+      console.warn("Geolocation detection error:", err.message);
+      alert("Unable to detect GPS location: " + err.message + ". Please verify location permissions.");
+      updateHeaderLocationBadge();
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+  );
 }
 
 function handleHeaderFieldChange(event) {
   const fieldId = event?.target?.value || "field-a";
+  if (fieldId === "detect-gps") {
+    detectCurrentLocation();
+    return;
+  }
   localStorage.setItem("agrovision_active_station_id", fieldId);
   const found = userRegisteredFields.find(f => f.field_id === fieldId) || userRegisteredFields[0];
   if (window.AgroVisionSync) {

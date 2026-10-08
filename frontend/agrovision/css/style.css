@@ -4004,166 +4004,42 @@ details.model-details summary:hover {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
-/* 1. Temperature: Cyan -> Gold -> Amber -> Fiery Red */
-.slider-temp {
-  background: linear-gradient(90deg, #38bdf8 0%, #fbbf24 45%, #f97316 75%, #ef4444 100%) !important;
-  accent-color: #ef4444;
-}
-.slider-temp::-webkit-slider-thumb {
+.env-slider-input {
   -webkit-appearance: none;
   appearance: none;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3.5px solid #ef4444;
-  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.45);
-  cursor: grab;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.slider-temp::-moz-range-thumb {
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3.5px solid #ef4444;
-  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.45);
-  cursor: grab;
+  width: 100%;
+  height: 7px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  margin: 5px 0 3px;
+  transition: background 0.08s ease;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
-/* 2. Humidity: Soft Aqua -> Sky Blue -> Vivid Blue -> Cobalt */
-.slider-humidity {
-  background: linear-gradient(90deg, #bae6fd 0%, #38bdf8 40%, #0284c7 75%, #1d4ed8 100%) !important;
-  accent-color: #0284c7;
-}
-.slider-humidity::-webkit-slider-thumb {
+.env-slider-input::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 17px;
   height: 17px;
   border-radius: 50%;
   background: #ffffff;
-  border: 3.5px solid #0284c7;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.45);
+  border: 3.5px solid var(--thumb-color, #059669);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   cursor: grab;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.slider-humidity::-moz-range-thumb {
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3.5px solid #0284c7;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.45);
-  cursor: grab;
+  transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
-/* 3. Rainfall: Pale Teal -> Aqua Marine -> Deep Forest Teal */
-.slider-rainfall {
-  background: linear-gradient(90deg, #ccfbf1 0%, #2dd4bf 35%, #0d9488 70%, #0369a1 100%) !important;
-  accent-color: #0d9488;
-}
-.slider-rainfall::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
+.env-slider-input::-moz-range-thumb {
   width: 17px;
   height: 17px;
   border-radius: 50%;
   background: #ffffff;
-  border: 3.5px solid #0d9488;
-  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.45);
+  border: 3.5px solid var(--thumb-color, #059669);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   cursor: grab;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.slider-rainfall::-moz-range-thumb {
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3.5px solid #0d9488;
-  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.45);
-  cursor: grab;
-}
-
-/* 4. Soil Moisture: Amber Gold -> Vibrant Lime -> Rich Emerald -> Deep Green */
-.slider-soil {
-  background: linear-gradient(90deg, #fef08a 0%, #84cc16 35%, #10b981 70%, #047857 100%) !important;
-  accent-color: #059669;
-}
-.slider-soil::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3.5px solid #059669;
-  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.5);
-  cursor: grab;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.slider-soil::-moz-range-thumb {
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3.5px solid #059669;
-  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.5);
-  cursor: grab;
-}
-
-/* 5. Air Quality (AQI): Standard Clean Green -> Moderate Yellow -> Warning Orange -> Danger Red -> Purple */
-.slider-aqi {
-  background: linear-gradient(90deg, #10b981 0%, #facc15 25%, #f97316 50%, #ef4444 75%, #7e22ce 100%) !important;
-  accent-color: #f59e0b;
-}
-.slider-aqi::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3.5px solid #f59e0b;
-  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.45);
-  cursor: grab;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.slider-aqi::-moz-range-thumb {
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3.5px solid #f59e0b;
-  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.45);
-  cursor: grab;
-}
-
-/* 6. Ozone: Soft Lilac -> Bright Violet -> Deep Purple */
-.slider-ozone {
-  background: linear-gradient(90deg, #ede9fe 0%, #c084fc 35%, #9333ea 70%, #581c87 100%) !important;
-  accent-color: #8b5cf6;
-}
-.slider-ozone::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3.5px solid #8b5cf6;
-  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.45);
-  cursor: grab;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.slider-ozone::-moz-range-thumb {
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3.5px solid #8b5cf6;
-  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.45);
-  cursor: grab;
+  transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
 .env-slider-input::-webkit-slider-thumb:hover {

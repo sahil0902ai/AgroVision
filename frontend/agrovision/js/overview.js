@@ -943,6 +943,60 @@ let visualDistChartInstance = null;
 let currentCategoryFilter = null;
 let latestVisualDistData = null;
 
+function computeVisualDistributionFromRecords(records) {
+  const counts = {
+    healthy: 0,
+    water_stress: 0,
+    heat_stress: 0,
+    nutrient_deficiency: 0,
+    pollution: 0
+  };
+
+  records.forEach(r => {
+    let topClass = "";
+    try {
+      if (r.cnn_predictions_json) {
+        const cnn = typeof r.cnn_predictions_json === "string" ? JSON.parse(r.cnn_predictions_json) : r.cnn_predictions_json;
+        topClass = Object.keys(cnn).reduce((a, b) => (cnn[a] > cnn[b] ? a : b), "").toLowerCase();
+      }
+    } catch (_) {}
+
+    if (!topClass) {
+      const sev = (r.stress_severity || "").toLowerCase();
+      topClass = (sev === "low" || sev === "none") ? "healthy" : "water_stress";
+    }
+
+    if (counts[topClass] !== undefined) {
+      counts[topClass]++;
+    } else if (topClass.includes("water")) {
+      counts.water_stress++;
+    } else if (topClass.includes("heat")) {
+      counts.heat_stress++;
+    } else if (topClass.includes("nutrient")) {
+      counts.nutrient_deficiency++;
+    } else if (topClass.includes("pollut")) {
+      counts.pollution++;
+    } else {
+      counts.healthy++;
+    }
+  });
+
+  const total = records.length;
+  const categories = [
+    { key: "healthy", name: "Healthy Cotton", count: counts.healthy, pct: total > 0 ? (counts.healthy / total) * 100 : 0, color: "#10b981", icon: "🍃" },
+    { key: "water_stress", name: "Water Stress (Drought)", count: counts.water_stress, pct: total > 0 ? (counts.water_stress / total) * 100 : 0, color: "#38bdf8", icon: "💧" },
+    { key: "heat_stress", name: "Heat Stress (Thermal)", count: counts.heat_stress, pct: total > 0 ? (counts.heat_stress / total) * 100 : 0, color: "#f59e0b", icon: "☀️" },
+    { key: "nutrient_deficiency", name: "Nutrient Deficiency (N/P/K)", count: counts.nutrient_deficiency, pct: total > 0 ? (counts.nutrient_deficiency / total) * 100 : 0, color: "#a855f7", icon: "🍂" },
+    { key: "pollution", name: "Air Pollution Injury", count: counts.pollution, pct: total > 0 ? (counts.pollution / total) * 100 : 0, color: "#64748b", icon: "🌫️" }
+  ];
+
+  return {
+    has_data: total > 0,
+    total_analyses: total,
+    categories: categories
+  };
+}
+
 async function fetchVisualDistribution(userEmailParam = "") {
   const loadingEl = document.getElementById("visualDistLoading");
   const emptyEl = document.getElementById("visualDistEmpty");
@@ -952,46 +1006,53 @@ async function fetchVisualDistribution(userEmailParam = "") {
   if (emptyEl) emptyEl.style.display = "none";
   if (contentEl) contentEl.style.opacity = "0.3";
 
+  let data = null;
+
   try {
     const url = getApiUrl(`/api/v1/analytics/visual-distribution?${userEmailParam.replace(/^&/, '')}`);
     const res = await fetch(url);
-    if (!res.ok) throw new Error("Could not fetch visual distribution");
-
-    const data = await res.json();
-    latestVisualDistData = data;
-
-    if (loadingEl) loadingEl.style.display = "none";
-
-    const centerCountEl = document.getElementById("donutTotalCount");
-    if (centerCountEl) {
-      centerCountEl.textContent = String(data.total_analyses || 0);
+    if (res.ok) {
+      data = await res.json();
     }
-
-    if (!data.has_data || data.total_analyses === 0) {
-      if (emptyEl) emptyEl.style.display = "block";
-      if (contentEl) contentEl.style.display = "none";
-      if (visualDistChartInstance) {
-        visualDistChartInstance.destroy();
-        visualDistChartInstance = null;
-      }
-      return;
-    }
-
-    if (emptyEl) emptyEl.style.display = "none";
-    if (contentEl) {
-      contentEl.style.display = "grid";
-      contentEl.style.opacity = "1";
-    }
-
-    renderVisualDistDonut(data);
-    renderVisualDistLegend(data.categories);
-
   } catch (err) {
-    console.error("Visual distribution fetch error:", err);
-    if (loadingEl) loadingEl.style.display = "none";
+    console.warn("Visual distribution backend fetch failed, using local records:", err);
+  }
+
+  // Fallback to local rawAllRecords if backend returned no data or errored
+  if (!data || !data.has_data || data.total_analyses === 0) {
+    if (rawAllRecords && rawAllRecords.length > 0) {
+      data = computeVisualDistributionFromRecords(rawAllRecords);
+    }
+  }
+
+  latestVisualDistData = data;
+  if (loadingEl) loadingEl.style.display = "none";
+
+  if (!data || !data.has_data || data.total_analyses === 0) {
+    const centerCountEl = document.getElementById("donutTotalCount");
+    if (centerCountEl) centerCountEl.textContent = "0";
     if (emptyEl) emptyEl.style.display = "block";
     if (contentEl) contentEl.style.display = "none";
+    if (visualDistChartInstance) {
+      visualDistChartInstance.destroy();
+      visualDistChartInstance = null;
+    }
+    return;
   }
+
+  const centerCountEl = document.getElementById("donutTotalCount");
+  if (centerCountEl) {
+    centerCountEl.textContent = String(data.total_analyses || 0);
+  }
+
+  if (emptyEl) emptyEl.style.display = "none";
+  if (contentEl) {
+    contentEl.style.display = "grid";
+    contentEl.style.opacity = "1";
+  }
+
+  renderVisualDistDonut(data);
+  renderVisualDistLegend(data.categories);
 }
 
 function renderVisualDistDonut(data) {
@@ -1188,6 +1249,40 @@ function renderCanvasDonutFallback(ctx, canvas, categories, hasData) {
 let envDistChartInstance = null;
 let latestEnvDistData = null;
 
+function computeEnvironmentalDistributionFromRecords(records) {
+  const counts = {
+    low: 0,
+    moderate: 0,
+    high: 0
+  };
+
+  records.forEach(r => {
+    const sev = (r.stress_severity || "").trim().toLowerCase();
+    if (sev === "low" || sev === "none" || sev === "optimal") {
+      counts.low++;
+    } else if (sev === "moderate" || sev === "medium" || sev === "mod") {
+      counts.moderate++;
+    } else if (sev === "high" || sev === "critical" || sev === "severe") {
+      counts.high++;
+    } else {
+      counts.low++;
+    }
+  });
+
+  const total = records.length;
+  const categories = [
+    { key: "low", name: "Low Risk (Optimal)", count: counts.low, pct: total > 0 ? (counts.low / total) * 100 : 0, color: "#10b981", icon: "🟢" },
+    { key: "moderate", name: "Moderate Stress", count: counts.moderate, pct: total > 0 ? (counts.moderate / total) * 100 : 0, color: "#f59e0b", icon: "🟡" },
+    { key: "high", name: "High Stress / Critical", count: counts.high, pct: total > 0 ? (counts.high / total) * 100 : 0, color: "#ef4444", icon: "🔴" }
+  ];
+
+  return {
+    has_data: total > 0,
+    total_analyses: total,
+    categories: categories
+  };
+}
+
 async function fetchEnvironmentalDistribution(userEmailParam = "") {
   const loadingEl = document.getElementById("envDistLoading");
   const emptyEl = document.getElementById("envDistEmpty");
@@ -1197,46 +1292,53 @@ async function fetchEnvironmentalDistribution(userEmailParam = "") {
   if (emptyEl) emptyEl.style.display = "none";
   if (contentEl) contentEl.style.opacity = "0.3";
 
+  let data = null;
+
   try {
     const url = getApiUrl(`/api/v1/analytics/environmental-distribution?${userEmailParam.replace(/^&/, '')}`);
     const res = await fetch(url);
-    if (!res.ok) throw new Error("Could not fetch environmental distribution");
-
-    const data = await res.json();
-    latestEnvDistData = data;
-
-    if (loadingEl) loadingEl.style.display = "none";
-
-    const centerCountEl = document.getElementById("envDonutTotalCount");
-    if (centerCountEl) {
-      centerCountEl.textContent = String(data.total_analyses || 0);
+    if (res.ok) {
+      data = await res.json();
     }
-
-    if (!data.has_data || data.total_analyses === 0) {
-      if (emptyEl) emptyEl.style.display = "block";
-      if (contentEl) contentEl.style.display = "none";
-      if (envDistChartInstance) {
-        envDistChartInstance.destroy();
-        envDistChartInstance = null;
-      }
-      return;
-    }
-
-    if (emptyEl) emptyEl.style.display = "none";
-    if (contentEl) {
-      contentEl.style.display = "grid";
-      contentEl.style.opacity = "1";
-    }
-
-    renderEnvDistDonut(data);
-    renderEnvDistLegend(data.categories);
-
   } catch (err) {
-    console.error("Environmental distribution fetch error:", err);
-    if (loadingEl) loadingEl.style.display = "none";
+    console.warn("Environmental distribution backend fetch failed, using local records:", err);
+  }
+
+  // Fallback to local rawAllRecords if backend returned no data or errored
+  if (!data || !data.has_data || data.total_analyses === 0) {
+    if (rawAllRecords && rawAllRecords.length > 0) {
+      data = computeEnvironmentalDistributionFromRecords(rawAllRecords);
+    }
+  }
+
+  latestEnvDistData = data;
+  if (loadingEl) loadingEl.style.display = "none";
+
+  if (!data || !data.has_data || data.total_analyses === 0) {
+    const centerCountEl = document.getElementById("envDonutTotalCount");
+    if (centerCountEl) centerCountEl.textContent = "0";
     if (emptyEl) emptyEl.style.display = "block";
     if (contentEl) contentEl.style.display = "none";
+    if (envDistChartInstance) {
+      envDistChartInstance.destroy();
+      envDistChartInstance = null;
+    }
+    return;
   }
+
+  const centerCountEl = document.getElementById("envDonutTotalCount");
+  if (centerCountEl) {
+    centerCountEl.textContent = String(data.total_analyses || 0);
+  }
+
+  if (emptyEl) emptyEl.style.display = "none";
+  if (contentEl) {
+    contentEl.style.display = "grid";
+    contentEl.style.opacity = "1";
+  }
+
+  renderEnvDistDonut(data);
+  renderEnvDistLegend(data.categories);
 }
 
 function renderEnvDistDonut(data) {

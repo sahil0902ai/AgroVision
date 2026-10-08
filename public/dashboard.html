@@ -137,41 +137,6 @@
             + Reset
           </button>
 
-          <!-- System Notifications -->
-          <div class="header-notif-wrap">
-            <button class="header-notif-btn" id="notifDropdownBtn" onclick="toggleNotifDropdown(event)" aria-label="System Notifications">
-              🔔
-              <span class="header-notif-dot"></span>
-            </button>
-            <div class="header-dropdown-menu" id="notifDropdownMenu">
-              <div style="font-size:12px; font-weight:800; color:#0d3b2e; border-bottom:1px solid #f1f5f9; padding-bottom:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                <span>System &amp; Field Alerts</span>
-                <span style="font-size:10px; color:#059669; font-weight:700; background:#ecfdf5; padding:1px 6px; border-radius:4px;">Live</span>
-              </div>
-              <div class="notif-item">
-                <span style="font-size:14px;">🌤️</span>
-                <div>
-                  <strong style="color:#0f172a; font-size:11.5px; display:block;">OpenWeather Telemetry Sync</strong>
-                  <span style="color:#64748b; font-size:11px;">Active live streaming for selected microclimate parcel.</span>
-                </div>
-              </div>
-              <div class="notif-item">
-                <span style="font-size:14px;">⚖️</span>
-                <div>
-                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Expert Veto Engine Ready</strong>
-                  <span style="color:#64748b; font-size:11px;">Rules EVR-001 through EVR-007 loaded and operational.</span>
-                </div>
-              </div>
-              <div class="notif-item">
-                <span style="font-size:14px;">🧠</span>
-                <div>
-                  <strong style="color:#0f172a; font-size:11.5px; display:block;">Multimodal AI Models</strong>
-                  <span style="color:#64748b; font-size:11px;">CNN visual detector &amp; SNN spiking networks initialized.</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- Authenticated User Profile -->
           <div class="user-profile-wrap">
             <div class="user-profile-widget" id="userProfileWidget" onclick="toggleProfileDropdown(event)" aria-label="User Profile Menu">
@@ -251,69 +216,6 @@
             <span class="view-step-name">Combined Assessment</span>
           </div>
         </button>
-      </div>
-
-      <!-- ============ REAL-TIME MULTI-STAGE DECISION TRACE ============ -->
-      <div class="decision-trace-bar" id="decisionTraceBar">
-        <!-- Stage 1: Ingestion -->
-        <div class="trace-step completed" id="traceStep1">
-          <div class="trace-header-row">
-            <span class="trace-number">Stage 1</span>
-            <span class="trace-status-icon" id="traceIcon1">✓</span>
-          </div>
-          <div class="trace-step-name">1. Ingestion</div>
-          <div class="trace-meta-sub" id="traceMeta1">Ready (224×224)</div>
-        </div>
-
-        <!-- Stage 2: CNN Visual -->
-        <div class="trace-step pending" id="traceStep2">
-          <div class="trace-header-row">
-            <span class="trace-number">Stage 2</span>
-            <span class="trace-status-icon" id="traceIcon2">○</span>
-          </div>
-          <div class="trace-step-name">2. CNN Visual</div>
-          <div class="trace-meta-sub" id="traceMeta2">ResNet-18 (5-Cls)</div>
-        </div>
-
-        <!-- Stage 3: SNN Spiking -->
-        <div class="trace-step pending" id="traceStep3">
-          <div class="trace-header-row">
-            <span class="trace-number">Stage 3</span>
-            <span class="trace-status-icon" id="traceIcon3">○</span>
-          </div>
-          <div class="trace-step-name">3. SNN Climate</div>
-          <div class="trace-meta-sub" id="traceMeta3">33-Dim / T=10</div>
-        </div>
-
-        <!-- Stage 4: Fusion -->
-        <div class="trace-step pending" id="traceStep4">
-          <div class="trace-header-row">
-            <span class="trace-number">Stage 4</span>
-            <span class="trace-status-icon" id="traceIcon4">○</span>
-          </div>
-          <div class="trace-step-name">4. Fusion Layer</div>
-          <div class="trace-meta-sub" id="traceMeta4">Concordance</div>
-        </div>
-
-        <!-- Stage 5: Expert Veto -->
-        <div class="trace-step pending" id="traceStep5">
-          <div class="trace-header-row">
-            <span class="trace-number">Stage 5</span>
-            <span class="trace-status-icon" id="traceIcon5">○</span>
-          </div>
-          <div class="trace-step-name">5. Expert Veto</div>
-          <div class="trace-meta-sub" id="traceMeta5">EVR-001..007</div>
-        </div>
-
-        <!-- Stage 6: Final Advisory -->
-        <div class="trace-step pending" id="traceStep6">
-          <div class="trace-header-row">
-            <span class="trace-number">Stage 6</span>
-            <span class="trace-status-icon" id="traceIcon6">○</span>
-          </div>
-          <div class="trace-step-name">6. Final Advisory</div>
-          <div class="trace-meta-sub" id="traceMeta6">Action Plan</div>
-        </div>
       </div>
 
       <!-- ============================================================
@@ -422,31 +324,6 @@
             </div>
             <div class="upload-error-msg" id="uploadErrorMsg">
               Please select a valid, non-corrupted JPG, PNG, or WEBP image under 10MB.
-            </div>
-          </div>
-
-          <!-- Quick Test with Sample Leaves (1-Click Presets) -->
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-top:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <span style="font-size:11.5px; font-weight:700; color:#0d3b2e;">⚡ Test with Real Sample Leaves:</span>
-              <span style="font-size:10px; color:#059669; font-weight:700; background:#ecfdf5; padding:1px 6px; border-radius:4px;">1-Click Load</span>
-            </div>
-            <div style="display:flex; flex-wrap:wrap; gap:6px;">
-              <button type="button" class="btn btn-outline" onclick="loadSampleLeaf('healthy')" style="padding:5px 9px; font-size:11px; font-weight:700; border-radius:6px; background:#f0fdf4; border-color:#bbf7d0; color:#166534;">
-                🍃 Healthy
-              </button>
-              <button type="button" class="btn btn-outline" onclick="loadSampleLeaf('water_stress')" style="padding:5px 9px; font-size:11px; font-weight:700; border-radius:6px; background:#fef2f2; border-color:#fecaca; color:#991b1b;">
-                💧 Water Stress
-              </button>
-              <button type="button" class="btn btn-outline" onclick="loadSampleLeaf('heat_stress')" style="padding:5px 9px; font-size:11px; font-weight:700; border-radius:6px; background:#fff7ed; border-color:#fed7aa; color:#9a3412;">
-                ☀️ Heat Stress
-              </button>
-              <button type="button" class="btn btn-outline" onclick="loadSampleLeaf('nutrient_deficiency')" style="padding:5px 9px; font-size:11px; font-weight:700; border-radius:6px; background:#fffbeb; border-color:#fde68a; color:#92400e;">
-                🍂 Nutrient Def.
-              </button>
-              <button type="button" class="btn btn-outline" onclick="loadSampleLeaf('pollution')" style="padding:5px 9px; font-size:11px; font-weight:700; border-radius:6px; background:#faf5ff; border-color:#e9d5ff; color:#6b21a8;">
-                🌫️ Pollution
-              </button>
             </div>
           </div>
 
