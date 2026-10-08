@@ -165,20 +165,30 @@
     align-items: stretch;
   }
 
-  /* Overview Main Grid (Left 1.85fr / Right 1.15fr with strict containment) */
-  .overview-main-grid {
+  /* Dual Donut Chart Grid (CNN & SNN Side-by-Side) */
+  .chart-grid-2 {
     display: grid;
-    grid-template-columns: minmax(0, 1.85fr) minmax(0, 1.15fr);
-    gap: 20px;
-    align-items: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
     width: 100%;
     box-sizing: border-box;
+    align-items: stretch;
   }
-  .overview-main-grid > div {
+
+  /* Bottom Utility Grid (Advisory & Quick Actions Side-by-Side) */
+  .bottom-grid-2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 18px;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: stretch;
+  }
+  .bottom-grid-2 > div {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 18px;
   }
 
   /* Recent Analyses Table & Wrapper */
@@ -559,8 +569,9 @@
   }
 
   /* Responsive Breakpoints */
-  @media (max-width: 1180px) {
-    .overview-main-grid {
+  @media (max-width: 1100px) {
+    .chart-grid-2,
+    .bottom-grid-2 {
       grid-template-columns: 1fr;
     }
     .weather-intel-grid {
@@ -1100,11 +1111,260 @@
 
         </div>
 
-        <!-- 3. Primary Analytical Grid (2 Columns: 2fr / 1fr) -->
-        <div class="overview-main-grid">
+        <!-- 3. Stress Distribution Analytics (Dual Side-by-Side Donut Grid) -->
+        <div class="chart-grid-2">
           
-          <!-- LEFT COLUMN (2fr): Latest Analysis & Recent Archive Table -->
-          <div style="display:flex; flex-direction:column; gap:20px;">
+          <!-- LEFT: VISUAL STRESS DISTRIBUTION (CNN) DONUT CARD -->
+          <div class="visual-dist-card" id="visualDistCard">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:18px;">🌿</span>
+                <div>
+                  <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">Visual Stress Distribution (CNN)</h3>
+                  <p class="panel-sub" style="margin:2px 0 0;">Foliar classification breakdown across verified scans</p>
+                </div>
+              </div>
+              <button type="button" id="visualDistActiveFilterBadge" style="display:none; font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0; cursor:pointer;" onclick="clearCategoryFilter()" title="Click to clear filter">
+                <span id="activeFilterBadgeText">Filtered</span> ✖
+              </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="visualDistLoading" style="display:none; text-align:center; padding:30px 10px; color:#64748b; font-size:12px;">
+              <span>⏳ Loading distribution data…</span>
+            </div>
+
+            <!-- Empty State -->
+            <div id="visualDistEmpty" style="display:none; text-align:center; padding:24px 16px; background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:12px;">
+              <div style="font-size:26px; margin-bottom:6px;">🍃</div>
+              <strong style="font-size:12.5px; color:#334155; display:block;">No visual scans recorded yet</strong>
+              <p style="margin:4px 0 0; font-size:11px; color:#64748b; line-height:1.45;">
+                Scans will be categorized into 5 CNN stress classes as you perform leaf checks.
+              </p>
+            </div>
+
+            <!-- Main Donut + Legend Layout (2 Columns: Donut with Center Text | Detailed Legend) -->
+            <div id="visualDistContent" class="visual-dist-grid">
+              
+              <!-- Donut Container with Centered Total -->
+              <div class="donut-viewport-wrap">
+                <canvas id="visualDistCanvas" width="140" height="140"></canvas>
+                <div class="donut-center-label" id="donutCenterLabel">
+                  <div id="donutTotalCount" style="font-size:1.35rem; font-weight:800; color:#0d3b2e; line-height:1;">0</div>
+                  <div style="font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px;">Analyses</div>
+                </div>
+              </div>
+
+              <!-- Power BI Compact Interactive Legend -->
+              <div class="visual-dist-legend" id="visualDistLegend">
+                <!-- Populated dynamically with Count, Percentage, Color Dot, and Click Filter -->
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- RIGHT: ENVIRONMENTAL STRESS DISTRIBUTION (SNN) DONUT CARD -->
+          <div class="visual-dist-card" id="envDistCard">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:18px;">🌦️</span>
+                <div>
+                  <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">Environmental Stress Distribution (SNN)</h3>
+                  <p class="panel-sub" style="margin:2px 0 0;">Microclimate & telemetry risk breakdown across verified scans</p>
+                </div>
+              </div>
+              <button type="button" id="envDistActiveFilterBadge" style="display:none; font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0; cursor:pointer;" onclick="clearEnvCategoryFilter()" title="Click to clear filter">
+                <span id="activeEnvFilterBadgeText">Filtered</span> ✖
+              </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="envDistLoading" style="display:none; text-align:center; padding:30px 10px; color:#64748b; font-size:12px;">
+              <span>⏳ Loading environmental distribution data…</span>
+            </div>
+
+            <!-- Empty State -->
+            <div id="envDistEmpty" style="display:none; text-align:center; padding:24px 16px; background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:12px;">
+              <div style="font-size:26px; margin-bottom:6px;">☁️</div>
+              <strong style="font-size:12.5px; color:#334155; display:block;">No environmental analyses yet.</strong>
+              <p style="margin:4px 0 0; font-size:11px; color:#64748b; line-height:1.45;">
+                SNN environmental risk assessments will appear here as field sensor telemetry is evaluated.
+              </p>
+            </div>
+
+            <!-- Main Donut + Legend Layout (2 Columns: Donut with Center Text | Detailed Legend) -->
+            <div id="envDistContent" class="visual-dist-grid">
+              
+              <!-- Donut Container with Centered Total -->
+              <div class="donut-viewport-wrap">
+                <canvas id="envDistCanvas" width="140" height="140"></canvas>
+                <div class="donut-center-label" id="envDonutCenterLabel">
+                  <div id="envDonutTotalCount" style="font-size:1.35rem; font-weight:800; color:#0d3b2e; line-height:1;">0</div>
+                  <div style="font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px;">Analyses</div>
+                </div>
+              </div>
+
+              <!-- Power BI Compact Interactive Legend -->
+              <div class="visual-dist-legend" id="envDistLegend">
+                <!-- Populated dynamically with Count, Percentage, Color Dot, and Click Filter -->
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- 4. RECENT ANALYSES TABLE (Full-Width Power BI Analytical Grid) -->
+        <div class="panel" id="recentAnalysesPanel" style="width:100%; box-sizing:border-box;">
+          <!-- Header with Title, Count, and "View All" -->
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:20px;">📊</span>
+              <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">Recent Field Analyses</h3>
+                  <span id="recentAnalysesCountBadge" style="font-size:11px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">0 Scans</span>
+                </div>
+                <p class="panel-sub" style="margin:2px 0 0;">Multi-modal CNN foliar analysis &amp; SNN environmental telemetry records</p>
+              </div>
+            </div>
+            
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button type="button" class="btn btn-action-outline" id="tableExportCsvBtn" onclick="exportOverviewTableCsv()" style="font-size:11.5px; padding:5px 10px; border-radius:7px;">
+                📥 Export CSV
+              </button>
+              <a href="history.html" class="btn btn-primary" style="font-size:11.5px; padding:5px 12px; border-radius:7px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                <span>View All</span>
+                <span>→</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Power BI Filter & Search Toolbar -->
+          <div class="table-filter-toolbar">
+            <div class="filter-search-box">
+              <span style="font-size:13px; color:#64748b;">🔍</span>
+              <input
+                type="text"
+                id="tableFilterSearch"
+                placeholder="Search UUID, diagnosis, risk…"
+                oninput="handleTableFilterChange()"
+                aria-label="Search analyses in table"
+              />
+              <button type="button" id="clearTableSearchBtn" onclick="clearTableSearch()" style="display:none; background:none; border:none; color:#94a3b8; cursor:pointer; font-size:12px;">✖</button>
+            </div>
+
+            <div class="filter-controls-group">
+              <div class="filter-item">
+                <label for="tableFilterVisual">Visual</label>
+                <select id="tableFilterVisual" onchange="handleTableFilterChange()">
+                  <option value="">All Visual</option>
+                  <option value="healthy">Healthy</option>
+                  <option value="water_stress">Water Stress</option>
+                  <option value="heat_stress">Heat Stress</option>
+                  <option value="nutrient_deficiency">Nutrient Deficiency</option>
+                  <option value="pollution">Pollution</option>
+                </select>
+              </div>
+
+              <div class="filter-item">
+                <label for="tableFilterEnv">Env. Risk</label>
+                <select id="tableFilterEnv" onchange="handleTableFilterChange()">
+                  <option value="">All Risks</option>
+                  <option value="Low">Low Risk</option>
+                  <option value="Moderate">Moderate Risk</option>
+                  <option value="High">High Risk</option>
+                </select>
+              </div>
+
+              <div class="filter-item">
+                <label for="tableFilterExpert">Expert</label>
+                <select id="tableFilterExpert" onchange="handleTableFilterChange()">
+                  <option value="">All Checks</option>
+                  <option value="normal">Normal</option>
+                  <option value="alert">Alerts</option>
+                </select>
+              </div>
+
+              <div class="filter-item">
+                <label for="tablePageSize">Rows</label>
+                <select id="tablePageSize" onchange="handlePageSizeChange()">
+                  <option value="5" selected>5</option>
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                </select>
+              </div>
+
+              <button type="button" id="tableResetFiltersBtn" class="btn-reset-filters" onclick="resetTableFilters()" title="Reset all filters">
+                ↺ Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Responsive Table Container with Horizontal Scroll -->
+          <div class="overview-table-wrap">
+            <table class="overview-table" id="overviewAnalysisTable">
+              <thead>
+                <tr>
+                  <th class="sortable-th" onclick="sortTableBy('date')" title="Sort by Date">
+                    <span>Date &amp; Time</span> <span id="sortIconDate" class="sort-indicator">▼</span>
+                  </th>
+                  <th style="width:48px; text-align:center;">Leaf Image</th>
+                  <th class="sortable-th" onclick="sortTableBy('visual')" title="Sort by Visual Result">
+                    <span>Visual Result (CNN)</span> <span id="sortIconVisual" class="sort-indicator">⇅</span>
+                  </th>
+                  <th class="sortable-th" onclick="sortTableBy('confidence')" title="Sort by CNN Evidence">
+                    <span>CNN Evidence</span> <span id="sortIconConfidence" class="sort-indicator">⇅</span>
+                  </th>
+                  <th class="sortable-th" onclick="sortTableBy('env')" title="Sort by Environmental Result">
+                    <span>Environmental Result (SNN)</span> <span id="sortIconEnv" class="sort-indicator">⇅</span>
+                  </th>
+                  <th class="sortable-th" onclick="sortTableBy('expert')" title="Sort by Expert Check">
+                    <span>Expert Check</span> <span id="sortIconExpert" class="sort-indicator">⇅</span>
+                  </th>
+                  <th class="sortable-th" onclick="sortTableBy('final')" title="Sort by Final Assessment">
+                    <span>Final Assessment</span> <span id="sortIconFinal" class="sort-indicator">⇅</span>
+                  </th>
+                  <th style="text-align:right; min-width:140px;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="overviewRecentTbody">
+                <tr>
+                  <td colspan="8" style="text-align:center; padding:24px; color:#64748b;">
+                    Loading recent session history…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Footer -->
+          <div class="table-pagination-footer" id="tablePaginationFooter">
+            <div class="pagination-info" id="tablePaginationInfo">
+              Showing 0 to 0 of 0 records
+            </div>
+            <div class="pagination-buttons" id="tablePaginationBtns">
+              <button type="button" class="btn-page" id="tablePrevBtn" onclick="changeTablePage(-1)" disabled>
+                ◀ Prev
+              </button>
+              <div id="tablePageNumbers" class="page-numbers-container">
+                <!-- Page number buttons -->
+              </div>
+              <button type="button" class="btn-page" id="tableNextBtn" onclick="changeTablePage(1)" disabled>
+                Next ▶
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 5. Bottom Utilities Row: Latest Analysis + Advisory on Left, Quick Actions on Right -->
+        <div class="bottom-grid-2">
+          
+          <!-- LEFT: Latest Verified Session & Advisory -->
+          <div style="display:flex; flex-direction:column; gap:18px;">
             
             <!-- Latest Verified Analysis Card -->
             <div class="panel">
@@ -1137,254 +1397,7 @@
               </div>
             </div>
 
-            <!-- RECENT ANALYSES TABLE (Power BI-Style Analytical Grid) -->
-            <div class="panel" id="recentAnalysesPanel">
-              <!-- Header with Title, Count, and "View All" -->
-              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span style="font-size:20px;">📊</span>
-                  <div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                      <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">Recent Analyses</h3>
-                      <span id="recentAnalysesCountBadge" style="font-size:11px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">0 Scans</span>
-                    </div>
-                    <p class="panel-sub" style="margin:2px 0 0;">Multi-modal CNN foliar analysis & SNN environmental telemetry records</p>
-                  </div>
-                </div>
-                
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <button type="button" class="btn btn-action-outline" id="tableExportCsvBtn" onclick="exportOverviewTableCsv()" style="font-size:11.5px; padding:5px 10px; border-radius:7px;">
-                    📥 Export CSV
-                  </button>
-                  <a href="history.html" class="btn btn-primary" style="font-size:11.5px; padding:5px 12px; border-radius:7px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
-                    <span>View All</span>
-                    <span>→</span>
-                  </a>
-                </div>
-              </div>
-
-              <!-- Power BI Filter & Search Toolbar -->
-              <div class="table-filter-toolbar">
-                <div class="filter-search-box">
-                  <span style="font-size:13px; color:#64748b;">🔍</span>
-                  <input
-                    type="text"
-                    id="tableFilterSearch"
-                    placeholder="Search UUID, diagnosis, risk…"
-                    oninput="handleTableFilterChange()"
-                    aria-label="Search analyses in table"
-                  />
-                  <button type="button" id="clearTableSearchBtn" onclick="clearTableSearch()" style="display:none; background:none; border:none; color:#94a3b8; cursor:pointer; font-size:12px;">✖</button>
-                </div>
-
-                <div class="filter-controls-group">
-                  <div class="filter-item">
-                    <label for="tableFilterVisual">Visual</label>
-                    <select id="tableFilterVisual" onchange="handleTableFilterChange()">
-                      <option value="">All Visual</option>
-                      <option value="healthy">Healthy</option>
-                      <option value="water_stress">Water Stress</option>
-                      <option value="heat_stress">Heat Stress</option>
-                      <option value="nutrient_deficiency">Nutrient Deficiency</option>
-                      <option value="pollution">Pollution</option>
-                    </select>
-                  </div>
-
-                  <div class="filter-item">
-                    <label for="tableFilterEnv">Env. Risk</label>
-                    <select id="tableFilterEnv" onchange="handleTableFilterChange()">
-                      <option value="">All Risks</option>
-                      <option value="Low">Low Risk</option>
-                      <option value="Moderate">Moderate Risk</option>
-                      <option value="High">High Risk</option>
-                    </select>
-                  </div>
-
-                  <div class="filter-item">
-                    <label for="tableFilterExpert">Expert</label>
-                    <select id="tableFilterExpert" onchange="handleTableFilterChange()">
-                      <option value="">All Checks</option>
-                      <option value="normal">Normal</option>
-                      <option value="alert">Alerts</option>
-                    </select>
-                  </div>
-
-                  <div class="filter-item">
-                    <label for="tablePageSize">Rows</label>
-                    <select id="tablePageSize" onchange="handlePageSizeChange()">
-                      <option value="5" selected>5</option>
-                      <option value="10">10</option>
-                      <option value="25">25</option>
-                    </select>
-                  </div>
-
-                  <button type="button" id="tableResetFiltersBtn" class="btn-reset-filters" onclick="resetTableFilters()" title="Reset all filters">
-                    ↺ Reset
-                  </button>
-                </div>
-              </div>
-
-              <!-- Responsive Table Container with Horizontal Scroll -->
-              <div class="overview-table-wrap">
-                <table class="overview-table" id="overviewAnalysisTable">
-                  <thead>
-                    <tr>
-                      <th class="sortable-th" onclick="sortTableBy('date')" title="Sort by Date">
-                        <span>Date &amp; Time</span> <span id="sortIconDate" class="sort-indicator">▼</span>
-                      </th>
-                      <th style="width:48px; text-align:center;">Leaf Image</th>
-                      <th class="sortable-th" onclick="sortTableBy('visual')" title="Sort by Visual Result">
-                        <span>Visual Result (CNN)</span> <span id="sortIconVisual" class="sort-indicator">⇅</span>
-                      </th>
-                      <th class="sortable-th" onclick="sortTableBy('confidence')" title="Sort by CNN Evidence">
-                        <span>CNN Evidence</span> <span id="sortIconConfidence" class="sort-indicator">⇅</span>
-                      </th>
-                      <th class="sortable-th" onclick="sortTableBy('env')" title="Sort by Environmental Result">
-                        <span>Environmental Result (SNN)</span> <span id="sortIconEnv" class="sort-indicator">⇅</span>
-                      </th>
-                      <th class="sortable-th" onclick="sortTableBy('expert')" title="Sort by Expert Check">
-                        <span>Expert Check</span> <span id="sortIconExpert" class="sort-indicator">⇅</span>
-                      </th>
-                      <th class="sortable-th" onclick="sortTableBy('final')" title="Sort by Final Assessment">
-                        <span>Final Assessment</span> <span id="sortIconFinal" class="sort-indicator">⇅</span>
-                      </th>
-                      <th style="text-align:right; min-width:140px;">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody id="overviewRecentTbody">
-                    <tr>
-                      <td colspan="8" style="text-align:center; padding:24px; color:#64748b;">
-                        Loading recent session history…
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Pagination Footer -->
-              <div class="table-pagination-footer" id="tablePaginationFooter">
-                <div class="pagination-info" id="tablePaginationInfo">
-                  Showing 0 to 0 of 0 records
-                </div>
-                <div class="pagination-buttons" id="tablePaginationBtns">
-                  <button type="button" class="btn-page" id="tablePrevBtn" onclick="changeTablePage(-1)" disabled>
-                    ◀ Prev
-                  </button>
-                  <div id="tablePageNumbers" class="page-numbers-container">
-                    <!-- Page number buttons -->
-                  </div>
-                  <button type="button" class="btn-page" id="tableNextBtn" onclick="changeTablePage(1)" disabled>
-                    Next ▶
-                  </button>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-          <!-- RIGHT COLUMN (1fr): Visual Stress Distribution, Active Precautions, Quick Actions -->
-          <div style="display:flex; flex-direction:column; gap:20px;">
-            
-            <!-- VISUAL STRESS DISTRIBUTION (CNN) DONUT CARD -->
-            <div class="visual-dist-card" id="visualDistCard">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span style="font-size:18px;">🌿</span>
-                  <div>
-                    <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">Visual Stress Distribution (CNN)</h3>
-                    <p class="panel-sub" style="margin:2px 0 0;">Foliar classification breakdown across verified scans</p>
-                  </div>
-                </div>
-                <button type="button" id="visualDistActiveFilterBadge" style="display:none; font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0; cursor:pointer;" onclick="clearCategoryFilter()" title="Click to clear filter">
-                  <span id="activeFilterBadgeText">Filtered</span> ✖
-                </button>
-              </div>
-
-              <!-- Loading State -->
-              <div id="visualDistLoading" style="display:none; text-align:center; padding:30px 10px; color:#64748b; font-size:12px;">
-                <span>⏳ Loading distribution data…</span>
-              </div>
-
-              <!-- Empty State -->
-              <div id="visualDistEmpty" style="display:none; text-align:center; padding:24px 16px; background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:12px;">
-                <div style="font-size:26px; margin-bottom:6px;">🍃</div>
-                <strong style="font-size:12.5px; color:#334155; display:block;">No visual scans recorded yet</strong>
-                <p style="margin:4px 0 0; font-size:11px; color:#64748b; line-height:1.45;">
-                  Scans will be categorized into 5 CNN stress classes as you perform leaf checks.
-                </p>
-              </div>
-
-              <!-- Main Donut + Legend Layout (2 Columns: Donut with Center Text | Detailed Legend) -->
-              <div id="visualDistContent" class="visual-dist-grid">
-                
-                <!-- Donut Container with Centered Total -->
-                <div class="donut-viewport-wrap">
-                  <canvas id="visualDistCanvas" width="140" height="140"></canvas>
-                  <div class="donut-center-label" id="donutCenterLabel">
-                    <div id="donutTotalCount" style="font-size:1.35rem; font-weight:800; color:#0d3b2e; line-height:1;">0</div>
-                    <div style="font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px;">Analyses</div>
-                  </div>
-                </div>
-
-                <!-- Power BI Compact Interactive Legend -->
-                <div class="visual-dist-legend" id="visualDistLegend">
-                  <!-- Populated dynamically with Count, Percentage, Color Dot, and Click Filter -->
-                </div>
-
-              </div>
-
-            </div>
-
-            <!-- ENVIRONMENTAL STRESS DISTRIBUTION (SNN) DONUT CARD -->
-            <div class="visual-dist-card" id="envDistCard">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span style="font-size:18px;">🌦️</span>
-                  <div>
-                    <h3 style="font-size:1.05rem; color:#0d3b2e; font-weight:700; margin:0;">Environmental Stress Distribution (SNN)</h3>
-                    <p class="panel-sub" style="margin:2px 0 0;">Microclimate & telemetry risk breakdown across verified scans</p>
-                  </div>
-                </div>
-                <button type="button" id="envDistActiveFilterBadge" style="display:none; font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0; cursor:pointer;" onclick="clearEnvCategoryFilter()" title="Click to clear filter">
-                  <span id="activeEnvFilterBadgeText">Filtered</span> ✖
-                </button>
-              </div>
-
-              <!-- Loading State -->
-              <div id="envDistLoading" style="display:none; text-align:center; padding:30px 10px; color:#64748b; font-size:12px;">
-                <span>⏳ Loading environmental distribution data…</span>
-              </div>
-
-              <!-- Empty State -->
-              <div id="envDistEmpty" style="display:none; text-align:center; padding:24px 16px; background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:12px;">
-                <div style="font-size:26px; margin-bottom:6px;">☁️</div>
-                <strong style="font-size:12.5px; color:#334155; display:block;">No environmental analyses yet.</strong>
-                <p style="margin:4px 0 0; font-size:11px; color:#64748b; line-height:1.45;">
-                  SNN environmental risk assessments will appear here as field sensor telemetry is evaluated.
-                </p>
-              </div>
-
-              <!-- Main Donut + Legend Layout (2 Columns: Donut with Center Text | Detailed Legend) -->
-              <div id="envDistContent" class="visual-dist-grid">
-                
-                <!-- Donut Container with Centered Total -->
-                <div class="donut-viewport-wrap">
-                  <canvas id="envDistCanvas" width="140" height="140"></canvas>
-                  <div class="donut-center-label" id="envDonutCenterLabel">
-                    <div id="envDonutTotalCount" style="font-size:1.35rem; font-weight:800; color:#0d3b2e; line-height:1;">0</div>
-                    <div style="font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px;">Analyses</div>
-                  </div>
-                </div>
-
-                <!-- Power BI Compact Interactive Legend -->
-                <div class="visual-dist-legend" id="envDistLegend">
-                  <!-- Populated dynamically with Count, Percentage, Color Dot, and Click Filter -->
-                </div>
-
-              </div>
-
-            </div>
+            <!-- Active Farm Advisory -->
             <div class="panel">
               <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
                 <span style="font-size:18px;">⚖️</span>
@@ -1398,8 +1411,11 @@
               </div>
             </div>
 
-            <!-- QUICK ACTIONS (Compact 2x2 Analytical Utility Panel) -->
-            <div class="panel quick-actions-panel" id="quickActionsPanel">
+          </div>
+
+          <!-- RIGHT: QUICK ACTIONS (Compact 2x2 Analytical Utility Panel) -->
+          <div class="panel quick-actions-panel" id="quickActionsPanel" style="display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                 <div style="display:flex; align-items:center; gap:8px;">
                   <span style="font-size:18px;">⚡</span>
@@ -1471,6 +1487,10 @@
               </div>
             </div>
 
+            <div style="margin-top:16px; padding-top:14px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#64748b;">
+              <span>🌾 5 High-Yield Cultivars Supported</span>
+              <span style="font-weight:700; color:#059669;">● System Ready</span>
+            </div>
           </div>
 
         </div>

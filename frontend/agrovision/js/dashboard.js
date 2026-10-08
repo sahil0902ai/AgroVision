@@ -1594,7 +1594,7 @@ async function runAnalysis() {
       window.AgroVisionSync.emit("analysisSaved", data);
     }
 
-    // Switch view to combined advisory (master view)
+    // Switch view to combined advisory (combined view)
     switchView('combined');
 
   } catch (err) {

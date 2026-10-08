@@ -224,7 +224,7 @@
           <span class="view-step-badge" id="stepBadge4">4</span>
           <div class="view-step-text-wrap">
             <span class="view-step-num">Step 4</span>
-            <span class="view-step-name">🧩 Master Assessment</span>
+            <span class="view-step-name">🧩 Combined Assessment</span>
           </div>
         </button>
       </div>
@@ -235,7 +235,7 @@
       <div id="viewInput" class="dash-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; width:100%;">
 
         <!-- LEFT: Cotton Leaf Image Component -->
-        <div class="panel upload-panel" style="display:flex; flex-direction:column; height:auto;">
+        <div class="panel upload-panel" style="display:flex; flex-direction:column; align-self:start; height:fit-content;">
           
           <!-- Header Bar -->
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -337,79 +337,6 @@
               Please select a valid, non-corrupted JPG, PNG, or WEBP image under 10MB.
             </div>
           </div>
-
-          <!-- Rich Foliar Capture & Diagnostic Guidance Card -->
-          <div class="foliar-guidance-card" style="background:linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%); border:1.5px solid #bbf7d0; border-radius:12px; padding:14px 16px; margin-top:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-              <div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800; color:#065f46;">
-                <span>📸</span>
-                <span>Foliar Photography Guidelines</span>
-              </div>
-              <span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">AI Optimized</span>
-            </div>
-            
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:11.5px; color:#334155; margin-bottom:10px;">
-              <div style="display:flex; align-items:flex-start; gap:6px; background:#ffffff; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0;">
-                <span style="font-size:14px;">☀️</span>
-                <div>
-                  <strong style="color:#0f172a; display:block;">Natural Daylight</strong>
-                  <span>Diffused sunlight without flash glare</span>
-                </div>
-              </div>
-              <div style="display:flex; align-items:flex-start; gap:6px; background:#ffffff; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0;">
-                <span style="font-size:14px;">🔍</span>
-                <div>
-                  <strong style="color:#0f172a; display:block;">Focus on Veins</strong>
-                  <span>Frame discolored or wilted spots</span>
-                </div>
-              </div>
-              <div style="display:flex; align-items:flex-start; gap:6px; background:#ffffff; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0;">
-                <span style="font-size:14px;">📐</span>
-                <div>
-                  <strong style="color:#0f172a; display:block;">Single Leaf View</strong>
-                  <span>20–30 cm top-down angle</span>
-                </div>
-              </div>
-              <div style="display:flex; align-items:flex-start; gap:6px; background:#ffffff; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0;">
-                <span style="font-size:14px;">🌿</span>
-                <div>
-                  <strong style="color:#0f172a; display:block;">Mid-Canopy Leaf</strong>
-                  <span>Select representative crop canopy</span>
-                </div>
-              </div>
-            </div>
-
-            <div style="border-top:1px solid #d1fae5; padding-top:8px;">
-              <div style="font-size:10.5px; font-weight:700; color:#065f46; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
-                5 Supported Diagnostic Categories:
-              </div>
-              <div style="display:flex; flex-wrap:wrap; gap:5px;">
-                <span style="font-size:10.5px; font-weight:700; background:#ecfdf5; color:#059669; padding:3px 8px; border-radius:6px; border:1px solid #a7f3d0;">🍃 Healthy</span>
-                <span style="font-size:10.5px; font-weight:700; background:#fef2f2; color:#dc2626; padding:3px 8px; border-radius:6px; border:1px solid #fecaca;">💧 Water Stress</span>
-                <span style="font-size:10.5px; font-weight:700; background:#fff7ed; color:#ea580c; padding:3px 8px; border-radius:6px; border:1px solid #fed7aa;">☀️ Heat Stress</span>
-                <span style="font-size:10.5px; font-weight:700; background:#fefce8; color:#ca8a04; padding:3px 8px; border-radius:6px; border:1px solid #fef08a;">🍂 Nutrient Def.</span>
-                <span style="font-size:10.5px; font-weight:700; background:#f5f3ff; color:#7c3aed; padding:3px 8px; border-radius:6px; border:1px solid #ddd6fe;">🌫️ Pollution</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Run CNN Only Direct Action -->
-          <div style="margin-top:12px;">
-            <button type="button" id="btnRunCnnOnly" onclick="runCNNInferenceOnly()" class="step-nav-btn step-nav-btn-cnn" style="width:100%; font-size:13px;">
-              🍃 Run CNN Visual Scan Only (Step 2)
-            </button>
-          </div>
-
-          <!-- Collapsible Model Specs (CNN) -->
-          <details class="model-details" style="margin-top:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
-            <summary style="font-size:11px; font-weight:700; color:#475569; cursor:pointer;">Model Specifications (CNN)</summary>
-            <div class="model-meta-grid" style="margin-top:6px; font-size:10.5px;">
-              <div><strong>Architecture:</strong> ResNet-18 Custom</div>
-              <div><strong>Input Resolution:</strong> 224 × 224 RGB</div>
-              <div><strong>Classes:</strong> 5 Stress Categories</div>
-              <div><strong>Validation:</strong> 86.05% Benchmark Accuracy</div>
-            </div>
-          </details>
 
         </div>
 
@@ -892,7 +819,7 @@
       </div>
 
       <!-- ============================================================
-           STEP 4: Combined Advisory (Full-Width Master Assessment View)
+           STEP 4: Combined Advisory (Full-Width Combined Assessment View)
            ============================================================ -->
       <div id="viewCombined" class="panel" style="display:none; flex-direction:column; gap:16px; width:100%; max-width:100%; margin:0; background:#ffffff; border-radius:18px; border:1px solid #e2e8f0; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.02); box-sizing:border-box;">
 
