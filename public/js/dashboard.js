@@ -766,30 +766,26 @@ async function fetchFieldWeather(lat = currentFieldLat, lon = currentFieldLon, f
   }
 
   if (!data) {
-    // 1. Try backend weather endpoint first with 2.5s timeout
+    // 1. Try Direct OpenWeather first (fastest, client-side, zero cold-start delay)
     try {
-      const url = getApiUrl(`/api/weather/current?lat=${lat}&lon=${lon}&force_refresh=${forceRefresh}`);
-      const res = await fetchWithTimeout(url, { timeout: 2500 }).catch(() => null);
-      if (res && res.ok) {
-        const resJson = await res.json();
-        if (resJson && resJson.current) {
-          data = resJson;
-        }
-      }
-    } catch (backendErr) {
-      console.warn("Backend weather proxy unavailable, using direct OpenWeather:", backendErr);
-    }
-
-    // 2. Direct OpenWeather fallback (instant for Vercel)
-    if (!data) {
+      data = await fetchLiveOpenWeatherDirect(lat, lon);
+    } catch (directErr) {
+      console.warn("Direct OpenWeather fetch error, trying backend proxy:", directErr);
       try {
-        data = await fetchLiveOpenWeatherDirect(lat, lon);
-      } catch (directErr) {
-        console.warn("Direct OpenWeather fetch error:", directErr);
+        const url = getApiUrl(`/api/weather/current?lat=${lat}&lon=${lon}&force_refresh=${forceRefresh}`);
+        const res = await fetchWithTimeout(url, { timeout: 3500 }).catch(() => null);
+        if (res && res.ok) {
+          const resJson = await res.json();
+          if (resJson && resJson.current) {
+            data = resJson;
+          }
+        }
+      } catch (backendErr) {
+        console.warn("Backend weather proxy unavailable:", backendErr);
       }
     }
 
-    // 3. Authentic Station Baseline fallback (if offline)
+    // 2. Guaranteed Scientific Station Baseline fallback if all networks fail
     if (!data) {
       data = buildStationBaselineWeather(lat, lon);
     }
