@@ -290,18 +290,39 @@ button {
   width: 100%;
   height: 100%;
   border-radius: 14px;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.25), transparent 40%),
-    linear-gradient(160deg, #4a8c3d 0%, #2f6b30 55%, #1f4d24 100%);
   position: relative;
   overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
-.leaf-photo svg {
-  position: absolute;
-  inset: 0;
+.hero-field-img {
   width: 100%;
   height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.leaf-frame:hover .hero-field-img {
+  transform: scale(1.03);
+}
+
+.leaf-overlay-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: rgba(9, 44, 34, 0.88);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .analysis-card {
@@ -718,8 +739,10 @@ button {
 .sidebar {
   width: 250px;
   min-width: 250px;
-  position: sticky;
+  position: fixed !important;
   top: 0;
+  left: 0;
+  bottom: 0;
   height: 100vh;
   background: #092c22;
   color: #cfe4d7;
@@ -729,8 +752,9 @@ button {
   justify-content: space-between;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.06);
-  z-index: 100;
+  z-index: 1000;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .sidebar .brand {
@@ -862,6 +886,8 @@ button {
 .dash-main {
   flex: 1;
   min-width: 0;
+  margin-left: 250px !important;
+  width: calc(100% - 250px) !important;
   padding: 30px 36px 60px;
   background: #f8faf9;
   box-sizing: border-box;
@@ -1520,6 +1546,8 @@ button {
     transform: translateX(0);
   }
   .dash-main {
+    margin-left: 0 !important;
+    width: 100% !important;
     padding: 20px 16px 40px;
   }
   .auth-visual {
@@ -5190,28 +5218,32 @@ body.dash-body {
 }
 
 .sidebar {
-  width: var(--dash-sidebar-w) !important;
-  min-width: var(--dash-sidebar-w) !important;
-  max-width: var(--dash-sidebar-w) !important;
+  width: 250px !important;
+  min-width: 250px !important;
+  max-width: 250px !important;
   flex-shrink: 0 !important;
   height: 100vh !important;
-  position: sticky !important;
+  position: fixed !important;
   top: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
   background: var(--dash-green) !important;
   display: flex !important;
   flex-direction: column !important;
-  z-index: 100 !important;
+  z-index: 1000 !important;
   box-sizing: border-box !important;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08) !important;
+  overflow-y: auto !important;
 }
 
 .dash-main {
   flex: 1 !important;
   min-width: 0 !important;
+  margin-left: 250px !important;
+  width: calc(100% - 250px) !important;
   padding: 24px 32px 60px !important;
   background: var(--dash-bg) !important;
   box-sizing: border-box !important;
-  overflow-x: hidden !important;
 }
 
 .page-container-pbi,
@@ -7050,15 +7082,17 @@ body.dash-body {
   background: #f8faf9;
   position: relative;
   width: 100%;
-  overflow-x: hidden;
 }
 
-/* Fixed/Sticky Desktop Sidebar (Full Viewport Height) */
+/* Permanently Fixed Desktop Sidebar (Never Scrolls with Page) */
 .sidebar {
   width: 250px;
   min-width: 250px;
-  position: sticky;
+  max-width: 250px;
+  position: fixed;
   top: 0;
+  left: 0;
+  bottom: 0;
   height: 100vh;
   background: #092c22;
   color: #cfe4d7;
@@ -7068,21 +7102,22 @@ body.dash-body {
   justify-content: space-between;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.06);
-  z-index: 100;
+  z-index: 1000;
   box-sizing: border-box;
-  flex-shrink: 0;
+  overflow-y: auto;
 }
 
 /* Main Content Area */
 .dash-main {
   flex: 1;
   min-width: 0;
+  margin-left: 250px;
+  width: calc(100% - 250px);
   display: flex;
   flex-direction: column;
   padding: 24px 32px 32px;
   background: #f8faf9;
   box-sizing: border-box;
-  overflow-x: hidden;
 }
 
 /* Unified Page Containers (Natural Auto Sizing, No Blank Voids) */
