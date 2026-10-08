@@ -38,7 +38,6 @@
         <div class="auth-tabs">
           <button class="auth-tab active" id="tabLogin" onclick="showTab('login')">Log In</button>
           <button class="auth-tab" id="tabSignup" onclick="showTab('signup')">Sign Up</button>
-          <button class="auth-tab" id="tabForgot" onclick="showTab('forgot')">Reset Password</button>
         </div>
 
         <!-- ============ 1. LOGIN FORM ============ -->
@@ -59,7 +58,6 @@
 
           <div class="field-row">
             <label class="checkbox-row"><input type="checkbox" id="rememberMe" /> Remember me</label>
-            <a href="javascript:void(0)" onclick="showTab('forgot')">Forgot password?</a>
           </div>
 
           <button type="submit" id="loginSubmitBtn" class="btn btn-primary btn-block btn-lg">Log In →</button>
@@ -97,39 +95,6 @@
 
           <p class="auth-switch">
             Already have an account? <button type="button" onclick="showTab('login')">Log in</button>
-          </p>
-        </form>
-
-        <!-- ============ 3. FORGOT / RESET PASSWORD FORM ============ -->
-        <form id="forgotForm" style="display:none;" onsubmit="return handleForgotPassword(event)">
-          <h1>Reset Password</h1>
-          <p class="sub">Enter your registered email to request a reset code.</p>
-
-          <div class="form-error" id="forgotError"></div>
-          <div id="forgotSuccess" style="display:none; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; border-radius:8px; padding:10px 12px; font-size:12px; margin-bottom:14px;"></div>
-
-          <div class="field">
-            <label for="forgotEmail">Email Address</label>
-            <input type="email" id="forgotEmail" placeholder="you@example.com" required autocomplete="email" />
-          </div>
-
-          <button type="submit" id="forgotSubmitBtn" class="btn btn-primary btn-block" style="padding:10px 16px; margin-bottom:12px;">Send Verification Code</button>
-
-          <!-- Reset Code & New Password Sub-Form -->
-          <div id="resetPasswordSection" style="display:none; border-top:1px dashed #cbd5e1; padding-top:14px; margin-top:14px;">
-            <div class="field">
-              <label for="resetCode">Verification Code</label>
-              <input type="text" id="resetCode" placeholder="Enter 6-digit code" />
-            </div>
-            <div class="field">
-              <label for="resetNewPassword">New Password</label>
-              <input type="password" id="resetNewPassword" placeholder="At least 6 characters" minlength="6" />
-            </div>
-            <button type="button" id="resetSubmitBtn" onclick="handleResetPassword(event)" class="btn btn-primary btn-block btn-lg" style="margin-top:6px;">Reset Password →</button>
-          </div>
-
-          <p class="auth-switch" style="margin-top:16px;">
-            Remember your credentials? <button type="button" onclick="showTab('login')">Back to Log in</button>
           </p>
         </form>
 
