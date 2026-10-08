@@ -429,6 +429,24 @@ async function loadOverviewData() {
 let currentOverviewLat = 20.975;
 let currentOverviewLon = 78.72;
 const getDirectWeatherKey = () => (typeof atob === "function" ? atob("YzI0OTFiY2RlZmExZjVmOGU4MjAwMjdlMWQ3M2YxNWU=") : "");
+const overviewWeatherMemoryCache = new Map();
+
+async function fetchWithTimeout(resource, options = {}) {
+  const { timeout = 2500 } = options;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(resource, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+}
 
 async function fetchOverviewWeather(lat = currentOverviewLat, lon = currentOverviewLon, forceRefresh = false) {
   currentOverviewLat = lat;
@@ -449,33 +467,48 @@ async function fetchOverviewWeather(lat = currentOverviewLat, lon = currentOverv
   if (gridEl) gridEl.style.opacity = "0.6";
 
   let data = null;
+  const cacheKey = `${Number(lat).toFixed(3)}_${Number(lon).toFixed(3)}`;
 
-  // 1. Try backend weather endpoint first
-  try {
-    const url = getApiUrl(`/api/weather/current?lat=${lat}&lon=${lon}&force_refresh=${forceRefresh}`);
-    const res = await fetch(url).catch(() => null);
-    if (res && res.ok) {
-      const resJson = await res.json();
-      if (resJson && resJson.current) {
-        data = resJson;
+  // Check 60-second in-memory cache if not forced refresh
+  if (!forceRefresh && overviewWeatherMemoryCache.has(cacheKey)) {
+    const cached = overviewWeatherMemoryCache.get(cacheKey);
+    if (Date.now() - cached.time < 60000) {
+      data = cached.data;
+    }
+  }
+
+  if (!data) {
+    // 1. Try backend weather endpoint first with 2.5s timeout
+    try {
+      const url = getApiUrl(`/api/weather/current?lat=${lat}&lon=${lon}&force_refresh=${forceRefresh}`);
+      const res = await fetchWithTimeout(url, { timeout: 2500 }).catch(() => null);
+      if (res && res.ok) {
+        const resJson = await res.json();
+        if (resJson && resJson.current) {
+          data = resJson;
+        }
+      }
+    } catch (backendErr) {
+      console.warn("Backend weather proxy unavailable, falling back to direct OpenWeather:", backendErr);
+    }
+
+    // 2. Direct OpenWeather fallback (instant for Vercel)
+    if (!data) {
+      try {
+        data = await fetchLiveOpenWeatherDirect(lat, lon);
+      } catch (directErr) {
+        console.warn("Direct OpenWeather fetch error:", directErr);
       }
     }
-  } catch (backendErr) {
-    console.warn("Backend weather proxy unavailable:", backendErr);
-  }
 
-  // 2. Direct OpenWeather fallback (for Vercel or when backend is sleeping)
-  if (!data) {
-    try {
-      data = await fetchLiveOpenWeatherDirect(lat, lon);
-    } catch (directErr) {
-      console.warn("Direct OpenWeather fetch error:", directErr);
+    // 3. Authentic Station Baseline fallback (if completely offline)
+    if (!data) {
+      data = buildStationBaselineWeather(lat, lon);
     }
-  }
 
-  // 3. Authentic Station Baseline fallback (if offline)
-  if (!data) {
-    data = buildStationBaselineWeather(lat, lon);
+    if (data) {
+      overviewWeatherMemoryCache.set(cacheKey, { time: Date.now(), data });
+    }
   }
 
   try {

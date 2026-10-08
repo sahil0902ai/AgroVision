@@ -850,7 +850,10 @@
                   </div>
                 </div>
               </div>
-              <div class="weather-card-actions">
+              <div class="weather-card-actions" style="display:flex; gap:8px; align-items:center;">
+                <button type="button" class="weather-refresh-btn" onclick="detectCurrentLocation()" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;" title="Detect exact device GPS location">
+                  🛰️ My Location
+                </button>
                 <button type="button" class="weather-refresh-btn" id="overviewWeatherRefreshBtn" onclick="fetchOverviewWeather(currentOverviewLat, currentOverviewLon, true)" title="Fetch live station telemetry">
                   🔄 Refresh
                 </button>

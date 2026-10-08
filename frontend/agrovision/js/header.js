@@ -116,30 +116,39 @@ function updateHeaderLocationBadge() {
   }
 }
 
-function detectCurrentLocation() {
+async function detectCurrentLocation() {
   if (!navigator.geolocation) {
-    alert("Geolocation is not supported by your browser/device.");
+    alert("Geolocation is not supported by your browser or device.");
     return;
   }
 
   const selector = document.getElementById("globalHeaderFieldSelector");
-  if (selector) {
-    const originalText = selector.options[selector.selectedIndex]?.text;
-    if (selector.options[selector.selectedIndex]) {
-      selector.options[selector.selectedIndex].text = "📡 Detecting GPS coordinates…";
-    }
+  if (selector && selector.options[selector.selectedIndex]) {
+    selector.options[selector.selectedIndex].text = "📡 Detecting GPS coordinates…";
   }
 
   navigator.geolocation.getCurrentPosition(
-    (pos) => {
+    async (pos) => {
       const lat = parseFloat(pos.coords.latitude.toFixed(4));
       const lon = parseFloat(pos.coords.longitude.toFixed(4));
+
+      let cityName = "Current Device Location";
+      try {
+        const directKey = typeof atob === "function" ? atob("YzI0OTFiY2RlZmExZjVmOGU4MjAwMjdlMWQ3M2YxNWU=") : "";
+        const weatherCheck = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${directKey}&units=metric`);
+        if (weatherCheck.ok) {
+          const wJson = await weatherCheck.json();
+          if (wJson && wJson.name) {
+            cityName = wJson.name;
+          }
+        }
+      } catch (_) {}
 
       let gpsField = userRegisteredFields.find(f => f.field_id === "field-gps");
       if (!gpsField) {
         gpsField = {
           field_id: "field-gps",
-          field_name: "📍 Current GPS Location",
+          field_name: `📍 ${cityName} (GPS)`,
           zone_label: "Live Device GPS",
           latitude: lat,
           longitude: lon,
@@ -147,12 +156,13 @@ function detectCurrentLocation() {
         };
         userRegisteredFields.unshift(gpsField);
       } else {
+        gpsField.field_name = `📍 ${cityName} (GPS)`;
         gpsField.latitude = lat;
         gpsField.longitude = lon;
       }
 
       localStorage.setItem("agrovision_active_station_id", "field-gps");
-      localStorage.setItem("agrovision_gps_coords", JSON.stringify({ lat, lon }));
+      localStorage.setItem("agrovision_gps_coords", JSON.stringify({ lat, lon, name: cityName }));
 
       updateHeaderLocationBadge();
 
@@ -168,7 +178,7 @@ function detectCurrentLocation() {
     },
     (err) => {
       console.warn("Geolocation detection error:", err.message);
-      alert("Unable to detect GPS location: " + err.message + ". Please verify location permissions.");
+      alert("Unable to detect GPS location: " + err.message + ". Please verify device location permissions.");
       updateHeaderLocationBadge();
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }

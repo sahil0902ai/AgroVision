@@ -140,29 +140,30 @@ function renderSpikeRaster(spikeCounts) {
   const numMod = counts.Moderate !== undefined ? counts.Moderate : (counts.moderate || 0);
   const numLow = counts.Low !== undefined ? counts.Low : (counts.low || 0);
 
-  for (let t = 1; t <= 10; t++) {
-    const elHigh = document.getElementById(`spike_high_${t}`);
-    const elMod = document.getElementById(`spike_mod_${t}`);
-    const elLow = document.getElementById(`spike_low_${t}`);
+  const total = numHigh + numMod + numLow;
+  let pctHigh = 0;
+  let pctMod = 0;
+  let pctLow = 100;
 
-    if (elHigh) {
-      elHigh.className = t <= numHigh ? "spike-cell active-high" : "spike-cell";
-    }
-    if (elMod) {
-      elMod.className = t <= numMod ? "spike-cell active-mod" : "spike-cell";
-    }
-    if (elLow) {
-      elLow.className = t <= numLow ? "spike-cell active-low" : "spike-cell";
-    }
+  if (total > 0) {
+    pctHigh = Math.round((numHigh / total) * 100);
+    pctMod = Math.round((numMod / total) * 100);
+    pctLow = Math.max(0, 100 - pctHigh - pctMod);
   }
 
-  const lblHigh = document.getElementById("spikeCountHigh");
-  const lblMod = document.getElementById("spikeCountMod");
-  const lblLow = document.getElementById("spikeCountLow");
+  const fillLow = document.getElementById("snnBarLowFill");
+  const valLow = document.getElementById("snnBarLowVal");
+  const fillMod = document.getElementById("snnBarModFill");
+  const valMod = document.getElementById("snnBarModVal");
+  const fillHigh = document.getElementById("snnBarHighFill");
+  const valHigh = document.getElementById("snnBarHighVal");
 
-  if (lblHigh) lblHigh.textContent = `${numHigh} spike${numHigh === 1 ? '' : 's'}`;
-  if (lblMod) lblMod.textContent = `${numMod} spike${numMod === 1 ? '' : 's'}`;
-  if (lblLow) lblLow.textContent = `${numLow} spike${numLow === 1 ? '' : 's'}`;
+  if (fillLow) fillLow.style.width = `${pctLow}%`;
+  if (valLow) valLow.textContent = `${pctLow}%`;
+  if (fillMod) fillMod.style.width = `${pctMod}%`;
+  if (valMod) valMod.textContent = `${pctMod}%`;
+  if (fillHigh) fillHigh.style.width = `${pctHigh}%`;
+  if (valHigh) valHigh.textContent = `${pctHigh}%`;
 }
 
 
@@ -702,6 +703,24 @@ function resetAnalysisState() {
 // =========================================================
 
 const getDirectWeatherKey = () => (typeof atob === "function" ? atob("YzI0OTFiY2RlZmExZjVmOGU4MjAwMjdlMWQ3M2YxNWU=") : "");
+const dashboardWeatherMemoryCache = new Map();
+
+async function fetchWithTimeout(resource, options = {}) {
+  const { timeout = 2500 } = options;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(resource, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+}
 
 async function fetchFieldWeather(lat = currentFieldLat, lon = currentFieldLon, forceRefresh = false) {
   currentFieldLat = lat;
@@ -722,33 +741,48 @@ async function fetchFieldWeather(lat = currentFieldLat, lon = currentFieldLon, f
   if (metricsGrid) metricsGrid.style.opacity = "0.6";
 
   let data = null;
+  const cacheKey = `${Number(lat).toFixed(3)}_${Number(lon).toFixed(3)}`;
 
-  // 1. Try backend weather endpoint first
-  try {
-    const url = getApiUrl(`/api/weather/current?lat=${lat}&lon=${lon}&force_refresh=${forceRefresh}`);
-    const res = await fetch(url).catch(() => null);
-    if (res && res.ok) {
-      const resJson = await res.json();
-      if (resJson && resJson.current) {
-        data = resJson;
+  // Check 60-second in-memory cache
+  if (!forceRefresh && dashboardWeatherMemoryCache.has(cacheKey)) {
+    const cached = dashboardWeatherMemoryCache.get(cacheKey);
+    if (Date.now() - cached.time < 60000) {
+      data = cached.data;
+    }
+  }
+
+  if (!data) {
+    // 1. Try backend weather endpoint first with 2.5s timeout
+    try {
+      const url = getApiUrl(`/api/weather/current?lat=${lat}&lon=${lon}&force_refresh=${forceRefresh}`);
+      const res = await fetchWithTimeout(url, { timeout: 2500 }).catch(() => null);
+      if (res && res.ok) {
+        const resJson = await res.json();
+        if (resJson && resJson.current) {
+          data = resJson;
+        }
+      }
+    } catch (backendErr) {
+      console.warn("Backend weather proxy unavailable, using direct OpenWeather:", backendErr);
+    }
+
+    // 2. Direct OpenWeather fallback (instant for Vercel)
+    if (!data) {
+      try {
+        data = await fetchLiveOpenWeatherDirect(lat, lon);
+      } catch (directErr) {
+        console.warn("Direct OpenWeather fetch error:", directErr);
       }
     }
-  } catch (backendErr) {
-    console.warn("Backend weather proxy unavailable:", backendErr);
-  }
 
-  // 2. Direct OpenWeather fallback (for Vercel or sleeping backend)
-  if (!data) {
-    try {
-      data = await fetchLiveOpenWeatherDirect(lat, lon);
-    } catch (directErr) {
-      console.warn("Direct OpenWeather fetch error:", directErr);
+    // 3. Authentic Station Baseline fallback (if offline)
+    if (!data) {
+      data = buildStationBaselineWeather(lat, lon);
     }
-  }
 
-  // 3. Authentic Station Baseline fallback (if offline)
-  if (!data) {
-    data = buildStationBaselineWeather(lat, lon);
+    if (data) {
+      dashboardWeatherMemoryCache.set(cacheKey, { time: Date.now(), data });
+    }
   }
 
   try {

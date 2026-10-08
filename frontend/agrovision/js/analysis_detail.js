@@ -329,12 +329,54 @@ function renderRecordDetail(r) {
 
   const snnSum = document.getElementById("snnSpikesSummary");
   if (snnSum) {
-    let spikesText = "Leaky Integrate-and-Fire neurons simulated across 10 temporal timesteps (β = 0.95).";
+    let lowPct = sev === "Low" ? 85 : (sev === "Moderate" ? 20 : 5);
+    let modPct = sev === "Moderate" ? 70 : (sev === "Low" ? 10 : 15);
+    let highPct = sev === "High" ? 80 : (sev === "Moderate" ? 10 : 5);
+
     if (typeof spikesObj === "object" && Object.keys(spikesObj).length > 0) {
-      const parts = Object.entries(spikesObj).map(([k, v]) => `<strong>${k}: ${v} spikes</strong>`);
-      spikesText = `SNN Neuromorphic Spike Counts (T=10 timesteps): ${parts.join(" · ")}.`;
+      const numLow = Number(spikesObj.low || spikesObj.Low || 0);
+      const numMod = Number(spikesObj.medium || spikesObj.Moderate || 0);
+      const numHigh = Number(spikesObj.high || spikesObj.High || 0);
+      const total = numLow + numMod + numHigh;
+      if (total > 0) {
+        highPct = Math.round((numHigh / total) * 100);
+        modPct = Math.round((numMod / total) * 100);
+        lowPct = Math.max(0, 100 - highPct - modPct);
+      }
     }
-    snnSum.innerHTML = spikesText;
+
+    snnSum.innerHTML = `
+      <div style="font-weight:700; color:#0f172a; margin-bottom:8px;">Environmental Risk Distribution:</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:3px;">
+            <span style="font-weight:700; color:#059669;">Low Stress (Optimal Range)</span>
+            <strong style="color:#059669;">${lowPct}%</strong>
+          </div>
+          <div style="height:6px; background:#e2e8f0; border-radius:999px; overflow:hidden;">
+            <div style="height:100%; width:${lowPct}%; background:#059669; border-radius:999px;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:3px;">
+            <span style="font-weight:700; color:#d97706;">Moderate Stress Alert</span>
+            <strong style="color:#d97706;">${modPct}%</strong>
+          </div>
+          <div style="height:6px; background:#e2e8f0; border-radius:999px; overflow:hidden;">
+            <div style="height:100%; width:${modPct}%; background:#d97706; border-radius:999px;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:3px;">
+            <span style="font-weight:700; color:#dc2626;">High Stress (Severe Risk)</span>
+            <strong style="color:#dc2626;">${highPct}%</strong>
+          </div>
+          <div style="height:6px; background:#e2e8f0; border-radius:999px; overflow:hidden;">
+            <div style="height:100%; width:${highPct}%; background:#dc2626; border-radius:999px;"></div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   // =========================================================

@@ -696,62 +696,57 @@
           </div>
         </div>
 
-        <!-- 10-Timestep Spike Raster Matrix -->
-        <div class="spike-raster-container">
-          <div class="spike-raster-header">
+        <!-- SNN Environmental Risk Distribution Bars -->
+        <div class="snn-risk-bars-card" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:18px 20px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">
             <div>
-              <strong style="font-size:12.5px; color:#0f172a;">LIF Output Spike Raster (T = 10 Timesteps)</strong>
-              <div style="font-size:11px; color:#64748b;">Temporal spike integration across 3 output Leaky Integrate-and-Fire neurons</div>
+              <strong style="font-size:13px; color:#0f172a;">Environmental Risk Distribution (SNN Model)</strong>
+              <div style="font-size:11px; color:#64748b;">Temporal neural activation across 33 microclimate features</div>
             </div>
-            <span class="provenance-tag tag-snn-model">LIF DYNAMICS</span>
+            <span class="provenance-tag tag-snn-model">SNN NEURAL INFERENCE</span>
           </div>
-          <div class="spike-raster-grid" id="spikeRasterGrid">
-            <!-- Row 1: High Stress Neuron -->
-            <div class="spike-raster-row">
-              <span class="spike-raster-label" style="color:#dc2626;">High Stress</span>
-              <div class="spike-cell" id="spike_high_1">1</div>
-              <div class="spike-cell" id="spike_high_2">2</div>
-              <div class="spike-cell" id="spike_high_3">3</div>
-              <div class="spike-cell" id="spike_high_4">4</div>
-              <div class="spike-cell" id="spike_high_5">5</div>
-              <div class="spike-cell" id="spike_high_6">6</div>
-              <div class="spike-cell" id="spike_high_7">7</div>
-              <div class="spike-cell" id="spike_high_8">8</div>
-              <div class="spike-cell" id="spike_high_9">9</div>
-              <div class="spike-cell" id="spike_high_10">10</div>
-              <span class="spike-count-val" id="spikeCountHigh" style="color:#dc2626;">0 spikes</span>
+
+          <div style="display:flex; flex-direction:column; gap:12px;" id="snnRiskBarsList">
+            <!-- Low Stress -->
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:5px;">
+                <span style="font-weight:700; color:#059669; display:flex; align-items:center; gap:6px;">
+                  <span style="width:8px; height:8px; border-radius:50%; background:#059669; display:inline-block;"></span>
+                  Low Stress (Optimal Field Conditions)
+                </span>
+                <strong id="snnBarLowVal" style="color:#059669; font-size:12.5px;">100%</strong>
+              </div>
+              <div style="height:10px; background:#f1f5f9; border-radius:999px; overflow:hidden; border:1px solid #e2e8f0;">
+                <div id="snnBarLowFill" style="height:100%; width:100%; background:linear-gradient(90deg, #34d399, #059669); border-radius:999px; transition:width 0.4s ease;"></div>
+              </div>
             </div>
 
-            <!-- Row 2: Moderate Stress Neuron -->
-            <div class="spike-raster-row">
-              <span class="spike-raster-label" style="color:#d97706;">Moderate</span>
-              <div class="spike-cell" id="spike_mod_1">1</div>
-              <div class="spike-cell" id="spike_mod_2">2</div>
-              <div class="spike-cell" id="spike_mod_3">3</div>
-              <div class="spike-cell" id="spike_mod_4">4</div>
-              <div class="spike-cell" id="spike_mod_5">5</div>
-              <div class="spike-cell" id="spike_mod_6">6</div>
-              <div class="spike-cell" id="spike_mod_7">7</div>
-              <div class="spike-cell" id="spike_mod_8">8</div>
-              <div class="spike-cell" id="spike_mod_9">9</div>
-              <div class="spike-cell" id="spike_mod_10">10</div>
-              <span class="spike-count-val" id="spikeCountMod" style="color:#d97706;">0 spikes</span>
+            <!-- Moderate Stress -->
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:5px;">
+                <span style="font-weight:700; color:#d97706; display:flex; align-items:center; gap:6px;">
+                  <span style="width:8px; height:8px; border-radius:50%; background:#d97706; display:inline-block;"></span>
+                  Moderate Stress
+                </span>
+                <strong id="snnBarModVal" style="color:#d97706; font-size:12.5px;">0%</strong>
+              </div>
+              <div style="height:10px; background:#f1f5f9; border-radius:999px; overflow:hidden; border:1px solid #e2e8f0;">
+                <div id="snnBarModFill" style="height:100%; width:0%; background:linear-gradient(90deg, #fbbf24, #d97706); border-radius:999px; transition:width 0.4s ease;"></div>
+              </div>
             </div>
 
-            <!-- Row 3: Low Stress Neuron -->
-            <div class="spike-raster-row">
-              <span class="spike-raster-label" style="color:#059669;">Low Stress</span>
-              <div class="spike-cell active-low" id="spike_low_1">1</div>
-              <div class="spike-cell active-low" id="spike_low_2">2</div>
-              <div class="spike-cell active-low" id="spike_low_3">3</div>
-              <div class="spike-cell active-low" id="spike_low_4">4</div>
-              <div class="spike-cell active-low" id="spike_low_5">5</div>
-              <div class="spike-cell active-low" id="spike_low_6">6</div>
-              <div class="spike-cell active-low" id="spike_low_7">7</div>
-              <div class="spike-cell active-low" id="spike_low_8">8</div>
-              <div class="spike-cell" id="spike_low_9">9</div>
-              <div class="spike-cell" id="spike_low_10">10</div>
-              <span class="spike-count-val" id="spikeCountLow" style="color:#059669;">8 spikes</span>
+            <!-- High Stress -->
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:5px;">
+                <span style="font-weight:700; color:#dc2626; display:flex; align-items:center; gap:6px;">
+                  <span style="width:8px; height:8px; border-radius:50%; background:#dc2626; display:inline-block;"></span>
+                  High Stress (Severe Risk)
+                </span>
+                <strong id="snnBarHighVal" style="color:#dc2626; font-size:12.5px;">0%</strong>
+              </div>
+              <div style="height:10px; background:#f1f5f9; border-radius:999px; overflow:hidden; border:1px solid #e2e8f0;">
+                <div id="snnBarHighFill" style="height:100%; width:0%; background:linear-gradient(90deg, #f87171, #dc2626); border-radius:999px; transition:width 0.4s ease;"></div>
+              </div>
             </div>
           </div>
         </div>
