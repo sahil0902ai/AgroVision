@@ -395,11 +395,57 @@ async function loadOverviewData() {
   try {
     const user = typeof requireLogin === "function" ? requireLogin() : null;
     const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
-    const response = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
-    if (!response.ok) throw new Error("Could not retrieve analysis records from database.");
+    let serverRecords = [];
+    try {
+      const response = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
+      if (response.ok) {
+        const data = await response.json();
+        serverRecords = Array.isArray(data) ? data : (data.records || []);
+      }
+    } catch (netErr) {
+      console.warn("Server records query failed in overview, falling back to client persistence:", netErr);
+    }
 
-    const data = await response.json();
-    rawAllRecords = Array.isArray(data) ? data : (data.records || []);
+    // Read client persistence records
+    let localRecords = [];
+    try {
+      const storedHist = localStorage.getItem("agrovision_analysis_history");
+      if (storedHist) {
+        localRecords = JSON.parse(storedHist);
+      }
+    } catch (_) {}
+    if (!Array.isArray(localRecords)) localRecords = [];
+
+    // Also check single latest session
+    try {
+      const storedLatest = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
+      if (storedLatest) {
+        const parsed = JSON.parse(storedLatest);
+        if (parsed && parsed.record_uuid) {
+          localRecords.push(parsed);
+        }
+      }
+    } catch (_) {}
+
+    // Merge without duplicates
+    const seenUuids = new Set();
+    const combined = [];
+
+    serverRecords.forEach(r => {
+      if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
+        seenUuids.add(r.record_uuid);
+        combined.push(r);
+      }
+    });
+
+    localRecords.forEach(r => {
+      if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
+        seenUuids.add(r.record_uuid);
+        combined.push(r);
+      }
+    });
+
+    rawAllRecords = combined;
 
     // 1. Paint core dashboard (KPIs, hero, table)
     renderOverviewDashboard();

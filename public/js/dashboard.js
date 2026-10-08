@@ -1333,68 +1333,155 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+function saveAnalysisLocally(record) {
+  if (!record || !record.record_uuid) return;
+  try {
+    sessionStorage.setItem("agrovision_latest_analysis", JSON.stringify(record));
+    localStorage.setItem("agrovision_latest_analysis", JSON.stringify(record));
+
+    // Persist into history array in localStorage
+    let historyList = [];
+    try {
+      const stored = localStorage.getItem("agrovision_analysis_history");
+      if (stored) {
+        historyList = JSON.parse(stored);
+      }
+    } catch (_) {}
+    if (!Array.isArray(historyList)) historyList = [];
+
+    // Keep up to 200 sessions deduplicated
+    historyList = [record, ...historyList.filter(h => h.record_uuid !== record.record_uuid)].slice(0, 200);
+    localStorage.setItem("agrovision_analysis_history", JSON.stringify(historyList));
+
+    // Update AI Assistant links across page to anchor to this active leaf analysis
+    const astLinks = document.querySelectorAll('a[href*="assistant.html"]');
+    astLinks.forEach(a => {
+      a.href = `assistant.html?record_id=${encodeURIComponent(record.record_uuid)}`;
+    });
+  } catch (err) {
+    console.warn("Could not persist analysis locally:", err);
+  }
+}
+
 async function loadSavedAnalysisRecord(uuid) {
   if (!uuid) return;
   try {
+    let record = null;
     const user = typeof requireLogin === "function" ? requireLogin() : null;
     const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
-    const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(uuid)}?${userEmailParam}`));
-    if (!res.ok) return;
-    const record = await res.json();
+
+    // 1. Try backend database endpoint
+    if (uuid !== "latest") {
+      try {
+        const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(uuid)}?${userEmailParam}`));
+        if (res.ok) {
+          record = await res.json();
+        }
+      } catch (_) {}
+    }
+
+    // 2. Fallback to client storage
+    if (!record) {
+      try {
+        const storedLatest = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
+        if (storedLatest) {
+          const parsed = JSON.parse(storedLatest);
+          if (parsed && (uuid === "latest" || parsed.record_uuid === uuid)) {
+            record = parsed;
+          }
+        }
+        if (!record) {
+          const storedHist = localStorage.getItem("agrovision_analysis_history");
+          if (storedHist) {
+            const list = JSON.parse(storedHist);
+            if (Array.isArray(list)) {
+              record = list.find(r => r.record_uuid === uuid) || (uuid === "latest" ? list[0] : null);
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
     if (!record) return;
 
     latestCombinedData = record;
 
     let cnnProbs = {};
     try {
-      if (record.cnn_predictions_json) cnnProbs = JSON.parse(record.cnn_predictions_json);
+      if (record.cnn?.probabilities) {
+        cnnProbs = record.cnn.probabilities;
+      } else if (record.cnn_predictions_json) {
+        cnnProbs = typeof record.cnn_predictions_json === "string" ? JSON.parse(record.cnn_predictions_json) : record.cnn_predictions_json;
+      }
     } catch (_) {}
 
-    let topClass = record.visual_assessment?.class || "Healthy";
+    let topClass = record.final_assessment?.diagnosis || record.visual_assessment?.class || record.cnn?.predicted_class || "Healthy";
     if (cnnProbs && Object.keys(cnnProbs).length > 0) {
       topClass = Object.keys(cnnProbs).reduce((a, b) => cnnProbs[a] > cnnProbs[b] ? a : b).replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
     }
 
-    let snnSpikes = {};
+    let snnSpikes = record.snn?.spike_counts || {};
     try {
-      if (record.spike_counts_json) snnSpikes = JSON.parse(record.spike_counts_json);
+      if (!record.snn?.spike_counts && record.spike_counts_json) {
+        snnSpikes = typeof record.spike_counts_json === "string" ? JSON.parse(record.spike_counts_json) : record.spike_counts_json;
+      }
     } catch (_) {}
 
-    let fusionObj = {};
+    let fusionObj = record.fusion || {};
     try {
-      if (record.fusion_json) fusionObj = JSON.parse(record.fusion_json);
+      if (!record.fusion && record.fusion_json) {
+        fusionObj = typeof record.fusion_json === "string" ? JSON.parse(record.fusion_json) : record.fusion_json;
+      }
     } catch (_) {}
 
-    let vetoObj = {};
+    let vetoObj = record.expert_veto || {};
     try {
-      if (record.expert_veto_json) vetoObj = JSON.parse(record.expert_veto_json);
+      if (!record.expert_veto && record.expert_veto_json) {
+        vetoObj = typeof record.expert_veto_json === "string" ? JSON.parse(record.expert_veto_json) : record.expert_veto_json;
+      }
     } catch (_) {}
+
+    const cnnConf = record.cnn?.confidence !== undefined 
+      ? record.cnn.confidence 
+      : (record.confidence_score ? (record.confidence_score > 1 ? record.confidence_score / 100 : record.confidence_score) : 0.95);
 
     latestCNNResult = {
       prediction: {
         class: topClass,
-        confidence: record.confidence_score ? (record.confidence_score > 1 ? record.confidence_score / 100 : record.confidence_score) : 0.95
+        confidence: cnnConf
       },
+      confidence_percentage: record.cnn?.confidence_percentage !== undefined ? record.cnn.confidence_percentage : Math.round(cnnConf * 1000) / 10,
       probabilities: cnnProbs,
-      image_url: record.image_path ? getApiUrl(`/${record.image_path}`) : null,
-      heatmap_url: record.heatmap_path ? getApiUrl(`/${record.heatmap_path}`) : null
+      image_url: record.image_url || record.cnn?.image_url || (record.image_path ? getApiUrl(`/${record.image_path}`) : null),
+      heatmap_url: record.heatmap_url || record.cnn?.heatmap_url || (record.heatmap_path ? getApiUrl(`/${record.heatmap_path}`) : null)
     };
 
+    const snnSev = record.snn?.predicted_severity || record.stress_severity || "Low";
     latestSNNResult = {
-      predicted_severity: record.stress_severity || "Low",
+      predicted_severity: snnSev,
       spike_counts: snnSpikes,
-      confidence: 0.95
+      confidence: record.snn?.confidence || 0.95
     };
 
     latestSNNPayload = {
-      temperature: record.temperature || 31.0,
-      humidity: record.humidity || 72.0,
-      rainfall: record.rainfall_mm || 5.0,
-      soil_moisture: record.soil_moisture || 0.68,
-      aqi: record.aqi || 64.0,
-      ozone: record.ozone || 0.041
+      temperature: record.environment?.temperature || record.temperature || 31.0,
+      humidity: record.environment?.humidity || record.humidity || 72.0,
+      rainfall: record.environment?.rainfall || record.rainfall_mm || 5.0,
+      soil_moisture: record.environment?.soil_moisture || record.soil_moisture || 0.68,
+      aqi: record.environment?.aqi || record.aqi || 64.0,
+      ozone: record.environment?.ozone || record.ozone || 0.041
     };
 
+    // Update Decision Trace
+    resetDecisionTrace();
+    updateDecisionTrace(1, "completed", "1. Ingestion", record.record_uuid || "Restored Leaf Scan");
+    updateDecisionTrace(2, "completed", "2. CNN Visual", `${topClass} (${Math.round(cnnConf * 100)}%)`);
+    updateDecisionTrace(3, "completed", "3. SNN Climate", `${snnSev} Risk`);
+    updateDecisionTrace(4, "completed", "4. Fusion Layer", `${fusionObj.relationship || 'ALIGNED'}`);
+    updateDecisionTrace(5, "completed", "5. Expert Veto", `${vetoObj.overall_status || 'PASSED'}`);
+    updateDecisionTrace(6, "completed", "6. Final Advisory", `${topClass} (${snnSev} Risk)`);
+
+    // Render Figures
     renderFigure5(latestCNNResult);
     renderFigure6(latestSNNResult, latestSNNPayload);
     renderSpikeRaster(snnSpikes);
@@ -1405,13 +1492,35 @@ async function loadSavedAnalysisRecord(uuid) {
       environment: latestSNNPayload,
       fusion: fusionObj,
       expert_veto: vetoObj,
-      final_assessment: {
+      final_assessment: record.final_assessment || {
         diagnosis: topClass,
-        description: fusionObj.summary || record.final_assessment?.description || "Verified Multimodal Evaluation",
-        precautions: record.recommendations_json ? JSON.parse(record.recommendations_json) : []
+        environmental_risk: snnSev,
+        relationship: fusionObj.relationship || "ALIGNED",
+        summary: fusionObj.summary || record.final_assessment?.description || "Verified Multimodal Evaluation",
+        precautions: record.recommendations_json ? (typeof record.recommendations_json === "string" ? JSON.parse(record.recommendations_json) : record.recommendations_json) : []
       }
     });
 
+    // Populate leaf image preview if available
+    if (latestCNNResult.image_url) {
+      const resLeaf = document.getElementById("resColLeafImg");
+      const resPlace = document.getElementById("resColLeafPlaceholder");
+      const resFn = document.getElementById("resColFileName");
+      if (resLeaf) {
+        resLeaf.src = latestCNNResult.image_url;
+        resLeaf.style.display = "block";
+      }
+      if (resPlace) resPlace.style.display = "none";
+      if (resFn) resFn.textContent = `${record.record_uuid || 'Verified Leaf Scan'}`;
+    }
+
+    // Update Assistant Links
+    const astLinks = document.querySelectorAll('a[href*="assistant.html"]');
+    astLinks.forEach(a => {
+      a.href = `assistant.html?record_id=${encodeURIComponent(record.record_uuid)}`;
+    });
+
+    updateStepperProgress();
     switchView("combined");
   } catch (err) {
     console.warn("Could not load saved analysis record:", err);
@@ -1868,6 +1977,9 @@ async function runAnalysis() {
 
     // Update stepper badges
     updateStepperProgress();
+
+    // Persist analysis session to local storage & history all the time
+    saveAnalysisLocally(data);
 
     // Broadcast live data synchronization across all open tabs & pages
     if (window.AgroVisionSync) {

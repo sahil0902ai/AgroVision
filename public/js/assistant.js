@@ -55,6 +55,7 @@ async function loadActiveAnalysisContext(uuid) {
   const titleEl = document.getElementById("contextTitle");
   const subEl = document.getElementById("contextSub");
   const sessionBadge = document.getElementById("contextSessionBadge");
+  const returnBtn = document.getElementById("btnReturnToLeaf");
 
   try {
     const user = typeof requireLogin === "function" ? requireLogin() : null;
@@ -68,7 +69,21 @@ async function loadActiveAnalysisContext(uuid) {
       }
     }
 
-    // If no specific UUID, attempt to load most recent analysis from history
+    // Check sessionStorage if no URL uuid
+    if (!record) {
+      try {
+        const stored = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && (parsed.record_uuid || parsed.cnn || parsed.visual_assessment)) {
+            record = parsed;
+            activeRecordUuid = record.record_uuid;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // If still no record, attempt to load most recent analysis from history
     if (!record) {
       const resRecent = await fetch(getApiUrl(`/api/v1/records?limit=1${userEmailParam}`));
       if (resRecent.ok) {
@@ -82,18 +97,25 @@ async function loadActiveAnalysisContext(uuid) {
 
     if (record) {
       activeContextRecord = record;
-      const diag = record.final_assessment?.diagnosis || record.visual_assessment?.class || "Cotton Assessment";
+      activeRecordUuid = record.record_uuid || activeRecordUuid;
+      const diag = record.final_assessment?.diagnosis || record.visual_assessment?.class || record.cnn?.predicted_class || "Cotton Assessment";
       const conf = record.visual_assessment?.confidence_percentage !== undefined 
         ? `${record.visual_assessment.confidence_percentage}%` 
-        : `${Math.round((record.visual_assessment?.confidence || 0.95) * 100)}%`;
-      const dateStr = record.created_at ? new Date(record.created_at).toLocaleDateString() : "Recent";
+        : (record.cnn?.confidence_percentage !== undefined 
+          ? `${record.cnn.confidence_percentage}%` 
+          : `${Math.round((record.visual_assessment?.confidence || record.cnn?.confidence || 0.95) * 100)}%`);
+      const dateStr = record.created_at ? new Date(record.created_at).toLocaleDateString() : "Active Session";
       const field = record.field_name || "Wardha Research Station";
 
       if (titleEl) titleEl.textContent = `${diag} (${conf} Confidence)`;
-      if (subEl) subEl.textContent = `Attached Record: ${record.record_uuid} · ${field} · ${dateStr}`;
+      if (subEl) subEl.textContent = `Attached Record: ${record.record_uuid || 'Live Scan'} · ${field} · ${dateStr}`;
       if (sessionBadge) {
         sessionBadge.textContent = "● Grounded Diagnosis Attached";
         sessionBadge.className = "context-badge attached";
+      }
+      if (returnBtn) {
+        returnBtn.style.display = "inline-flex";
+        returnBtn.href = activeRecordUuid ? `dashboard.html?record_id=${encodeURIComponent(activeRecordUuid)}` : `dashboard.html?step=combined`;
       }
 
       // Populate Quick Action prompt chips
@@ -110,6 +132,9 @@ async function loadActiveAnalysisContext(uuid) {
   if (sessionBadge) {
     sessionBadge.textContent = "● Live Agronomic Advisory";
     sessionBadge.className = "context-badge";
+  }
+  if (returnBtn) {
+    returnBtn.href = "dashboard.html";
   }
 }
 
@@ -489,11 +514,27 @@ async function handleSendMessage() {
 
   const modelBadge = `<span style="color:#059669; font-weight:700;">✨ Powered by ${modelUsed}</span>`;
 
+  // Return to leaf option button inside each message bubble
+  const returnLeafHref = activeRecordUuid 
+    ? `dashboard.html?record_id=${encodeURIComponent(activeRecordUuid)}`
+    : `dashboard.html?step=combined`;
+
+  const returnLeafBtnHtml = `
+    <div style="margin-top:10px; padding-top:8px; border-top:1px dashed #e2e8f0; display:flex; justify-content:flex-end; align-items:center; gap:8px;">
+      <a href="${returnLeafHref}" class="return-to-leaf-pill" style="display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:6px; background:#ecfdf5; border:1px solid #a7f3d0; color:#059669; font-weight:700; font-size:11px; text-decoration:none; transition:all 0.15s ease;">
+        <span>🍃</span>
+        <span>Return to this Leaf Analysis</span>
+        <span style="font-size:13px;">→</span>
+      </a>
+    </div>
+  `;
+
   assistantRow.innerHTML = `
     <div class="message-bubble assistant-bubble">
       <div style="font-size:13px; line-height:1.55; color:#0f172a;">
         ${formattedHtml}
       </div>
+      ${returnLeafBtnHtml}
       <div class="message-footer">
         <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
           ${sourceBadgesHtml}

@@ -83,13 +83,57 @@ async function fetchReportsList() {
   }
 
   try {
-    const res = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
-    if (!res.ok) {
-      throw new Error(`Failed to retrieve reports from database (${res.status}: ${res.statusText})`);
+    let serverRecords = [];
+    try {
+      const res = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
+      if (res.ok) {
+        const records = await res.json();
+        serverRecords = Array.isArray(records) ? records : [];
+      }
+    } catch (netErr) {
+      console.warn("Backend reports query failed, checking client persistence:", netErr);
     }
 
-    const records = await res.json();
-    allReportsList = Array.isArray(records) ? records : [];
+    // Read client persistence records
+    let localRecords = [];
+    try {
+      const storedHist = localStorage.getItem("agrovision_analysis_history");
+      if (storedHist) {
+        localRecords = JSON.parse(storedHist);
+      }
+    } catch (_) {}
+    if (!Array.isArray(localRecords)) localRecords = [];
+
+    // Also check single latest session
+    try {
+      const storedLatest = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
+      if (storedLatest) {
+        const parsed = JSON.parse(storedLatest);
+        if (parsed && parsed.record_uuid) {
+          localRecords.push(parsed);
+        }
+      }
+    } catch (_) {}
+
+    // Merge without duplicates
+    const seenUuids = new Set();
+    const combined = [];
+
+    serverRecords.forEach(r => {
+      if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
+        seenUuids.add(r.record_uuid);
+        combined.push(r);
+      }
+    });
+
+    localRecords.forEach(r => {
+      if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
+        seenUuids.add(r.record_uuid);
+        combined.push(r);
+      }
+    });
+
+    allReportsList = combined;
     updateReportsKPIs(allReportsList);
     renderReportsTable(allReportsList);
     populateModalSelect(allReportsList);

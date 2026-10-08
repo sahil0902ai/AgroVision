@@ -96,11 +96,59 @@ async function loadHistoryData() {
   }
 
   try {
-    const res = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
-    if (!res.ok) throw new Error(`HTTP ${res.status}: Could not load history records`);
+    let serverRecords = [];
+    try {
+      const res = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
+      if (res.ok) {
+        const data = await res.json();
+        serverRecords = Array.isArray(data) ? data : (data.records || []);
+      }
+    } catch (netErr) {
+      console.warn("Backend history records query failed, checking client persistence:", netErr);
+    }
 
-    const data = await res.json();
-    rawHistoryRecords = Array.isArray(data) ? data : (data.records || []);
+    // Read client persistence records
+    let localRecords = [];
+    try {
+      const storedHist = localStorage.getItem("agrovision_analysis_history");
+      if (storedHist) {
+        localRecords = JSON.parse(storedHist);
+      }
+    } catch (_) {}
+    if (!Array.isArray(localRecords)) localRecords = [];
+
+    // Also check single latest session
+    try {
+      const storedLatest = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
+      if (storedLatest) {
+        const parsed = JSON.parse(storedLatest);
+        if (parsed && parsed.record_uuid) {
+          localRecords.push(parsed);
+        }
+      }
+    } catch (_) {}
+
+    // Merge without duplicates (favoring server record if present)
+    const seenUuids = new Set();
+    const combined = [];
+
+    // Add server records first
+    serverRecords.forEach(r => {
+      if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
+        seenUuids.add(r.record_uuid);
+        combined.push(r);
+      }
+    });
+
+    // Add local records
+    localRecords.forEach(r => {
+      if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
+        seenUuids.add(r.record_uuid);
+        combined.push(r);
+      }
+    });
+
+    rawHistoryRecords = combined;
 
     // 1. Populate Field Filter Dropdown dynamically
     populateFieldFilterDropdown(rawHistoryRecords);
@@ -124,7 +172,7 @@ async function loadHistoryData() {
               <div class="agro-error-icon">⚠️</div>
               <div class="agro-error-body">
                 <h4 class="agro-error-title">Unable to load analysis history</h4>
-                <p class="agro-error-desc">${escapeHtml(err.message || "Failed to connect to backend database service. Please ensure the server is active.")}</p>
+                <p class="agro-error-desc">${escapeHtml(err.message || "Failed to connect to backend database service.")}</p>
                 <button type="button" class="agro-retry-btn agro-retry-btn-primary" onclick="loadHistoryData()">
                   🔄 Retry Connection
                 </button>
