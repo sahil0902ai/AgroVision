@@ -65,7 +65,9 @@ function closeAllHeaderDropdowns() {
 let userRegisteredFields = [
   { field_id: "field-a", field_name: "Wardha Farm Station", zone_label: "Vidarbha Central", latitude: 20.9750, longitude: 78.7200, crop_stage: "Flowering" },
   { field_id: "field-b", field_name: "Yavatmal Research Plot", zone_label: "Vidarbha South", latitude: 20.4500, longitude: 77.9200, crop_stage: "Boll_Development" },
-  { field_id: "field-c", field_name: "Nagpur Rural Station", zone_label: "Vidarbha East", latitude: 21.1458, longitude: 79.0882, crop_stage: "Vegetative" }
+  { field_id: "field-c", field_name: "Nagpur Rural Station", zone_label: "Vidarbha East", latitude: 21.1458, longitude: 79.0882, crop_stage: "Vegetative" },
+  { field_id: "field-d", field_name: "Akola Agronomy Field", zone_label: "Vidarbha West", latitude: 20.7002, longitude: 77.0082, crop_stage: "Flowering" },
+  { field_id: "field-e", field_name: "Amravati Research Station", zone_label: "Vidarbha North", latitude: 20.9374, longitude: 77.7796, crop_stage: "Vegetative" }
 ];
 
 // Restore any saved GPS coordinates
@@ -74,9 +76,10 @@ try {
   if (savedGps) {
     const coords = JSON.parse(savedGps);
     if (coords && coords.lat && coords.lon) {
+      const gName = coords.name ? `📍 ${coords.name} (Live GPS)` : "📍 Current GPS Location";
       userRegisteredFields.unshift({
         field_id: "field-gps",
-        field_name: "📍 Current GPS Location",
+        field_name: gName,
         zone_label: "Live Device GPS",
         latitude: parseFloat(coords.lat),
         longitude: parseFloat(coords.lon),
@@ -88,43 +91,77 @@ try {
 
 function loadGlobalHeaderFields() {
   updateHeaderLocationBadge();
+  // Auto-attempt geolocation if not yet saved
+  if (!localStorage.getItem("agrovision_gps_coords") && navigator.geolocation) {
+    setTimeout(() => {
+      detectCurrentLocation(true); // silent auto-detect
+    }, 600);
+  }
 }
 
 function updateHeaderLocationBadge() {
   const selector = document.getElementById("globalHeaderFieldSelector");
-  const saved = localStorage.getItem("agrovision_active_station_id") || "field-a";
+  const locNameEl = document.getElementById("globalHeaderLocationName");
+  const locBadge = document.getElementById("globalHeaderLocation");
+  const gpsBtn = document.getElementById("btnHeaderGpsDetect") || document.getElementById("headerGpsDetectBtn");
+
+  const saved = localStorage.getItem("agrovision_active_station_id") || (userRegisteredFields.some(f => f.field_id === "field-gps") ? "field-gps" : "field-a");
   const activeObj = userRegisteredFields.find(f => f.field_id === saved) || userRegisteredFields[0];
 
-  const locBadge = document.getElementById("globalHeaderLocation");
+  const isGpsActive = activeObj.field_id === "field-gps";
+
+  if (locNameEl && activeObj) {
+    locNameEl.textContent = `${activeObj.field_name.replace(/^📍\s*/, '')} (${activeObj.latitude.toFixed(3)}°N, ${activeObj.longitude.toFixed(3)}°E)`;
+    locNameEl.title = `${activeObj.field_name} — Lat: ${activeObj.latitude}, Lon: ${activeObj.longitude}`;
+  }
+
   if (locBadge && activeObj) {
     locBadge.innerHTML = `<span style="font-size:13px;">📍</span> <span>${escapeHtml(activeObj.field_name)} (${activeObj.latitude.toFixed(3)}°N, ${activeObj.longitude.toFixed(3)}°E)</span>`;
+  }
+
+  if (gpsBtn) {
+    if (isGpsActive) {
+      gpsBtn.classList.add("gps-active");
+      gpsBtn.innerHTML = `<span style="font-size:12px;">✓</span> <span>GPS Active</span>`;
+      gpsBtn.title = `Real GPS Active: ${activeObj.field_name} (${activeObj.latitude.toFixed(3)}°N, ${activeObj.longitude.toFixed(3)}°E)`;
+    } else {
+      gpsBtn.classList.remove("gps-active");
+      gpsBtn.innerHTML = `<span style="font-size:12px;">🎯</span> <span>Live GPS</span>`;
+      gpsBtn.title = "Click to detect your exact current GPS coordinates & live weather";
+    }
   }
 
   if (selector) {
     let optionsHtml = userRegisteredFields.map(f => `
       <option value="${f.field_id}" ${f.field_id === saved ? "selected" : ""}>
-        ${f.field_id === 'field-gps' ? '📍' : '🌾'} ${f.field_name} (${f.latitude.toFixed(3)}°N, ${f.longitude.toFixed(3)}°E)
+        ${f.field_id === 'field-gps' ? '🛰️' : '📍'} ${f.field_name.replace(/^📍\s*/, '')} (${f.latitude.toFixed(3)}°N, ${f.longitude.toFixed(3)}°E)
       </option>
     `).join("");
 
-    // Add detect location option if not already present
     if (!userRegisteredFields.some(f => f.field_id === "field-gps")) {
-      optionsHtml += `<option value="detect-gps">🛰️ Detect My Exact Location (GPS)…</option>`;
+      optionsHtml += `<option value="detect-gps">🛰️ Detect My Live Location (GPS)…</option>`;
     }
 
     selector.innerHTML = optionsHtml;
   }
 }
 
-async function detectCurrentLocation() {
+async function detectCurrentLocation(silent = false) {
   if (!navigator.geolocation) {
-    alert("Geolocation is not supported by your browser or device.");
+    if (!silent) alert("Geolocation is not supported by your browser or device.");
     return;
   }
 
+  const gpsBtn = document.getElementById("btnHeaderGpsDetect") || document.getElementById("headerGpsDetectBtn");
   const selector = document.getElementById("globalHeaderFieldSelector");
-  if (selector && selector.options[selector.selectedIndex]) {
-    selector.options[selector.selectedIndex].text = "📡 Detecting GPS coordinates…";
+  const locNameEl = document.getElementById("globalHeaderLocationName");
+
+  if (gpsBtn) {
+    gpsBtn.innerHTML = `<span class="agro-spinner" style="width:11px; height:11px; border-width:2px; margin-right:2px;"></span> <span>Locating…</span>`;
+    gpsBtn.disabled = true;
+  }
+  if (locNameEl) {
+    locNameEl.textContent = "Acquiring satellite GPS telemetry…";
   }
 
   navigator.geolocation.getCurrentPosition(
@@ -132,7 +169,7 @@ async function detectCurrentLocation() {
       const lat = parseFloat(pos.coords.latitude.toFixed(4));
       const lon = parseFloat(pos.coords.longitude.toFixed(4));
 
-      let cityName = "Current Device Location";
+      let cityName = "Live GPS Location";
       try {
         const directKey = typeof atob === "function" ? atob("YzI0OTFiY2RlZmExZjVmOGU4MjAwMjdlMWQ3M2YxNWU=") : "";
         const weatherCheck = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${directKey}&units=metric`);
@@ -144,11 +181,12 @@ async function detectCurrentLocation() {
         }
       } catch (_) {}
 
+      const formattedName = `📍 ${cityName} (Live GPS)`;
       let gpsField = userRegisteredFields.find(f => f.field_id === "field-gps");
       if (!gpsField) {
         gpsField = {
           field_id: "field-gps",
-          field_name: `📍 ${cityName} (GPS)`,
+          field_name: formattedName,
           zone_label: "Live Device GPS",
           latitude: lat,
           longitude: lon,
@@ -156,13 +194,19 @@ async function detectCurrentLocation() {
         };
         userRegisteredFields.unshift(gpsField);
       } else {
-        gpsField.field_name = `📍 ${cityName} (GPS)`;
+        gpsField.field_name = formattedName;
         gpsField.latitude = lat;
         gpsField.longitude = lon;
       }
 
       localStorage.setItem("agrovision_active_station_id", "field-gps");
       localStorage.setItem("agrovision_gps_coords", JSON.stringify({ lat, lon, name: cityName }));
+
+      if (gpsBtn) {
+        gpsBtn.disabled = false;
+        gpsBtn.classList.add("gps-active");
+        gpsBtn.innerHTML = `<span style="font-size:12px;">✓</span> <span>GPS Active</span>`;
+      }
 
       updateHeaderLocationBadge();
 
@@ -178,7 +222,13 @@ async function detectCurrentLocation() {
     },
     (err) => {
       console.warn("Geolocation detection error:", err.message);
-      alert("Unable to detect GPS location: " + err.message + ". Please verify device location permissions.");
+      if (gpsBtn) {
+        gpsBtn.disabled = false;
+        gpsBtn.innerHTML = `<span style="font-size:12px;">🎯</span> <span>Live GPS</span>`;
+      }
+      if (!silent) {
+        alert("GPS Location Access: " + err.message + "\nPlease enable location permission or select a station from the dropdown.");
+      }
       updateHeaderLocationBadge();
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
@@ -188,15 +238,18 @@ async function detectCurrentLocation() {
 function handleHeaderFieldChange(event) {
   const fieldId = event?.target?.value || "field-a";
   if (fieldId === "detect-gps") {
-    detectCurrentLocation();
+    detectCurrentLocation(false);
     return;
   }
   localStorage.setItem("agrovision_active_station_id", fieldId);
   const found = userRegisteredFields.find(f => f.field_id === fieldId) || userRegisteredFields[0];
+  
+  updateHeaderLocationBadge();
+
   if (window.AgroVisionSync) {
     window.AgroVisionSync.emit("fieldChanged", found);
   }
-  // If fetchFieldWeather or fetchOverviewWeather is in scope, trigger refresh
+  // Trigger weather refresh across views
   if (typeof fetchOverviewWeather === "function") {
     fetchOverviewWeather(found.latitude, found.longitude, true);
   }

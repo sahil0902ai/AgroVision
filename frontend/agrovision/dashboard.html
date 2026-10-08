@@ -116,14 +116,25 @@
             <span id="globalHeaderDate">Today</span>
           </div>
 
-          <!-- Live Global Field Selector Dropdown -->
-          <div class="header-field-selector-wrap" title="Active Monitored Farm Field">
-            <span style="font-size:13px;">📍</span>
-            <select id="globalHeaderFieldSelector" class="header-field-select" onchange="handleHeaderFieldChange(event)" aria-label="Select Farm Field">
-              <option value="field-a" selected>📍 Wardha Farm Station (20.975°N, 78.720°E)</option>
-              <option value="field-b">📍 Yavatmal Research Plot (20.450°N, 77.920°E)</option>
-              <option value="field-c">📍 Nagpur Rural Station (21.145°N, 79.088°E)</option>
+          <!-- Prominent Real-Time GPS & Station Location Widget -->
+          <div class="header-location-pill" id="headerLocationPill" title="Real-Time Farm Location">
+            <span class="loc-pin-icon">📍</span>
+            <div class="loc-text-group">
+              <span class="loc-label">Current Field Location</span>
+              <span class="loc-name" id="globalHeaderLocationName">Wardha Farm Station</span>
+            </div>
+            <select id="globalHeaderFieldSelector" class="header-field-select" onchange="handleHeaderFieldChange(event)" aria-label="Select Farm Location">
+              <option value="field-a" selected>Wardha Station (20.975°N, 78.720°E)</option>
+              <option value="field-b">Yavatmal Plot (20.450°N, 77.920°E)</option>
+              <option value="field-c">Nagpur Station (21.145°N, 79.088°E)</option>
+              <option value="field-d">Akola Field (20.700°N, 77.008°E)</option>
+              <option value="field-e">Amravati Station (20.937°N, 77.780°E)</option>
+              <option value="detect-gps">🛰️ Detect My Live Location (GPS)…</option>
             </select>
+            <button type="button" class="btn-gps-auto-detect" id="btnHeaderGpsDetect" onclick="detectCurrentLocation(false)" title="Detect My Live GPS Location Now">
+              <span style="font-size:12px;">🎯</span>
+              <span>Live GPS</span>
+            </button>
           </div>
 
           <!-- Presentation Mode Toggle -->
@@ -328,8 +339,8 @@
           </div>
 
           <!-- Run CNN Only Direct Action -->
-          <div style="margin-top:10px;">
-            <button type="button" id="btnRunCnnOnly" onclick="runCNNInferenceOnly()" class="btn btn-outline" style="width:100%; padding:8px 12px; font-size:12px; font-weight:700; border-color:#059669; color:#059669; background:#ffffff; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+          <div style="margin-top:12px;">
+            <button type="button" id="btnRunCnnOnly" onclick="runCNNInferenceOnly()" class="step-nav-btn step-nav-btn-cnn" style="width:100%; font-size:13px;">
               🍃 Run CNN Visual Scan Only (Step 2)
             </button>
           </div>
@@ -516,25 +527,25 @@
           </div>
 
           <!-- Run SNN Only Direct Action -->
-          <div style="margin-top:10px;">
-            <button type="button" id="btnRunSnnOnly" onclick="runSNNInferenceOnly()" class="btn btn-outline" style="width:100%; padding:8px 12px; font-size:12px; font-weight:700; border-color:#0284c7; color:#0284c7; background:#ffffff; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+          <div style="margin-top:12px;">
+            <button type="button" id="btnRunSnnOnly" onclick="runSNNInferenceOnly()" class="step-nav-btn step-nav-btn-snn" style="width:100%; font-size:13px;">
               ⛅ Run SNN Climate Simulation Only (Step 3)
             </button>
           </div>
 
           <!-- Main Actions Bar -->
-          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:auto; flex-wrap:wrap; gap:10px;">
-            <button class="btn btn-outline" type="button" onclick="resetAnalysisState()" style="padding:9px 16px; font-size:12px; border-radius:8px; border-color:#cbd5e1; font-weight:600;">
+          <div class="step-nav-bar" style="margin-top:auto;">
+            <button class="step-nav-btn step-nav-btn-back" type="button" onclick="resetAnalysisState()">
               ↺ Reset Form
             </button>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="btn btn-outline" type="button" onclick="runCNNInferenceOnly()" style="padding:9px 12px; font-size:11.5px; border-radius:8px; font-weight:700; color:#059669; border-color:#a7f3d0; background:#f0fdf4;">
+            <div class="step-nav-actions">
+              <button class="step-nav-btn step-nav-btn-cnn" type="button" onclick="runCNNInferenceOnly()">
                 🍃 CNN Only
               </button>
-              <button class="btn btn-outline" type="button" onclick="runSNNInferenceOnly()" style="padding:9px 12px; font-size:11.5px; border-radius:8px; font-weight:700; color:#0284c7; border-color:#bae6fd; background:#f0f9ff;">
+              <button class="step-nav-btn step-nav-btn-snn" type="button" onclick="runSNNInferenceOnly()">
                 ⛅ SNN Only
               </button>
-              <button class="btn btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="padding:10px 22px; font-size:12.5px; border-radius:8px; font-weight:700; display:flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(5,150,105,0.25);">
+              <button class="step-nav-btn step-nav-btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="font-size:13.5px; padding:11px 22px;">
                 <span>🚀 Run Full Multimodal Assessment</span>
                 <span style="font-size:14px;">→</span>
               </button>
@@ -639,19 +650,19 @@
         </details>
 
         <!-- Step Navigation Footer -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:6px; flex-wrap:wrap; gap:8px;">
-          <button class="btn btn-outline" onclick="switchView('input')" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:600;">
-            ← Back to Input
+        <div class="step-nav-bar">
+          <button class="step-nav-btn step-nav-btn-back" onclick="switchView('input')">
+            ← Back to Input (Step 1)
           </button>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn btn-outline" onclick="runCNNInferenceOnly()" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:700; color:#059669; border-color:#a7f3d0; background:#f0fdf4;">
+          <div class="step-nav-actions">
+            <button class="step-nav-btn step-nav-btn-cnn" onclick="runCNNInferenceOnly()">
               🔄 Re-Scan CNN
             </button>
-            <button class="btn btn-outline" onclick="switchView('snn')" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:700; color:#0284c7; border-color:#bae6fd; background:#f0f9ff;">
+            <button class="step-nav-btn step-nav-btn-snn" onclick="switchView('snn')">
               Proceed to Climate (Step 3) →
             </button>
-            <button class="btn btn-primary" onclick="runAnalysis()" style="padding:8px 18px; font-size:12px; border-radius:8px; font-weight:700;">
-              🚀 Full Multimodal Assessment →
+            <button class="step-nav-btn step-nav-btn-primary" onclick="runAnalysis()">
+              🚀 Full Multimodal Assessment (Step 4) →
             </button>
           </div>
         </div>
@@ -809,15 +820,15 @@
         </details>
 
         <!-- Step Navigation Footer -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:6px; flex-wrap:wrap; gap:8px;">
-          <button class="btn btn-outline" onclick="switchView('cnn')" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:600;">
+        <div class="step-nav-bar">
+          <button class="step-nav-btn step-nav-btn-back" onclick="switchView('cnn')">
             ← Back to Leaf Diagnosis (Step 2)
           </button>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn btn-outline" onclick="runSNNInferenceOnly()" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:700; color:#0284c7; border-color:#bae6fd; background:#f0f9ff;">
+          <div class="step-nav-actions">
+            <button class="step-nav-btn step-nav-btn-snn" onclick="runSNNInferenceOnly()">
               🔄 Re-Run SNN Simulation
             </button>
-            <button class="btn btn-primary" onclick="runAnalysis()" style="padding:8px 18px; font-size:12px; border-radius:8px; font-weight:700;">
+            <button class="step-nav-btn step-nav-btn-primary" onclick="runAnalysis()">
               🚀 Full Multimodal Assessment (Step 4) →
             </button>
           </div>
@@ -1060,7 +1071,7 @@
             </div>
           </div>
 
-          <!-- 8. Action Options Buttons Group -->
+          <!-- 8. Action Options Buttons Group (4 Accessible Farmer Action Tiles) -->
           <div class="exact-action-buttons-group">
             
             <a href="reports.html" class="exact-btn-report" id="exactReportBtn">
@@ -1076,6 +1087,11 @@
             <button type="button" class="exact-btn-save" id="exactSaveBtn" onclick="saveCurrentAnalysis()">
               <span>💾</span>
               <span>Save to Field</span>
+            </button>
+
+            <button type="button" class="exact-btn-new-analysis" id="exactNewScanBtn" onclick="resetAnalysisState()">
+              <span>🌱</span>
+              <span>Analyze Another Leaf</span>
             </button>
 
           </div>

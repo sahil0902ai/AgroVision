@@ -706,14 +706,25 @@
             <span id="globalHeaderDate">Today</span>
           </div>
 
-          <!-- Live Global Field Selector Dropdown -->
-          <div class="header-field-selector-wrap" title="Active Monitored Farm Field">
-            <span style="font-size:13px;">📍</span>
-            <select id="globalHeaderFieldSelector" class="header-field-select" onchange="handleHeaderFieldChange(event)" aria-label="Select Farm Field">
-              <option value="field-a" selected>📍 Wardha Farm Station (20.975°N, 78.720°E)</option>
-              <option value="field-b">📍 Yavatmal Research Plot (20.450°N, 77.920°E)</option>
-              <option value="field-c">📍 Nagpur Rural Station (21.145°N, 79.088°E)</option>
+          <!-- Prominent Real-Time GPS & Station Location Widget -->
+          <div class="header-location-pill" id="headerLocationPill" title="Real-Time Farm Location">
+            <span class="loc-pin-icon">📍</span>
+            <div class="loc-text-group">
+              <span class="loc-label">Current Field Location</span>
+              <span class="loc-name" id="globalHeaderLocationName">Wardha Farm Station</span>
+            </div>
+            <select id="globalHeaderFieldSelector" class="header-field-select" onchange="handleHeaderFieldChange(event)" aria-label="Select Farm Location">
+              <option value="field-a" selected>Wardha Station (20.975°N, 78.720°E)</option>
+              <option value="field-b">Yavatmal Plot (20.450°N, 77.920°E)</option>
+              <option value="field-c">Nagpur Station (21.145°N, 79.088°E)</option>
+              <option value="field-d">Akola Field (20.700°N, 77.008°E)</option>
+              <option value="field-e">Amravati Station (20.937°N, 77.780°E)</option>
+              <option value="detect-gps">🛰️ Detect My Live Location (GPS)…</option>
             </select>
+            <button type="button" class="btn-gps-auto-detect" id="btnHeaderGpsDetect" onclick="detectCurrentLocation(false)" title="Detect My Live GPS Location Now">
+              <span style="font-size:12px;">🎯</span>
+              <span>Live GPS</span>
+            </button>
           </div>
 
 
