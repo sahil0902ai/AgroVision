@@ -42,13 +42,13 @@ Your role is to answer questions, explain multimodal AI analysis results, clarif
 {context_block}
 """
 
-# Models to attempt in priority order
+# Models to attempt in priority order (Google GenAI latest models)
 CANDIDATE_MODELS_CASCADE = [
-    "gemini-3.5-flash",
     "gemini-3.8-flash",
-    "gemini-flash-lite-latest",
+    "gemini-3.5-flash",
     "gemini-flash-latest",
     "gemini-2.5-flash",
+    "gemini-flash-lite-latest",
 ]
 
 

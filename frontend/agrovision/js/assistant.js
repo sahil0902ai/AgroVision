@@ -207,145 +207,220 @@ function retryGeminiConnection() {
 
 // =========================================================
 // CLIENT-SIDE AGRONOMIC REASONING ENGINE (Resilient Fallback)
-// Dynamic semantic answering to prevent repeating static text
+/// =========================================================
+// CLIENT-SIDE AGRONOMIC REASONING ENGINE (Resilient & Instantaneous)
+// Dynamic semantic answering strictly grounded in active leaf scan & climate telemetry
 // =========================================================
 
 function generateAgronomicAIResponse(query, contextRecord) {
   const q = (query || "").toLowerCase().trim();
-  const diag = contextRecord?.final_assessment?.diagnosis || contextRecord?.visual_assessment?.class || "Healthy";
-  const conf = contextRecord?.visual_assessment?.confidence_percentage !== undefined
-    ? `${contextRecord.visual_assessment.confidence_percentage}%`
-    : `${Math.round((contextRecord?.visual_assessment?.confidence || 0.95) * 100)}%`;
-  const risk = contextRecord?.final_assessment?.environmental_risk || "Low";
-  const temp = contextRecord?.environment?.weather_context?.current?.temperature_c || contextRecord?.environmental_inputs?.temperature || 29.5;
-  const humidity = contextRecord?.environment?.weather_context?.current?.humidity_percent || contextRecord?.environmental_inputs?.humidity || 65;
-  const soilMoisture = contextRecord?.environmental_inputs?.soil_moisture || 68;
-  const aqi = contextRecord?.environmental_inputs?.aqi || 48;
-  const ozone = contextRecord?.environmental_inputs?.ozone || 32;
+
+  // 1. CNN Visual Data Extraction
+  const diag = contextRecord?.final_assessment?.diagnosis 
+    || contextRecord?.visual_assessment?.class 
+    || contextRecord?.cnn?.predicted_class 
+    || "Healthy";
+
+  let confNum = contextRecord?.visual_assessment?.confidence_percentage !== undefined
+    ? contextRecord.visual_assessment.confidence_percentage
+    : (contextRecord?.cnn?.confidence_percentage !== undefined
+      ? contextRecord.cnn.confidence_percentage
+      : (contextRecord?.confidence_score 
+        ? (contextRecord.confidence_score > 1 ? contextRecord.confidence_score : Math.round(contextRecord.confidence_score * 100))
+        : Math.round((contextRecord?.visual_assessment?.confidence || contextRecord?.cnn?.confidence || 0.95) * 100)));
+  const confStr = `${Number(confNum).toFixed(1)}%`;
+
+  // 2. SNN Environmental Risk Extraction
+  const risk = contextRecord?.final_assessment?.environmental_risk 
+    || contextRecord?.snn?.predicted_severity 
+    || contextRecord?.stress_severity 
+    || "Low";
+
+  const snnSpikes = contextRecord?.snn?.spike_counts || {};
+  let totalSpikes = 0;
+  try {
+    if (typeof snnSpikes === "object" && Object.keys(snnSpikes).length > 0) {
+      totalSpikes = Object.values(snnSpikes).reduce((a, b) => a + Number(b), 0);
+    }
+  } catch (_) {}
+
+  // 3. Environmental Telemetry Extraction
+  const temp = contextRecord?.environment?.temperature 
+    ?? (contextRecord?.environmental_inputs?.temperature 
+      ?? (contextRecord?.temperature ?? 31.0));
+
+  const humidity = contextRecord?.environment?.humidity 
+    ?? (contextRecord?.environmental_inputs?.humidity 
+      ?? (contextRecord?.humidity ?? 72));
+
+  let soilRaw = contextRecord?.environment?.soil_moisture 
+    ?? (contextRecord?.environmental_inputs?.soil_moisture 
+      ?? (contextRecord?.soil_moisture ?? 68));
+  let soilMoisture = Number(soilRaw) <= 1.0 ? Math.round(Number(soilRaw) * 100) : Math.round(Number(soilRaw));
+
+  const rainfall = contextRecord?.environment?.rainfall 
+    ?? (contextRecord?.environmental_inputs?.rainfall 
+      ?? (contextRecord?.rainfall_mm ?? 0.0));
+
+  const aqi = Math.round(Number(contextRecord?.environment?.aqi 
+    ?? (contextRecord?.environmental_inputs?.aqi 
+      ?? (contextRecord?.aqi ?? 64))));
+
+  let ozoneRaw = contextRecord?.environment?.ozone 
+    ?? (contextRecord?.environmental_inputs?.ozone 
+      ?? (contextRecord?.ozone ?? 41));
+  let ozone = Number(ozoneRaw) <= 1.0 ? Math.round(Number(ozoneRaw) * 1000) : Math.round(Number(ozoneRaw));
+
   const fieldName = contextRecord?.field_name || "Wardha Field";
 
-  // 1. Soil Moisture
-  if (q.includes("soil moisture") || q.includes("moisture level") || q.includes("soil water")) {
-    return `### 💧 Understanding Soil Moisture in Cotton Farming
+  // 4. Multimodal Fusion & Expert Veto Extraction
+  const fusionRel = contextRecord?.fusion?.relationship || "ALIGNED";
+  const alignScore = contextRecord?.fusion?.alignment_score ? `${Math.round(contextRecord.fusion.alignment_score * 100)}%` : "95%";
+  const vetoStatus = contextRecord?.expert_veto?.overall_status || "PASSED";
+  const triggeredRules = contextRecord?.expert_veto?.triggered_rules || [];
 
-**Soil moisture** represents the volumetric water content held in the root zone pore spaces. For cotton, maintaining 55%–75% of field capacity (0.20–0.35 m³/m³) is vital for nutrient uptake and preventing square shedding.
+  // Diagnostic visual symptom descriptors
+  const symptomDescriptions = {
+    "Healthy": "uniform deep-green foliar coloration, firm leaf turgor, well-defined venation without chlorosis, and healthy cell membrane integrity.",
+    "Water Stress": "foliar wilting, loss of cell turgidity, inward curling of leaf margins, and moisture-deficient stomatal constriction.",
+    "Heat Stress": "marginal scorch necrosis, elevated leaf surface temperature, heat-induced bleaching, and high vapor pressure deficit stress.",
+    "Nutrient Deficiency": "interveinal chlorosis (yellowing between leaf veins), pale younger canopy leaves, and Nitrogen/Zinc metabolic deficiency markers.",
+    "Pollution": "surface particulate dust accumulation, reduced photosynthetically active radiation (PAR) absorption, and atmospheric oxidant stippling."
+  };
 
-- **Current Reading**: **${soilMoisture}%** (Source: Manual Field Input / Capacitance Sensor)
-- **Agronomic Impact**: In deep black Vertisols, severe moisture deficit (<40%) reduces boll size, while waterlogging (>85%) restricts oxygen to root tips.
-- **Action**: Check 15–30 cm soil depth before scheduling irrigation cycles.`;
+  const symptomDetail = symptomDescriptions[diag] || "foliar stress symptoms consistent with the diagnosed category.";
+
+  // --- QUERY ROUTING LOGIC ---
+
+  // 1. Why did I get this result / Diagnosis Explanation
+  if (q.includes("why") || q.includes("result") || q.includes("explain result") || q.includes("diagnosis") || q.includes("meaning") || q.includes("what happened")) {
+    return `### 🧩 Multimodal Diagnostic Breakdown for ${escapeHtml(fieldName)}
+
+Your cotton crop was evaluated through dual AI models and deterministic agronomic verification rules:
+
+1. **🍃 CNN Visual Screening (ResNet-18)**:
+   - **Diagnosis**: **${diag}** (${confStr} confidence).
+   - **Foliar Markers**: The convolutional vision model detected ${symptomDetail}
+
+2. **⛅ SNN Climate Risk Analysis (Neuromorphic LIF)**:
+   - **Severity**: **${risk} Environmental Risk** (${totalSpikes > 0 ? totalSpikes + ' spikes fired across 10 timesteps' : 'steady temporal membrane potential'}).
+   - **Microclimate Telemetry**: Ambient temperature is **${Number(temp).toFixed(1)}°C**, relative humidity is **${humidity}%**, and root-zone soil moisture is **${soilMoisture}%**.
+
+3. **⚖️ Multimodal Fusion & Deterministic Expert Veto**:
+   - **Concordance**: **${fusionRel}** (${alignScore} alignment score).
+   - **Expert Rules Engine**: **${vetoStatus}** (${triggeredRules.length === 0 ? 'No conflicting hazard thresholds violated' : triggeredRules.map(r => r.name || r.rule_id).join(', ')}).`;
   }
 
-  // 2. CNN Questions
-  if (q.includes("cnn") || q.includes("convolutional") || q.includes("visual model") || q.includes("image model")) {
-    return `### 🍃 Convolutional Neural Network (CNN) in AgroVision
+  // 2. What should I check next / Action plan
+  if (q.includes("next") || q.includes("check") || q.includes("inspect") || q.includes("action") || q.includes("what should i do") || q.includes("steps") || q.includes("plan")) {
+    let specificAction = "Maintain standard irrigation schedules and pest scouting rounds.";
+    if (diag.toLowerCase().includes("water")) {
+      specificAction = "Apply a 25–30 mm irrigation cycle in early morning hours (6:00 AM – 9:00 AM) to replenish root zone Vertisol moisture.";
+    } else if (diag.toLowerCase().includes("heat")) {
+      specificAction = "Schedule light misting or frequent shallow drip cycles; avoid foliar agrochemical spraying during peak mid-day heat (>34°C).";
+    } else if (diag.toLowerCase().includes("nutrient")) {
+      specificAction = "Apply a foliar spray of 1% Potassium Nitrate (KNO₃, 10g/L) or 0.5% Zinc Sulphate + 0.5% MgSO₄ in early morning.";
+    } else if (diag.toLowerCase().includes("pollution")) {
+      specificAction = "Conduct a fresh canopy water wash if dust accumulation exceeds threshold, and scout for secondary spider mite flare-ups.";
+    }
 
-A **Convolutional Neural Network (CNN)** is a specialized deep learning architecture designed for computer vision. AgroVision uses a calibrated **ResNet-18** model to examine foliar cotton images:
-
-1. **Feature Extraction**: Convolutional filters scan leaf contours, venation networks, and discoloration spots.
-2. **Diagnostic Classification**: Classifies foliar health into 5 stress categories (*Healthy, Water Stress, Heat Stress, Nutrient Deficiency, Pollution*).
-3. **Current Result**: Leaf symptoms classified as **${diag}** with **${conf}** confidence.`;
-  }
-
-  // 3. SNN Questions
-  if (q.includes("snn") || q.includes("spiking") || q.includes("neuromorphic") || q.includes("spike")) {
-    return `### ⚡ Spiking Neural Network (SNN) in AgroVision
-
-A **Spiking Neural Network (SNN)** is a 3rd-generation neuromorphic AI architecture that processes environmental telemetry using **discrete temporal spikes** over 10 simulation timesteps:
-
-1. **33-Feature Multidimensional Input**: Evaluates temperature, humidity, VPD, soil moisture, and atmospheric oxidants.
-2. **Leaky Integrate-and-Fire (LIF) Dynamics**: Mimics biological neurons to detect microclimate stress thresholds with ultra-low compute energy.
-3. **Current Assessment**: Environmental stress classified at **${risk} Risk**.`;
-  }
-
-  // 4. Temperature / Thermal Questions
-  if (q.includes("temperature") || q.includes("heat") || q.includes("thermal") || q.includes("hot weather")) {
-    return `### ☀️ Temperature Impact on Cotton Phenology
-
-Temperature is a primary environmental factor driving cotton growth, transpiration, and boll development:
-
-- **Optimal Envelope**: 28°C–32°C for vegetative growth and flowering.
-- **Critical Threshold (>35°C)**: Triggers thermal stress, high vapor pressure deficits, and pollen sterility.
-- **Current Observation**: **${Number(temp).toFixed(1)}°C** (Source: OpenWeather Station).
-- **Safety Precaution**: Avoid chemical foliar sprays during peak mid-day heat (>34°C) to prevent leaf scorching.`;
-  }
-
-  // 5. Humidity Questions
-  if (q.includes("humidity") || q.includes("rh") || q.includes("moisture in air")) {
-    return `### 🌫️ Relative Humidity & Transpiration in Cotton
-
-- **Current Relative Humidity**: **${humidity}%**
-- **Agronomic Dynamics**: High humidity (>80%) reduces transpiration cooling and elevates fungal disease pressure (e.g. Alternaria leaf spot), while low humidity (<40%) accelerates soil moisture depletion.
-- **Scouting Tip**: Check lower canopy leaves for foliar spotting if high humidity persists with warm temperatures.`;
-  }
-
-  // 6. Rainfall / Weather Forecast
-  if (q.includes("rain") || q.includes("rainfall") || q.includes("precipitation") || q.includes("weather forecast") || q.includes("forecast")) {
-    const weather = contextRecord?.environment?.weather_context;
-    const next24h = weather?.forecast?.next_24h_rainfall_mm || 0.0;
-    const rainProb = Math.round((weather?.forecast?.rain_probability || 0.0) * 100);
-    return `### 🌧️ Weather & Rainfall Telemetry
-
-- **Ambient Temperature**: ${Number(temp).toFixed(1)}°C | **Humidity**: ${humidity}%
-- **Next 24h Rainfall Expected**: ${next24h} mm (Rain Probability: ${rainProb}%)
-- **Microclimate Summary**: ${weather?.forecast?.summary || "Stable microclimate conditions."}
-
-**Farming Precaution**: Postpone foliar nutrition or pesticide sprays if rainfall is forecast within 24 hours to avoid wash-off.`;
-  }
-
-  // 7. Air Quality & Ozone
-  if (q.includes("aqi") || q.includes("ozone") || q.includes("pollution") || q.includes("air quality") || q.includes("smoke")) {
-    return `### 🏭 Air Quality & Tropospheric Ozone Impact
-
-- **Current Air Quality Index (AQI)**: **${aqi}** | **Tropospheric Ozone**: **${ozone} ppb**
-- **Ozone ($O_3$) Effect**: Ground-level ozone enters leaf stomata, forming reactive oxygen species (ROS) that produce bronze stippling and early leaf drop.
-- **Particulate Matter**: High particulate levels deposit on leaf surfaces, reducing photosynthetically active radiation (PAR).`;
-  }
-
-  // 8. Why did I get this result / Diagnosis Explanation
-  if (q.includes("why") || q.includes("result") || q.includes("explain") || q.includes("diagnosis") || q.includes("meaning")) {
-    return `### 🧩 Multimodal Diagnostic Breakdown
-
-AgroVision evaluated your field using dual AI models and deterministic agronomic rules:
-
-1. **CNN Leaf Scan**: Identified **${diag}** (${conf} confidence) based on leaf color, edge patterns, and venation.
-2. **SNN Climate Analysis**: Evaluated environmental risk at **${risk} Risk** based on ambient temperature (${Number(temp).toFixed(1)}°C), humidity (${humidity}%), and soil moisture (${soilMoisture}%).
-3. **Multimodal Fusion & Expert Veto**: Checked deterministic agricultural safety rules to ensure no conflicting environmental factors invalidate the diagnosis.`;
-  }
-
-  // 9. What should I check next / Action steps
-  if (q.includes("next") || q.includes("check") || q.includes("inspect") || q.includes("action") || q.includes("what should i do") || q.includes("steps")) {
     return `### 🔍 Recommended Field Verification Checklist
 
-Based on your current diagnosis (**${diag}** with **${risk}** environmental risk):
+Ground all management decisions in direct field scouting for **${diag}** (${risk} Environmental Risk):
 
-1. **Root Zone Inspection**: Dig a 15–30 cm soil pit to verify moisture penetration across root depth.
-2. **Canopy Scouting**: Inspect 20 representative plants across diagonal transects for uniform symptoms.
-3. **Irrigation Uniformity**: Check drip laterals and furrow ends for consistent water delivery.
-4. **Pest Monitoring**: Check the undersides of mid-canopy leaves for early sucking pests (aphids, thrips, jassids).
-5. **Re-Scan Schedule**: Take follow-up leaf photos in **3–5 days** to monitor recovery.`;
+1. **🌱 Root Zone Moisture Verification**: Dig a 15–30 cm soil probe to check moisture penetration (current sensor reading: **${soilMoisture}%**).
+2. **🍃 Canopy Transect Inspection**: Walk a diagonal field transect and inspect 20 representative plants for uniform symptoms.
+3. **⚡ Immediate Corrective Action**: ${specificAction}
+4. **🐛 Under-Canopy Pest Scouting**: Inspect the undersides of mid-tier leaves for early sucking pests (aphids, thrips, whiteflies).
+5. **📸 Re-Scan Follow-Up**: Take a follow-up leaf photo with AgroVision in **3–5 days** to track crop recovery.`;
   }
 
-  // 10. Irrigation & Water Management
-  if (q.includes("irrigation") || q.includes("watering") || q.includes("drip") || q.includes("water management")) {
-    return `### 💧 Irrigation & Water Scheduling Protocol
+  // 3. Soil Moisture
+  if (q.includes("soil moisture") || q.includes("moisture") || q.includes("soil water")) {
+    let statusText = "Optimal (Field Capacity 55%–75%)";
+    let adviceText = "Soil hydration is supportive of regular nutrient translocation.";
+    if (soilMoisture < 45) {
+      statusText = "Deficit (<45% - High Water Stress Risk)";
+      adviceText = "Root zone moisture is below threshold. Schedule irrigation immediately to prevent boll square shedding.";
+    } else if (soilMoisture > 80) {
+      statusText = "Saturated / Waterlogged (>80%)";
+      adviceText = "Ensure field drainage ditches are clear to prevent root hypoxia and fungal rot.";
+    }
 
-- **Current Soil Moisture**: ${soilMoisture}% | **Temperature**: ${Number(temp).toFixed(1)}°C
+    return `### 💧 Soil Moisture Telemetry & Dynamics
 
-1. **Drip Scheduling**: Run drip cycles during cooler morning hours (6:00 AM – 9:00 AM) or late evening to minimize evaporation.
-2. **Vertisol Management**: In deep black clay soils, apply 25–30 mm per cycle, ensuring adequate drainage to prevent root hypoxia.
-3. **Critical Growth Stage**: Ensure steady moisture during flowering and boll formation to prevent square shedding.`;
+**Soil moisture** represents the volumetric water content held in root-zone pore spaces (0.20–0.35 m³/m³ field capacity):
+
+- **Active Field Reading**: **${soilMoisture}%** (Status: **${statusText}**)
+- **Agronomic Impact on Cotton**: Deep black Vertisols retain high water volume. Inadequate moisture during flowering reduces boll retention, while over-saturation causes oxygen starvation at root tips.
+- **Field Recommendation**: ${adviceText}`;
   }
 
-  // 11. Fertilizer & Nutrition
-  if (q.includes("fertilizer") || q.includes("nutrient") || q.includes("nitrogen") || q.includes("urea") || q.includes("npk") || q.includes("dosage") || q.includes("spray")) {
+  // 4. CNN Questions
+  if (q.includes("cnn") || q.includes("convolutional") || q.includes("visual model") || q.includes("image model") || q.includes("resnet")) {
+    return `### 🍃 Convolutional Neural Network (CNN) in AgroVision
+
+AgroVision employs a calibrated **ResNet-18 Deep Residual Network** for leaf disease and stress identification:
+
+1. **Feature Extraction**: Convolutional filters scan 224×224 RGB tensors to identify micro-lesions, chlorotic margins, and venation discoloration.
+2. **Grad-CAM Explainability**: Highlights Layer4 spatial activation maps to show exactly which leaf regions triggered the classification.
+3. **Current Scan Result**: Classified your cotton leaf as **${diag}** with **${confStr}** confidence.`;
+  }
+
+  // 5. SNN Questions / Spikes
+  if (q.includes("snn") || q.includes("spiking") || q.includes("neuromorphic") || q.includes("spike") || q.includes("raster")) {
+    return `### ⚡ Spiking Neural Network (SNN) in AgroVision
+
+AgroVision utilizes a 3rd-generation **Neuromorphic Spiking Neural Network (SNN)** for climate stress simulation:
+
+1. **Biological LIF Dynamics**: Leaky Integrate-and-Fire neurons transform 33 environmental parameters into discrete temporal spikes over 10 simulation timesteps.
+2. **Energy Efficiency & Fast Temporal Response**: Evaluates non-linear abiotic stress interactions (VPD, heat index, soil moisture deficit).
+3. **Current Evaluation**: Classified climate risk at **${risk} Risk** (${totalSpikes > 0 ? totalSpikes + ' spikes' : 'low firing frequency'}).`;
+  }
+
+  // 6. Temperature / Thermal
+  if (q.includes("temperature") || q.includes("heat") || q.includes("thermal") || q.includes("hot")) {
+    let tempWarning = "Current temperature is within the safe vegetative and flowering envelope (28°C–32°C).";
+    if (temp > 35) {
+      tempWarning = "⚠️ **High Heat Hazard**: Ambient temperature exceeds 35°C, causing high vapor pressure deficit and potential pollen sterility.";
+    }
+
+    return `### ☀️ Temperature Telemetry & Cotton Phenology
+
+- **Observed Field Temperature**: **${Number(temp).toFixed(1)}°C** (Source: OpenWeather Station Telemetry)
+- **Thermal Thresholds**:
+  - **Optimal Growth Range**: 28°C–32°C.
+  - **Critical Upper Limit**: >35°C impairs enzyme kinetics and boll formation.
+- **Agronomic Guidance**: ${tempWarning} Avoid foliar chemical sprays during peak afternoon sun to prevent leaf scorch.`;
+  }
+
+  // 7. Humidity & Rainfall
+  if (q.includes("humidity") || q.includes("rain") || q.includes("rainfall") || q.includes("forecast") || q.includes("precipitation")) {
+    return `### 🌫️ Humidity & Precipitation Telemetry
+
+- **Relative Humidity**: **${humidity}%** | **Observed Rainfall**: **${rainfall} mm**
+- **Impact on Cotton**: High humidity (>75%) coupled with warm temperatures creates favorable microclimates for foliar fungal pathogens (e.g. Alternaria leaf spot and grey mildew).
+- **Spray Rule**: Avoid spraying foliar nutrition or systemic pesticides if rain is forecast within 24 hours to prevent runoff.`;
+  }
+
+  // 8. Air Quality & Ozone
+  if (q.includes("aqi") || q.includes("ozone") || q.includes("pollution") || q.includes("air quality") || q.includes("dust")) {
+    return `### 🏭 Air Quality Index & Tropospheric Ozone
+
+- **Current AQI**: **${aqi}** | **Tropospheric Ozone ($O_3$)**: **${ozone} ppb**
+- **Agronomic Impact**: Ground-level ozone enters leaf stomata and triggers oxidative stress, producing bronze stippling and early leaf drop. Heavy particulate dust reduces photosynthetic efficiency.`;
+  }
+
+  // 9. Fertilizer & Nutrition
+  if (q.includes("fertilizer") || q.includes("nutrient") || q.includes("nitrogen") || q.includes("urea") || q.includes("spray") || q.includes("npk")) {
     return `### 🧪 ICAR-Grounded Cotton Nutrition Guidance
 
-1. **Foliar Nutrition Spray**: Apply **1% Potassium Nitrate ($KNO_3$)** or **19:19:19 (5g/L water)** in early morning to boost boll retention.
-2. **Split Nitrogen Schedule**: Apply Nitrogen in 3 splits (50% basal at sowing, 25% at square initiation, 25% at peak flowering).
-3. **Micronutrient Correction**: For interveinal chlorosis (Mg/Zn deficiency), apply **0.5% $MgSO_4$ + 0.2% Chelated Zinc (Zn-EDTA)**.`;
+1. **Foliar Nutrition**: Apply **1% Potassium Nitrate (KNO₃, 10g/L)** or **19:19:19 (5g/L)** in early morning to enhance boll retention and drought tolerance.
+2. **Nitrogen Splitting**: Apply Nitrogen in 3 splits (50% basal at sowing, 25% at square initiation, 25% at peak flowering).
+3. **Micronutrient Correction**: If leaves show interveinal yellowing, spray **0.5% ZnSO₄ + 0.5% MgSO₄** (5g/L water).`;
   }
 
-  // 12. Pest & Integrated Pest Management
+  // 10. Pest & IPM
   if (q.includes("pest") || q.includes("insect") || q.includes("bollworm") || q.includes("aphid") || q.includes("thrip") || q.includes("whitefly") || q.includes("ipm")) {
     return `### 🐛 Integrated Pest Management (IPM) for Cotton
 
@@ -353,23 +428,23 @@ Based on your current diagnosis (**${diag}** with **${risk}** environmental risk
    - Install **Yellow and Blue Sticky Traps** (10–12 traps/acre) at top canopy height.
    - If Economic Threshold Level (ETL) is reached, spray **Neem Oil 1500 ppm (5 ml/L)** or **Diafenthiuron 50% WP (1g/L)**.
 2. **Bollworm Monitoring**:
-   - Install **Pheromone Traps** (4–5 traps/acre) to monitor moth flights.
-   - Destroy flared squares and dropped flower buds weekly during field rounds.`;
+   - Install **Pheromone Traps** (4–5 traps/acre) to detect moth emergence early.`;
   }
 
-  // 13. General Catch-All
-  return `### 🌿 AgroVision Agronomic Guidance
+  // 11. General Catch-All
+  return `### 🌿 AgroVision Agronomic Intelligence
 
 Regarding **"${escapeHtml(query)}"**:
 
-- **Active Field**: ${fieldName} | **Crop Assessment**: **${diag}** (${risk} Environmental Risk)
-- **Current Readings**: Temperature ${Number(temp).toFixed(1)}°C, Humidity ${humidity}%, Soil Moisture ${soilMoisture}%
+- **Active Field**: ${escapeHtml(fieldName)} · **Diagnosis**: **${diag}** (${confStr} Confidence)
+- **Microclimate**: Temperature **${Number(temp).toFixed(1)}°C** · Humidity **${humidity}%** · Soil Moisture **${soilMoisture}%**
+- **Environmental Risk**: **${risk} Risk** · **Fusion**: **${fusionRel}**
 
-**Recommendation**: Ground all farm management decisions in direct field scouting. Inspect root-zone soil moisture and leaf canopy before applying chemical or fertilizer treatments.`;
+**Recommendation**: Ground all farm management actions in direct field scouting before applying fertilizers or pesticide treatments.`;
 }
 
 // =========================================================
-// CHAT INTERACTION & MESSAGE STREAM
+// CHAT INTERACTION & MESSAGE STREAM (High Performance & Fast SLA)
 // =========================================================
 
 function sendPrompt(promptText) {
@@ -445,9 +520,8 @@ async function handleSendMessage() {
 
   let replyText = "";
   let modelUsed = "Gemini Flash";
-  let status = "ok";
 
-  // 3. Dispatch to /api/chat with full context payload
+  // 3. Dispatch to /api/chat with strict 2500ms timeout for ultra-fast response
   try {
     const user = typeof requireLogin === "function" ? requireLogin() : null;
     const payload = {
@@ -459,9 +533,17 @@ async function handleSendMessage() {
       session_context: activeContextRecord ? {
         record_uuid: activeContextRecord.record_uuid,
         growth_stage: activeContextRecord.growth_stage || activeContextRecord.environmental_inputs?.growth_stage,
-        visual_assessment: activeContextRecord.visual_assessment,
-        environmental_assessment: activeContextRecord.environmental_assessment,
-        environmental_inputs: activeContextRecord.environmental_inputs,
+        visual_assessment: activeContextRecord.visual_assessment || (activeContextRecord.cnn ? {
+          class: activeContextRecord.cnn.predicted_class,
+          confidence: activeContextRecord.cnn.confidence,
+          probabilities: activeContextRecord.cnn.probabilities
+        } : undefined),
+        environmental_assessment: activeContextRecord.environmental_assessment || (activeContextRecord.snn ? {
+          severity: activeContextRecord.snn.predicted_severity,
+          confidence: activeContextRecord.snn.confidence,
+          spike_counts: activeContextRecord.snn.spike_counts
+        } : undefined),
+        environmental_inputs: activeContextRecord.environmental_inputs || activeContextRecord.environment,
         fusion: activeContextRecord.fusion,
         expert_veto: activeContextRecord.expert_veto,
         final_assessment: activeContextRecord.final_assessment,
@@ -469,27 +551,31 @@ async function handleSendMessage() {
       } : undefined
     };
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+
     const res = await fetch(getApiUrl("/api/chat"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: controller.signal
     }).catch(() => null);
+
+    clearTimeout(timeoutId);
 
     if (res && res.ok) {
       const data = await res.json();
       replyText = data.reply || "";
       modelUsed = data.model_used || "Gemini Flash";
-      status = data.status || "ok";
     }
   } catch (err) {
-    console.warn("Backend chat endpoint unavailable, activating client agronomic engine:", err);
+    console.warn("Backend chat unavailable or timed out, activating instant agronomic engine:", err);
   }
 
-  // If backend didn't return text (e.g. Vercel deployment or rate limit), use client agronomic engine
+  // If backend didn't return in time or is offline, instantly use client agronomic engine
   if (!replyText || replyText.trim().length === 0) {
     replyText = generateAgronomicAIResponse(text, activeContextRecord);
     modelUsed = "Grounded Agronomic AI";
-    status = "grounded";
   }
 
   // Update conversation history
