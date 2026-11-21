@@ -1225,18 +1225,19 @@
 
           </div>
 
+          <!-- Hidden compatibility elements for legacy script hooks -->
+            <div style="display:none;">
+              <div id="envDistCard"></div>
+              <canvas id="envDistCanvas" width="1" height="1"></canvas>
+              <div id="envDonutCenterLabel"><div id="envDonutTotalCount">0</div></div>
+              <div id="envDistLegend"></div>
+              <button type="button" id="envDistActiveFilterBadge" onclick="clearEnvCategoryFilter()"><span id="activeEnvFilterBadgeText"></span></button>
+              <div id="envDistLoading"></div>
+              <div id="envDistEmpty"></div>
+              <div id="envDistContent"></div>
+            </div>
           </div>
-            <!-- Hidden compatibility elements for legacy script hooks -->
-            <div id="envDistCard" style="display:none;"></div>
-            <canvas id="envDistCanvas" width="1" height="1" style="display:none;"></canvas>
-            <div id="envDonutCenterLabel" style="display:none;"><div id="envDonutTotalCount">0</div></div>
-            <div id="envDistLegend" style="display:none;"></div>
-            <button type="button" id="envDistActiveFilterBadge" style="display:none;" onclick="clearEnvCategoryFilter()"><span id="activeEnvFilterBadgeText"></span></button>
-            <div id="envDistLoading" style="display:none;"></div>
-            <div id="envDistEmpty" style="display:none;"></div>
-            <div id="envDistContent" style="display:none;"></div>
-          </div>
-        </div>
+
         <!-- 4. RECENT ANALYSES TABLE (Clean Farmer-Focused Log) -->
         <div class="panel" id="recentAnalysesPanel" style="width:100%; box-sizing:border-box;">
           <!-- Header with Title, Count, and "View All" -->

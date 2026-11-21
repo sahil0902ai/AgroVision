@@ -747,6 +747,68 @@ def get_record_report_html(record_identifier: str, db: Session = Depends(get_db)
     return HTMLResponse(content=html_content)
 
 
+
+
+@router.post("/records", status_code=status.HTTP_201_CREATED)
+def save_or_create_record(payload: dict[str, Any], db: Session = Depends(get_db)):
+    """
+    Saves or updates an analysis record directly from the dashboard 'Save to Field' action.
+    Guarantees the record appears in History & Reports and can generate print-ready reports.
+    """
+    import uuid as uuid_pkg
+    rec_uuid = payload.get("record_uuid") or f"AV-{uuid_pkg.uuid4().hex[:12].upper()}"
+    existing = db.query(AnalysisRecordDB).filter(AnalysisRecordDB.record_uuid == rec_uuid).first()
+    if existing:
+        return {"success": True, "record_uuid": existing.record_uuid, "message": "Record already saved."}
+
+    # Normalize soil moisture
+    sm_in = float(payload.get("soil_moisture", 0.68))
+    sm_ratio = sm_in / 100.0 if sm_in > 1.0 else sm_in
+
+    # Normalize ozone
+    oz_in = float(payload.get("ozone", 41.0))
+    oz_ppm = oz_in / 1000.0 if oz_in > 1.0 else oz_in
+
+    cnn_probs = payload.get("cnn_predictions_json") or payload.get("probabilities") or {}
+    spike_counts = payload.get("spike_counts_json") or {}
+    fusion_data = payload.get("fusion_json") or {}
+    expert_veto = payload.get("expert_veto_json") or {}
+    recs = payload.get("recommendations_json") or payload.get("recommendations") or []
+    weather_ctx = payload.get("weather_context_json")
+
+    db_record = AnalysisRecordDB(
+        record_uuid=rec_uuid,
+        user_email=str(payload.get("user_email") or "farmer@agrovision.org").strip().lower(),
+        field_name=str(payload.get("field_name") or "Field A — Wardha South Station"),
+        image_url=str(payload.get("image_url") or ""),
+        temperature=float(payload.get("temperature", 24.5)),
+        humidity=float(payload.get("humidity", 68.0)),
+        soil_moisture=sm_ratio,
+        rainfall_mm=float(payload.get("rainfall_mm", payload.get("rainfall", 0.0))),
+        forecast_rainfall_mm=float(payload.get("forecast_rainfall_mm", 0.0)),
+        aqi=float(payload.get("aqi", 50.0)),
+        ozone=oz_ppm,
+        growth_stage=str(payload.get("growth_stage", "Flowering")),
+        stress_severity=str(payload.get("stress_severity", "Low")),
+        confidence_score=float(payload.get("confidence_score", payload.get("confidence_percentage", 95.0))),
+        cnn_predictions_json=json.dumps(cnn_probs) if isinstance(cnn_probs, (dict, list)) else str(cnn_probs),
+        spike_counts_json=json.dumps(spike_counts) if isinstance(spike_counts, (dict, list)) else str(spike_counts),
+        fusion_json=json.dumps(fusion_data) if isinstance(fusion_data, (dict, list)) else str(fusion_data),
+        expert_veto_json=json.dumps(expert_veto) if isinstance(expert_veto, (dict, list)) else str(expert_veto),
+        recommendations_json=json.dumps(recs) if isinstance(recs, (dict, list)) else str(recs),
+        weather_source=str(payload.get("weather_source", "AUTO · Weather API")),
+        weather_context_json=json.dumps(weather_ctx) if isinstance(weather_ctx, (dict, list)) else (str(weather_ctx) if weather_ctx else None),
+        created_at=datetime.utcnow(),
+    )
+    db.add(db_record)
+    db.commit()
+    return {
+        "success": True,
+        "record_uuid": rec_uuid,
+        "message": "Record saved to Farm History & Reports successfully."
+    }
+
+
 @router.delete("/records/{record_identifier}")
 def delete_record(record_identifier: str, db: Session = Depends(get_db)):
     """
