@@ -111,12 +111,12 @@ function updateHeaderLocationBadge() {
   const isGpsActive = activeObj.field_id === "field-gps";
 
   if (locNameEl && activeObj) {
-    locNameEl.textContent = `${activeObj.field_name.replace(/^📍\s*/, '')} (${activeObj.latitude.toFixed(3)}°N, ${activeObj.longitude.toFixed(3)}°E)`;
-    locNameEl.title = `${activeObj.field_name} — Lat: ${activeObj.latitude}, Lon: ${activeObj.longitude}`;
+    // Hide redundant text label next to the interactive selector dropdown
+    locNameEl.style.display = "none";
   }
 
   if (locBadge && activeObj) {
-    locBadge.innerHTML = `<span style="font-size:13px;">📍</span> <span>${escapeHtml(activeObj.field_name)} (${activeObj.latitude.toFixed(3)}°N, ${activeObj.longitude.toFixed(3)}°E)</span>`;
+    locBadge.innerHTML = `<span style="font-size:13px;">📍</span> <span>${escapeHtml(activeObj.field_name)}</span>`;
   }
 
   if (gpsBtn) {
@@ -201,6 +201,7 @@ async function detectCurrentLocation(silent = false) {
 
       localStorage.setItem("agrovision_active_station_id", "field-gps");
       localStorage.setItem("agrovision_gps_coords", JSON.stringify({ lat, lon, name: cityName }));
+      localStorage.setItem("agrovision_active_field", JSON.stringify(gpsField));
 
       if (gpsBtn) {
         gpsBtn.disabled = false;
@@ -211,6 +212,7 @@ async function detectCurrentLocation(silent = false) {
       updateHeaderLocationBadge();
 
       if (window.AgroVisionSync) {
+        window.AgroVisionSync.setActiveField(gpsField);
         window.AgroVisionSync.emit("fieldChanged", gpsField);
       }
       if (typeof fetchOverviewWeather === "function") {
@@ -243,10 +245,12 @@ function handleHeaderFieldChange(event) {
   }
   localStorage.setItem("agrovision_active_station_id", fieldId);
   const found = userRegisteredFields.find(f => f.field_id === fieldId) || userRegisteredFields[0];
+  localStorage.setItem("agrovision_active_field", JSON.stringify(found));
   
   updateHeaderLocationBadge();
 
   if (window.AgroVisionSync) {
+    window.AgroVisionSync.setActiveField(found);
     window.AgroVisionSync.emit("fieldChanged", found);
   }
   // Trigger weather refresh across views

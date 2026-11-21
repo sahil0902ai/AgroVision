@@ -2947,32 +2947,43 @@ function renderFigure7(data) {
   const expertDesc = document.getElementById("exactExpertRuleDesc");
   const expertPrecaution = document.getElementById("exactExpertPrecaution");
 
+  const ruleTitles = {
+    "EVR-001": "🔥 Severe Heat Stress Safeguard",
+    "EVR-002": "💧 Drought & Wilting Safeguard",
+    "EVR-003": "🌫️ High Dust / Air Pollution Advisory",
+    "EVR-004": "🌧️ Waterlogging & Saturated Soil Alert",
+    "EVR-005": "🍄 High Humidity & Fungal Threat",
+    "EVR-006": "❄️ Low Temperature Growth Stunt Risk",
+    "EVR-007": "✅ All Agronomic Safeguards Passed"
+  };
+
   if (triggeredRules && triggeredRules.length > 0 && !(triggeredRules.length === 1 && triggeredRules[0].rule_id === "EVR-007")) {
     const topRule = triggeredRules[0];
+    const ruleTitle = ruleTitles[topRule.rule_id] || (topRule.rule_id ? `⚠️ Special Field Advisory (${topRule.rule_id})` : "⚠️ Field Precaution Active");
     if (expertBadge) {
-      expertBadge.textContent = `${topRule.rule_id} · ${topRule.condition || "Safeguard Active"}`;
+      expertBadge.textContent = ruleTitle;
       expertBadge.style.background = "#fef3c7";
       expertBadge.style.color = "#92400e";
       expertBadge.style.borderColor = "#fde68a";
     }
     if (expertDesc) {
-      expertDesc.textContent = topRule.why_triggered || "Environmental or foliar anomaly triggered a specialized agronomic veto rule.";
+      expertDesc.textContent = topRule.why_triggered || "Field telemetry or leaf symptoms triggered a specialized crop protection safeguard.";
     }
     if (expertPrecaution) {
-      expertPrecaution.innerHTML = `<strong>Agronomic Precaution / Rule Impact:</strong> ${escapeHtml(topRule.precaution || "Proceed with caution and perform on-site field validation.")}`;
+      expertPrecaution.innerHTML = `<strong>Field Guidance:</strong> ${escapeHtml(topRule.precaution || "Perform on-site leaf inspection and adjust irrigation or foliar spray accordingly.")}`;
     }
   } else {
     if (expertBadge) {
-      expertBadge.textContent = "EVR-007 · Standard Synthesis (Passed)";
+      expertBadge.textContent = "✅ Standard Growth Conditions (All Checks Passed)";
       expertBadge.style.background = "#ecfdf5";
       expertBadge.style.color = "#065f46";
       expertBadge.style.borderColor = "#a7f3d0";
     }
     if (expertDesc) {
-      expertDesc.textContent = "All visual symptoms and microclimate environmental variables have been cross-evaluated against 7 deterministic agronomic safety rules.";
+      expertDesc.textContent = "Field weather, leaf symptoms, and soil moisture are within normal, safe ranges for cotton cultivation.";
     }
     if (expertPrecaution) {
-      expertPrecaution.innerHTML = "<strong>Agronomic Precaution:</strong> Multimodal concordance confirmed. Standard irrigation scheduling and regular pest scouting protocols apply.";
+      expertPrecaution.innerHTML = "<strong>Field Guidance:</strong> Continue routine irrigation schedule and periodic pest scouting along field edges.";
     }
   }
 

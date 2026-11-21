@@ -15,6 +15,7 @@ except (ImportError, ModuleNotFoundError):
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import HTMLResponse, StreamingResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 
 router = APIRouter()
 
@@ -39,7 +40,15 @@ def get_records(
     query = db.query(AnalysisRecordDB)
 
     if isinstance(user_email, str) and user_email.strip():
-        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
+        clean_email = user_email.strip().lower()
+        query = query.filter(
+            or_(
+                AnalysisRecordDB.user_email == clean_email,
+                AnalysisRecordDB.user_email.is_(None),
+                AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+            )
+        )
 
     if isinstance(field_name, str) and field_name.strip():
         query = query.filter(AnalysisRecordDB.field_name.ilike(f"%{field_name.strip()}%"))
@@ -88,7 +97,15 @@ def export_records_csv(
     """
     query = db.query(AnalysisRecordDB)
     if isinstance(user_email, str) and user_email.strip():
-        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
+        clean_email = user_email.strip().lower()
+        query = query.filter(
+            or_(
+                AnalysisRecordDB.user_email == clean_email,
+                AnalysisRecordDB.user_email.is_(None),
+                AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+            )
+        )
     if isinstance(stress_severity, str) and stress_severity.strip():
         query = query.filter(AnalysisRecordDB.stress_severity.ilike(stress_severity.strip()))
     if isinstance(growth_stage, str) and growth_stage.strip():

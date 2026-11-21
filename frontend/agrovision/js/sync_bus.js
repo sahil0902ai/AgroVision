@@ -80,12 +80,29 @@
      */
     getActiveField() {
       try {
+        const stationId = localStorage.getItem("agrovision_active_station_id");
+        if (stationId === "field-gps") {
+          const gpsRaw = localStorage.getItem("agrovision_gps_coords");
+          if (gpsRaw) {
+            const gps = JSON.parse(gpsRaw);
+            if (gps && gps.lat && gps.lon) {
+              return {
+                field_id: "field-gps",
+                field_name: gps.name ? `📍 ${gps.name} (Live GPS)` : "📍 Current GPS Location",
+                zone_label: "Live Device GPS",
+                latitude: parseFloat(gps.lat),
+                longitude: parseFloat(gps.lon),
+                crop_stage: "Active Monitored"
+              };
+            }
+          }
+        }
         const stored = localStorage.getItem("agrovision_active_field");
         if (stored) return JSON.parse(stored);
       } catch (_) {}
       return {
         field_id: "field-a",
-        field_name: "Field A — North Parcel",
+        field_name: "Wardha Farm Station",
         zone_label: "Zone 1 (Wardha / Sindi)",
         latitude: 20.9750,
         longitude: 78.7200,

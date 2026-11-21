@@ -8788,13 +8788,7 @@ body.dash-body {
 }
 
 .loc-name {
-  font-size: 12px;
-  font-weight: 800;
-  color: #0f172a;
-  max-width: 190px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: none !important;
 }
 
 .btn-gps-auto-detect,

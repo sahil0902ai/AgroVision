@@ -468,12 +468,11 @@
             <span id="globalHeaderDate">Today</span>
           </div>
 
-          <!-- Prominent Real-Time GPS & Station Location Widget -->
+          <!-- Clean Real-Time GPS & Station Location Widget -->
           <div class="header-location-pill" id="headerLocationPill" title="Real-Time Farm Location">
             <span class="loc-pin-icon">📍</span>
             <div class="loc-text-group">
-              <span class="loc-label">Current Field Location</span>
-              <span class="loc-name" id="globalHeaderLocationName">Wardha Farm Station</span>
+              <span class="loc-label">Farm Location</span>
             </div>
             <select id="globalHeaderFieldSelector" class="header-field-select" onchange="handleHeaderFieldChange(event)" aria-label="Select Farm Location">
               <option value="field-a" selected>Wardha Station (20.975°N, 78.720°E)</option>
@@ -581,14 +580,14 @@
                   <span class="welcome-prompt-icon">💡</span>
                   <div>
                     <p class="welcome-prompt-text">Why did AgroVision give this result?</p>
-                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">Detailed breakdown of CNN &amp; SNN decisions</div>
+                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">Simple breakdown of leaf health &amp; climate factors</div>
                   </div>
                 </div>
 
                 <div class="welcome-prompt-card" onclick="sendPrompt('What environmental factors affected my assessment?')">
                   <span class="welcome-prompt-icon">🌤️</span>
                   <div>
-                    <p class="welcome-prompt-text">What environmental factors affected my assessment?</p>
+                    <p class="welcome-prompt-text">What weather factors affected my crop?</p>
                     <div style="font-size:10.5px; color:#64748b; margin-top:2px;">Examines temperature, soil moisture &amp; rainfall</div>
                   </div>
                 </div>
@@ -596,16 +595,16 @@
                 <div class="welcome-prompt-card" onclick="sendPrompt('What should I check in the field?')">
                   <span class="welcome-prompt-icon">🚜</span>
                   <div>
-                    <p class="welcome-prompt-text">What should I check in the field?</p>
-                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">Farmer-friendly physical verification steps</div>
+                    <p class="welcome-prompt-text">What should I check in my field today?</p>
+                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">Practical on-site scouting &amp; leaf checking steps</div>
                   </div>
                 </div>
 
                 <div class="welcome-prompt-card" onclick="sendPrompt('Explain my latest analysis simply.')">
                   <span class="welcome-prompt-icon">📋</span>
                   <div>
-                    <p class="welcome-prompt-text">Explain my latest analysis simply.</p>
-                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">Clear, plain-language agronomic summary</div>
+                    <p class="welcome-prompt-text">Explain my latest analysis simply</p>
+                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">Clear, plain-language advice for farmers</div>
                   </div>
                 </div>
               </div>
@@ -622,14 +621,14 @@
             <button class="chat-chip-btn" onclick="sendPrompt('Why did AgroVision give this result?')">
               Why did AgroVision give this result?
             </button>
-            <button class="chat-chip-btn" onclick="sendPrompt('What environmental factors affected my assessment?')">
-              What environmental factors affected my assessment?
+            <button class="chat-chip-btn" onclick="sendPrompt('What weather factors affected my crop?')">
+              What weather factors affected my crop?
             </button>
-            <button class="chat-chip-btn" onclick="sendPrompt('What should I check in the field?')">
-              What should I check in the field?
+            <button class="chat-chip-btn" onclick="sendPrompt('What should I check in my field today?')">
+              What should I check in my field today?
             </button>
             <button class="chat-chip-btn" onclick="sendPrompt('Explain my latest analysis simply.')">
-              Explain my latest analysis simply.
+              Explain my latest analysis simply
             </button>
           </div>
 
@@ -639,7 +638,7 @@
               type="text"
               id="chatInputField"
               class="chat-input-box"
-              placeholder="Ask about symptoms, soil moisture, irrigation timing, or expert rules…"
+              placeholder="Ask about leaf symptoms, watering schedule, fertilizer spray, or weather…"
               aria-label="Message to AI Assistant"
               onkeydown="handleInputKeydown(event)"
             />

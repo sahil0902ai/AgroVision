@@ -9,7 +9,7 @@ except ImportError:
     from ....core.database import get_db
     from ....models.db_models import AnalysisRecordDB
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -22,7 +22,15 @@ def get_analytics_summary(
 ):
     query = db.query(AnalysisRecordDB)
     if isinstance(user_email, str) and user_email.strip():
-        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
+        clean_email = user_email.strip().lower()
+        query = query.filter(
+            or_(
+                AnalysisRecordDB.user_email == clean_email,
+                AnalysisRecordDB.user_email.is_(None),
+                AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+            )
+        )
 
     total_scans = query.count()
 
@@ -97,7 +105,15 @@ def get_analytics_trend(
         AnalysisRecordDB.created_at <= end_dt
     )
     if isinstance(user_email, str) and user_email.strip():
-        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
+        clean_email = user_email.strip().lower()
+        query = query.filter(
+            or_(
+                AnalysisRecordDB.user_email == clean_email,
+                AnalysisRecordDB.user_email.is_(None),
+                AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+            )
+        )
 
     records = query.order_by(AnalysisRecordDB.created_at.asc()).all()
 
@@ -232,7 +248,15 @@ def get_visual_stress_distribution(
     """
     query = db.query(AnalysisRecordDB)
     if isinstance(user_email, str) and user_email.strip():
-        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
+        clean_email = user_email.strip().lower()
+        query = query.filter(
+            or_(
+                AnalysisRecordDB.user_email == clean_email,
+                AnalysisRecordDB.user_email.is_(None),
+                AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+            )
+        )
     records = query.all()
     total_analyses = len(records)
 
@@ -310,7 +334,15 @@ def get_environmental_stress_distribution(
     """
     query = db.query(AnalysisRecordDB)
     if isinstance(user_email, str) and user_email.strip():
-        query = query.filter(AnalysisRecordDB.user_email == user_email.strip().lower())
+        clean_email = user_email.strip().lower()
+        query = query.filter(
+            or_(
+                AnalysisRecordDB.user_email == clean_email,
+                AnalysisRecordDB.user_email.is_(None),
+                AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+            )
+        )
 
     total = query.count()
     

@@ -115,12 +115,11 @@
             <span id="globalHeaderDate">Today</span>
           </div>
 
-          <!-- Prominent Real-Time GPS & Station Location Widget -->
+          <!-- Clean Real-Time GPS & Station Location Widget -->
           <div class="header-location-pill" id="headerLocationPill" title="Real-Time Farm Location">
             <span class="loc-pin-icon">📍</span>
             <div class="loc-text-group">
-              <span class="loc-label">Current Field Location</span>
-              <span class="loc-name" id="globalHeaderLocationName">Wardha Farm Station</span>
+              <span class="loc-label">Farm Location</span>
             </div>
             <select id="globalHeaderFieldSelector" class="header-field-select" onchange="handleHeaderFieldChange(event)" aria-label="Select Farm Location">
               <option value="field-a" selected>Wardha Station (20.975°N, 78.720°E)</option>
@@ -136,14 +135,8 @@
             </button>
           </div>
 
-          <!-- Presentation Mode Toggle -->
-          <button type="button" class="presentation-toggle-btn" id="presentationModeBtn" onclick="togglePresentationMode()" title="Toggle Presentation & Judge Mode">
-            <span>🖥️</span>
-            <span>Judge Mode</span>
-          </button>
-
           <!-- Reset / New Analysis Trigger -->
-          <button onclick="resetAnalysisState()" class="btn btn-primary" style="padding:7px 12px; font-size:11.5px; border-radius:8px; font-weight:700; white-space:nowrap;" title="Reset Form">
+          <button onclick="resetAnalysisState()" class="btn btn-primary" style="padding:7px 14px; font-size:12px; border-radius:8px; font-weight:700; white-space:nowrap;" title="Reset Form">
             + Reset
           </button>
 
@@ -179,51 +172,34 @@
         </div>
       </header>
 
-      <!-- Exit Presentation Banner (Only shown when Presentation Mode is Active) -->
-      <div class="exit-presentation-bar" id="exitPresentationBar">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <span style="font-size:22px;">🖥️</span>
-          <div>
-            <strong style="font-size:13.5px; letter-spacing:0.02em;">AGROVISION LIVE JUDGE MODE / PRESENTATION VIEW</strong>
-            <div style="font-size:11px; color:#a7f3d0;">Full execution pipeline trace · Verified real model inference · Zero mock data</div>
-          </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span id="presModeLatencyBadge" style="font-size:11px; background:rgba(255,255,255,0.15); padding:4px 12px; border-radius:999px; font-weight:700;">Measured Latency: 26.3ms</span>
-          <button type="button" onclick="togglePresentationMode()" class="btn btn-outline" style="background:#ffffff; color:#0d3b2e; border:none; padding:6px 14px; font-size:11.5px; font-weight:800; border-radius:6px; cursor:pointer;">
-            Exit Judge Mode (ESC) ✕
-          </button>
-        </div>
-      </div>
-
       <!-- Guided Workflow Stepper / Step Progress Bar -->
       <div class="view-stepper" id="flowStepper">
         <button class="view-step-btn active" id="stepBtnInput" onclick="switchView('input')">
           <span class="view-step-badge" id="stepBadge1">1</span>
           <div class="view-step-text-wrap">
             <span class="view-step-num">Step 1</span>
-            <span class="view-step-name">🌿 Leaf &amp; Environment</span>
+            <span class="view-step-name">📸 Leaf &amp; Weather</span>
           </div>
         </button>
         <button class="view-step-btn" id="stepBtnCNN" onclick="switchView('cnn')">
           <span class="view-step-badge" id="stepBadge2">2</span>
           <div class="view-step-text-wrap">
             <span class="view-step-num">Step 2</span>
-            <span class="view-step-name">🍃 Visual Screening (CNN)</span>
+            <span class="view-step-name">🌿 Leaf Health Check</span>
           </div>
         </button>
         <button class="view-step-btn" id="stepBtnSNN" onclick="switchView('snn')">
           <span class="view-step-badge" id="stepBadge3">3</span>
           <div class="view-step-text-wrap">
             <span class="view-step-num">Step 3</span>
-            <span class="view-step-name">⛅ Climate Risk (SNN)</span>
+            <span class="view-step-name">🌦️ Weather &amp; Soil Risk</span>
           </div>
         </button>
         <button class="view-step-btn" id="stepBtnCombined" onclick="switchView('combined')">
           <span class="view-step-badge" id="stepBadge4">4</span>
           <div class="view-step-text-wrap">
             <span class="view-step-num">Step 4</span>
-            <span class="view-step-name">🧩 Combined Assessment</span>
+            <span class="view-step-name">📋 Farm Action Plan</span>
           </div>
         </button>
       </div>
@@ -352,50 +328,44 @@
             </div>
           </div>
 
-          <!-- Technical Details & Model Telemetry Card (Fills Bottom Gap Cleanly) -->
-          <div class="leaf-specs-card" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+          <!-- Farmer Photography Guide & Quick Tips -->
+          <div class="leaf-guide-card" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:800; color:#0d3b2e;">
-                <span>🔬</span>
-                <span>CNN Visual Ingestion Specifications</span>
+              <div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800; color:#065f46;">
+                <span>📸</span>
+                <span>Best Photo Guide for Accurate Results</span>
               </div>
-              <span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">ResNet-18 Custom</span>
+              <span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Field Tips</span>
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:11px;">
-              <div style="background:#f8fafc; border:1px solid #edf2f7; border-radius:8px; padding:7px 9px;">
-                <div style="color:#64748b; font-size:9.5px; font-weight:700; text-transform:uppercase;">Input Tensor</div>
-                <div style="color:#0f172a; font-weight:700; font-size:11.5px; margin-top:1px;">224 × 224 RGB</div>
-                <div style="color:#94a3b8; font-size:9.5px;">Normalized (PyTorch)</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; font-size:11.5px; color:#334155;">
+              <div style="display:flex; align-items:center; gap:6px; background:#f8fafc; padding:6px 8px; border-radius:8px; border:1px solid #f1f5f9;">
+                <span>☀️</span> <span>Clear daylight, avoid shadows</span>
               </div>
-              <div style="background:#f8fafc; border:1px solid #edf2f7; border-radius:8px; padding:7px 9px;">
-                <div style="color:#64748b; font-size:9.5px; font-weight:700; text-transform:uppercase;">Visual XAI</div>
-                <div style="color:#0f172a; font-weight:700; font-size:11.5px; margin-top:1px;">Grad-CAM Heatmap</div>
-                <div style="color:#94a3b8; font-size:9.5px;">Layer4 Conv Activation</div>
+              <div style="display:flex; align-items:center; gap:6px; background:#f8fafc; padding:6px 8px; border-radius:8px; border:1px solid #f1f5f9;">
+                <span>🍃</span> <span>One leaf filling the camera frame</span>
               </div>
-              <div style="background:#f8fafc; border:1px solid #edf2f7; border-radius:8px; padding:7px 9px;">
-                <div style="color:#64748b; font-size:9.5px; font-weight:700; text-transform:uppercase;">Diagnostic Target</div>
-                <div style="color:#0f172a; font-weight:700; font-size:11.5px; margin-top:1px;">5-Class Stress</div>
-                <div style="color:#94a3b8; font-size:9.5px;">Foliar Phenotyping</div>
+              <div style="display:flex; align-items:center; gap:6px; background:#f8fafc; padding:6px 8px; border-radius:8px; border:1px solid #f1f5f9;">
+                <span>📱</span> <span>Hold steady 15–20 cm from leaf</span>
               </div>
-              <div style="background:#f8fafc; border:1px solid #edf2f7; border-radius:8px; padding:7px 9px;">
-                <div style="color:#64748b; font-size:9.5px; font-weight:700; text-transform:uppercase;">Inference SLA</div>
-                <div style="color:#059669; font-weight:700; font-size:11.5px; margin-top:1px;">⚡ &lt;30ms Hardware</div>
-                <div style="color:#94a3b8; font-size:9.5px;">94.8% Val Accuracy</div>
+              <div style="display:flex; align-items:center; gap:6px; background:#f8fafc; padding:6px 8px; border-radius:8px; border:1px solid #f1f5f9;">
+                <span>🌿</span> <span>Middle canopy leaves recommended</span>
               </div>
             </div>
 
-            <div style="margin-top:8px; padding-top:7px; border-top:1px dashed #e2e8f0; font-size:10.5px; color:#475569; display:flex; align-items:center; gap:6px;">
-              <span>🌾</span>
-              <span><strong>Dataset Calibration</strong>: Central India Vertisol Cotton Canopy Dataset (12,450 scans)</span>
-            </div>
-          </div>
-
-          <!-- Run CNN Only Direct Action -->
-          <div style="margin-top:auto;">
-            <button type="button" id="btnRunCnnOnly" onclick="runCNNInferenceOnly()" class="step-nav-btn step-nav-btn-cnn" style="width:100%; font-size:13px;">
-              🍃 Run CNN Visual Scan Only (Step 2)
-            </button>
+            <!-- Optional Collapsed Technical Details -->
+            <details style="margin-top:10px; padding-top:8px; border-top:1px dashed #e2e8f0; font-size:11px;">
+              <summary style="font-weight:700; color:#64748b; cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between;">
+                <span>🔬 View Technical AI Specifications (PyTorch / ResNet-18)</span>
+                <span style="font-size:10px; color:#94a3b8;">▾</span>
+              </summary>
+              <div style="margin-top:8px; display:grid; grid-template-columns:1fr 1fr; gap:6px; background:#f8fafc; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0; font-size:10px; color:#475569;">
+                <div><strong>Architecture:</strong> ResNet-18 Custom</div>
+                <div><strong>Resolution:</strong> 224 × 224 RGB Normalized</div>
+                <div><strong>Accuracy:</strong> 86.1% Test Accuracy</div>
+                <div><strong>Explainability:</strong> Grad-CAM Heatmap Layer4</div>
+              </div>
+            </details>
           </div>
 
           <!-- Validation Error Box -->
@@ -579,28 +549,21 @@
 
           </div>
 
-          <!-- Run SNN Only Direct Action -->
-          <div style="margin-top:12px;">
-            <button type="button" id="btnRunSnnOnly" onclick="runSNNInferenceOnly()" class="step-nav-btn step-nav-btn-snn" style="width:100%; font-size:13px;">
-              ⛅ Run SNN Climate Simulation Only (Step 3)
+          <!-- Main Actions Bar (Farmer Friendly) -->
+          <div class="step-nav-bar" style="margin-top:auto; padding-top:16px;">
+            <button class="step-nav-btn step-nav-btn-back" type="button" onclick="resetAnalysisState()" title="Reset fields">
+              ↺ Reset
             </button>
-          </div>
-
-          <!-- Main Actions Bar -->
-          <div class="step-nav-bar" style="margin-top:auto;">
-            <button class="step-nav-btn step-nav-btn-back" type="button" onclick="resetAnalysisState()">
-              ↺ Reset Form
-            </button>
-            <div class="step-nav-actions">
-              <button class="step-nav-btn step-nav-btn-cnn" type="button" onclick="runCNNInferenceOnly()">
-                🍃 CNN Only
+            <div class="step-nav-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button class="step-nav-btn step-nav-btn-cnn" type="button" onclick="runCNNInferenceOnly()" title="Quick check of leaf photo only">
+                🍃 Leaf Scan Only
               </button>
-              <button class="step-nav-btn step-nav-btn-snn" type="button" onclick="runSNNInferenceOnly()">
-                ⛅ SNN Only
+              <button class="step-nav-btn step-nav-btn-snn" type="button" onclick="runSNNInferenceOnly()" title="Quick check of weather & soil risk only">
+                🌦️ Weather Risk Only
               </button>
-              <button class="step-nav-btn step-nav-btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="font-size:13.5px; padding:11px 22px;">
-                <span>🚀 Run Full Multimodal Assessment</span>
-                <span style="font-size:14px;">→</span>
+              <button class="step-nav-btn step-nav-btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="font-size:13.5px; padding:12px 24px; font-weight:800;">
+                <span>🌿 Run Complete Crop Health Check</span>
+                <span style="font-size:15px;">→</span>
               </button>
             </div>
           </div>
@@ -628,8 +591,8 @@
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span id="fig5LatencyBadge" style="background:#f1f5f9; color:#475569; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #cbd5e1;">⚡ 24.5ms</span>
-            <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Verified</span>
+            <span id="fig5LatencyBadge" style="display:none; background:#f1f5f9; color:#475569; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #cbd5e1;">⚡ 24.5ms</span>
+            <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ AI Scan Complete</span>
           </div>
         </div>
 
@@ -709,13 +672,13 @@
           </button>
           <div class="step-nav-actions">
             <button class="step-nav-btn step-nav-btn-cnn" onclick="runCNNInferenceOnly()">
-              🔄 Re-Scan CNN
+              🔄 Re-Check Leaf
             </button>
             <button class="step-nav-btn step-nav-btn-snn" onclick="switchView('snn')">
-              Proceed to Climate (Step 3) →
+              🌦️ Check Weather Risk (Step 3) →
             </button>
             <button class="step-nav-btn step-nav-btn-primary" onclick="runAnalysis()">
-              🚀 Full Multimodal Assessment (Step 4) →
+              📋 Full Farm Action Plan (Step 4) →
             </button>
           </div>
         </div>
@@ -733,16 +696,16 @@
             <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid #dbeafe;">⛅</div>
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
-                <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Field Climate &amp; Weather Stress</h3>
-                <span class="provenance-tag tag-snn-model">SNN MODEL</span>
-                <span class="provenance-tag tag-auto-weather">AUTO · WEATHER API</span>
+                <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Field Climate &amp; Soil Moisture Risk</h3>
+                <span class="provenance-tag tag-snn-model">CLIMATE CHECK</span>
+                <span class="provenance-tag tag-auto-weather">LIVE WEATHER</span>
               </div>
-              <span style="font-size:11.5px; color:#64748b;">Spiking neural network temporal simulation across 33 environmental features</span>
+              <span style="font-size:11.5px; color:#64748b;">Microclimate telemetry &amp; soil moisture evaluation for cotton health</span>
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span id="fig6LatencyBadge" style="background:#f1f5f9; color:#475569; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #cbd5e1;">⚡ 1.8ms</span>
-            <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Verified</span>
+            <span id="fig6LatencyBadge" style="display:none; background:#f1f5f9; color:#475569; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #cbd5e1;">⚡ 1.8ms</span>
+            <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Live Verified</span>
           </div>
         </div>
 
@@ -875,14 +838,14 @@
         <!-- Step Navigation Footer -->
         <div class="step-nav-bar">
           <button class="step-nav-btn step-nav-btn-back" onclick="switchView('cnn')">
-            ← Back to Leaf Diagnosis (Step 2)
+            ← Back to Leaf Health (Step 2)
           </button>
           <div class="step-nav-actions">
             <button class="step-nav-btn step-nav-btn-snn" onclick="runSNNInferenceOnly()">
-              🔄 Re-Run SNN Simulation
+              🔄 Re-Check Weather
             </button>
             <button class="step-nav-btn step-nav-btn-primary" onclick="runAnalysis()">
-              🚀 Full Multimodal Assessment (Step 4) →
+              📋 Full Farm Action Plan (Step 4) →
             </button>
           </div>
         </div>
@@ -897,19 +860,19 @@
         <!-- Header -->
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:14px; margin-bottom:6px; flex-wrap:wrap; gap:10px;">
           <div style="display:flex; align-items:center; gap:10px;">
-            <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid #dbeafe;">🧩</div>
+            <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid #dbeafe;">📋</div>
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
-                <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Combined Multimodal Assessment</h3>
-                <span class="provenance-tag tag-gemini-ai">MULTIMODAL FUSION</span>
-                <span class="provenance-tag tag-snn-model">EXPERT VETO</span>
+                <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Crop Health Assessment &amp; Action Plan</h3>
+                <span class="provenance-tag tag-gemini-ai">FARM ADVISORY</span>
+                <span class="provenance-tag tag-snn-model">EXPERT VERIFIED</span>
               </div>
-              <span style="font-size:11.5px; color:#64748b;">Integrated foliar computer vision, spiking climate simulation &amp; deterministic safety rules</span>
+              <span style="font-size:11.5px; color:#64748b;">Holistic diagnosis combining leaf symptoms, soil moisture, live weather and agronomic guidelines</span>
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span id="fig7PipelineLatencyPill" style="background:#f1f5f9; color:#475569; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #cbd5e1;">⚡ 26.7ms</span>
-            <span class="exact-completed-badge" id="exactCompletedBadge" style="background:#ede9fe; color:#6d28d9; font-weight:700; font-size:11px; padding:4px 12px; border-radius:999px; border:1px solid #ddd6fe;">✓ Completed</span>
+            <span id="fig7PipelineLatencyPill" style="display:none; background:#f1f5f9; color:#475569; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #cbd5e1;">⚡ 26.7ms</span>
+            <span class="exact-completed-badge" id="exactCompletedBadge" style="background:#ede9fe; color:#6d28d9; font-weight:700; font-size:11px; padding:4px 12px; border-radius:999px; border:1px solid #ddd6fe;">✓ Assessment Ready</span>
           </div>
         </div>
 
@@ -921,31 +884,31 @@
           <!-- 1. Top Evidence Grid (3 Full-Width Multi-Modality Cards) -->
           <div class="exact-evidence-grid">
             
-            <!-- Card 1: Visual Evidence (CNN) -->
+            <!-- Card 1: Leaf Condition -->
             <div class="exact-evidence-card">
               <div class="exact-evidence-lbl">
-                Visual Evidence<br><span style="color:#94a3b8; font-weight:500;">(CNN)</span>
+                Leaf Condition<br><span style="color:#94a3b8; font-weight:500;">(Visual Health)</span>
               </div>
               <div class="exact-evidence-val" id="exactEvidVisVal" style="color:#059669;">Healthy</div>
               <div class="exact-evidence-sub" id="exactEvidVisConf" style="color:#059669;">98.7% Confidence</div>
             </div>
 
-            <!-- Card 2: Environmental Evidence (SNN) -->
+            <!-- Card 2: Field Climate -->
             <div class="exact-evidence-card">
               <div class="exact-evidence-lbl">
-                Environmental Evidence<br><span style="color:#94a3b8; font-weight:500;">(SNN)</span>
+                Field Climate<br><span style="color:#94a3b8; font-weight:500;">(Weather &amp; Soil)</span>
               </div>
               <div class="exact-evidence-val" id="exactEvidEnvVal" style="color:#2563eb;">Low Stress</div>
-              <div class="exact-evidence-sub" id="exactEvidEnvRisk" style="color:#64748b;">Low Risk</div>
+              <div class="exact-evidence-sub" id="exactEvidEnvRisk" style="color:#64748b;">Optimal Growing</div>
             </div>
 
-            <!-- Card 3: Evidence Alignment -->
+            <!-- Card 3: Farm Status -->
             <div class="exact-evidence-card">
               <div class="exact-evidence-lbl">
-                Evidence Alignment<br><span style="color:#94a3b8; font-weight:500;">&nbsp;</span>
+                Farm Status<br><span style="color:#94a3b8; font-weight:500;">(Combined Result)</span>
               </div>
-              <div class="exact-evidence-val" id="exactEvidAlignVal" style="color:#d97706;">Partially Aligned</div>
-              <div class="exact-evidence-sub" style="color:#64748b;">Multimodal Fusion</div>
+              <div class="exact-evidence-val" id="exactEvidAlignVal" style="color:#059669;">Good Health</div>
+              <div class="exact-evidence-sub" style="color:#64748b;">Holistic Diagnosis</div>
             </div>
 
           </div>
