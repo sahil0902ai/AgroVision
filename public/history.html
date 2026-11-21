@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Analysis History — AgroVision</title>
+<title>Farm History &amp; Reports — AgroVision</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css?v=17">
@@ -571,19 +571,13 @@
         <li>
           <a href="dashboard.html" class="side-nav-item">
             <span class="nav-icon">🌿</span>
-            <span class="nav-label">New Analysis</span>
+            <span class="nav-label">New Scan</span>
           </a>
         </li>
         <li>
           <a href="history.html" class="side-nav-item active">
             <span class="nav-icon">📜</span>
-            <span class="nav-label">History</span>
-          </a>
-        </li>
-        <li>
-          <a href="reports.html" class="side-nav-item">
-            <span class="nav-icon">📄</span>
-            <span class="nav-label">Reports</span>
+            <span class="nav-label">History &amp; Reports</span>
           </a>
         </li>
         <li>
@@ -611,24 +605,13 @@
         <!-- Left: Title & Contextual Subtitle -->
         <div class="header-left-group">
           <div class="header-title-box">
-            <h1 class="header-title" id="historyPageTitle">Analysis History</h1>
-            <p class="header-subtitle">Verified multimodal foliar and environmental analysis records</p>
+            <h1 class="header-title" id="historyPageTitle">Farm History &amp; Reports</h1>
+            <p class="header-subtitle">Verified crop health records, prescriptions, and official printable PDF reports</p>
           </div>
         </div>
 
         <!-- Center/Left: Global Search with Live Suggestion Dropdown -->
-        <div class="header-search-wrap" style="position:relative;">
-          <span class="header-search-icon">🔍</span>
-          <input
-            type="search"
-            class="header-search-input"
-            id="globalSearchInput"
-            placeholder="Search analyses, diagnosis, fields…"
-            aria-label="Search analyses, diagnosis, fields"
-            onkeydown="handleGlobalSearch(event)"
-          />
-          <div id="globalSearchSuggestions" class="search-suggestions-dropdown" style="display:none; position:absolute; top:calc(100% + 6px); left:0; width:340px;"></div>
-        </div>
+        <input type="hidden" id="globalSearchInput" /><div id="globalSearchSuggestions" style="display:none;"></div>
 
         <!-- Right: Date, Location, Notifications, User Profile -->
         <div class="header-right-group">
@@ -682,8 +665,8 @@
                 <div style="font-size:11px; color:#64748b; text-overflow:ellipsis; overflow:hidden;" id="headerUserEmail">farmer@agrovision.org</div>
                 <div style="margin-top:6px;"><span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Verified Operator</span></div>
               </div>
-              <a href="reports.html" class="profile-menu-link">
-                <span>📄</span> <span>Agronomic Reports</span>
+              <a href="history.html" class="profile-menu-link">
+                <span>📜</span> <span>History &amp; Reports</span>
               </a>
               <div style="border-top:1px solid #f1f5f9; margin-top:6px; padding-top:6px;">
                 <a href="javascript:void(0)" onclick="logout()" class="profile-menu-link" style="color:#ef4444;">
@@ -791,6 +774,9 @@
               </div>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
+              <button type="button" class="btn btn-action-outline" onclick="generatePdfReport()" style="font-size:11.5px; padding:6px 12px; border-radius:7px; background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe;">
+                📄 Latest Report
+              </button>
               <button type="button" class="btn btn-action-outline" onclick="exportHistoryCSV()" style="font-size:11.5px; padding:6px 12px; border-radius:7px;">
                 📥 Export CSV
               </button>
@@ -1085,15 +1071,11 @@
     </a>
     <a href="history.html" class="bottom-nav-item active">
       <span class="nav-icon">📜</span>
-      <span class="nav-label">History</span>
-    </a>
-    <a href="reports.html" class="bottom-nav-item">
-      <span class="nav-icon">📄</span>
-      <span class="nav-label">Reports</span>
+      <span class="nav-label">History &amp; Reports</span>
     </a>
     <a href="assistant.html" class="bottom-nav-item">
       <span class="nav-icon">🤖</span>
-      <span class="nav-label">AI Chat</span>
+      <span class="nav-label">AI Assistant</span>
     </a>
   </nav>
 

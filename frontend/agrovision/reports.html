@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="refresh" content="0; url=history.html" />
+<script>window.location.replace("history.html");</script>
 <title>Reports Center — AgroVision</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -445,19 +447,13 @@
         <li>
           <a href="dashboard.html" class="side-nav-item">
             <span class="nav-icon">🌿</span>
-            <span class="nav-label">New Analysis</span>
+            <span class="nav-label">New Scan</span>
           </a>
         </li>
         <li>
-          <a href="history.html" class="side-nav-item">
+          <a href="history.html" class="side-nav-item active">
             <span class="nav-icon">📜</span>
-            <span class="nav-label">History</span>
-          </a>
-        </li>
-        <li>
-          <a href="reports.html" class="side-nav-item active">
-            <span class="nav-icon">📄</span>
-            <span class="nav-label">Reports</span>
+            <span class="nav-label">History &amp; Reports</span>
           </a>
         </li>
         <li>
@@ -490,18 +486,7 @@
         </div>
 
         <!-- Center Search with Live Suggestion Dropdown -->
-        <div class="header-search-wrap" style="position:relative;">
-          <span class="header-search-icon">🔍</span>
-          <input
-            type="search"
-            class="header-search-input"
-            id="globalSearchInput"
-            placeholder="Search reports by ID, parcel or finding…"
-            aria-label="Search reports"
-            onkeydown="handleGlobalSearch(event)"
-          />
-          <div id="globalSearchSuggestions" class="search-suggestions-dropdown" style="display:none; position:absolute; top:calc(100% + 6px); left:0; width:340px;"></div>
-        </div>
+        <input type="hidden" id="globalSearchInput" /><div id="globalSearchSuggestions" style="display:none;"></div>
 
         <!-- Right Header Items -->
         <div class="header-right-group">
@@ -827,17 +812,13 @@
       <span class="nav-icon">🌿</span>
       <span class="nav-label">New Scan</span>
     </a>
-    <a href="history.html" class="bottom-nav-item">
+    <a href="history.html" class="bottom-nav-item active">
       <span class="nav-icon">📜</span>
-      <span class="nav-label">History</span>
-    </a>
-    <a href="reports.html" class="bottom-nav-item active">
-      <span class="nav-icon">📄</span>
-      <span class="nav-label">Reports</span>
+      <span class="nav-label">History &amp; Reports</span>
     </a>
     <a href="assistant.html" class="bottom-nav-item">
       <span class="nav-icon">🤖</span>
-      <span class="nav-label">AI Chat</span>
+      <span class="nav-label">AI Assistant</span>
     </a>
   </nav>
 

@@ -718,19 +718,13 @@
         <li>
           <a href="dashboard.html" class="side-nav-item">
             <span class="nav-icon">🌿</span>
-            <span class="nav-label">New Analysis</span>
+            <span class="nav-label">New Scan</span>
           </a>
         </li>
         <li>
           <a href="history.html" class="side-nav-item">
             <span class="nav-icon">📜</span>
-            <span class="nav-label">History</span>
-          </a>
-        </li>
-        <li>
-          <a href="reports.html" class="side-nav-item">
-            <span class="nav-icon">📄</span>
-            <span class="nav-label">Reports</span>
+            <span class="nav-label">History &amp; Reports</span>
           </a>
         </li>
         <li>
@@ -764,18 +758,7 @@
         </div>
 
         <!-- Center/Left: Global Search with Live Suggestion Dropdown -->
-        <div class="header-search-wrap" style="position:relative;">
-          <span class="header-search-icon">🔍</span>
-          <input
-            type="search"
-            class="header-search-input"
-            id="globalSearchInput"
-            placeholder="Search fields, analyses, reports…"
-            aria-label="Search fields, analyses, reports"
-            onkeydown="handleGlobalSearch(event)"
-          />
-          <div id="globalSearchSuggestions" class="search-suggestions-dropdown" style="display:none; position:absolute; top:calc(100% + 6px); left:0; width:340px;"></div>
-        </div>
+        <input type="hidden" id="globalSearchInput" /><div id="globalSearchSuggestions" style="display:none;"></div>
 
         <!-- Right: Date, Field Selector, Notifications, User Profile -->
         <div class="header-right-group">
@@ -828,8 +811,8 @@
                 <div style="font-size:11px; color:#64748b; text-overflow:ellipsis; overflow:hidden;" id="headerUserEmail">farmer@agrovision.org</div>
                 <div style="margin-top:6px;"><span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Verified Operator</span></div>
               </div>
-              <a href="reports.html" class="profile-menu-link">
-                <span>📄</span> <span>Agronomic Reports</span>
+              <a href="history.html" class="profile-menu-link">
+                <span>📜</span> <span>History &amp; Reports</span>
               </a>
               <div style="border-top:1px solid #f1f5f9; margin-top:6px; padding-top:6px;">
                 <a href="javascript:void(0)" onclick="logout()" class="profile-menu-link" style="color:#ef4444;">
@@ -1647,15 +1630,11 @@
     </a>
     <a href="history.html" class="bottom-nav-item">
       <span class="nav-icon">📜</span>
-      <span class="nav-label">History</span>
-    </a>
-    <a href="reports.html" class="bottom-nav-item">
-      <span class="nav-icon">📄</span>
-      <span class="nav-label">Reports</span>
+      <span class="nav-label">History &amp; Reports</span>
     </a>
     <a href="assistant.html" class="bottom-nav-item">
       <span class="nav-icon">🤖</span>
-      <span class="nav-label">AI Chat</span>
+      <span class="nav-label">AI Assistant</span>
     </a>
   </nav>
 

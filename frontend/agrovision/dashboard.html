@@ -47,19 +47,13 @@
         <li>
           <a href="dashboard.html" class="side-nav-item active">
             <span class="nav-icon">🌿</span>
-            <span class="nav-label">New Analysis</span>
+            <span class="nav-label">New Scan</span>
           </a>
         </li>
         <li>
           <a href="history.html" class="side-nav-item">
             <span class="nav-icon">📜</span>
-            <span class="nav-label">History</span>
-          </a>
-        </li>
-        <li>
-          <a href="reports.html" class="side-nav-item">
-            <span class="nav-icon">📄</span>
-            <span class="nav-label">Reports</span>
+            <span class="nav-label">History &amp; Reports</span>
           </a>
         </li>
         <li>
@@ -93,18 +87,7 @@
         </div>
 
         <!-- Center/Left: Global Search with Live Suggestion Dropdown -->
-        <div class="header-search-wrap" style="position:relative;">
-          <span class="header-search-icon">🔍</span>
-          <input
-            type="search"
-            class="header-search-input"
-            id="globalSearchInput"
-            placeholder="Search analyses, symptoms, reports…"
-            aria-label="Search analyses, symptoms, reports"
-            onkeydown="handleGlobalSearch(event)"
-          />
-          <div id="globalSearchSuggestions" class="search-suggestions-dropdown" style="display:none; position:absolute; top:calc(100% + 6px); left:0; width:340px;"></div>
-        </div>
+        <input type="hidden" id="globalSearchInput" /><div id="globalSearchSuggestions" style="display:none;"></div>
 
         <!-- Right: Date, Farm Location, Notifications, User Profile -->
         <div class="header-right-group">
@@ -158,8 +141,8 @@
                 <div style="font-size:11px; color:#64748b; text-overflow:ellipsis; overflow:hidden;" id="headerUserEmail">farmer@agrovision.org</div>
                 <div style="margin-top:6px;"><span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Verified Operator</span></div>
               </div>
-              <a href="reports.html" class="profile-menu-link">
-                <span>📄</span> <span>Agronomic Reports</span>
+              <a href="history.html" class="profile-menu-link">
+                <span>📜</span> <span>History &amp; Reports</span>
               </a>
               <div style="border-top:1px solid #f1f5f9; margin-top:6px; padding-top:6px;">
                 <a href="javascript:void(0)" onclick="logout()" class="profile-menu-link" style="color:#ef4444;">
@@ -303,70 +286,7 @@
             onchange="handleFileSelect(event)"
           />
 
-          <!-- Quick Sample Leaf Selector Chips -->
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <span style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em;">🧪 Quick Test Sample Leaves:</span>
-              <span style="font-size:10px; color:#94a3b8;">1-Click Load</span>
-            </div>
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-              <button type="button" class="chat-chip-btn" onclick="loadSampleLeaf('healthy')" style="font-size:11px; padding:4px 10px;">
-                🍃 Healthy Leaf
-              </button>
-              <button type="button" class="chat-chip-btn" onclick="loadSampleLeaf('water_stress')" style="font-size:11px; padding:4px 10px;">
-                💧 Water Stress
-              </button>
-              <button type="button" class="chat-chip-btn" onclick="loadSampleLeaf('heat_stress')" style="font-size:11px; padding:4px 10px;">
-                ☀️ Heat Scorch
-              </button>
-              <button type="button" class="chat-chip-btn" onclick="loadSampleLeaf('nutrient_deficiency')" style="font-size:11px; padding:4px 10px;">
-                🍂 Nutrient Def.
-              </button>
-              <button type="button" class="chat-chip-btn" onclick="loadSampleLeaf('pollution')" style="font-size:11px; padding:4px 10px;">
-                🌫️ Dust/Pollution
-              </button>
-            </div>
-          </div>
-
-          <!-- Farmer Photography Guide & Quick Tips -->
-          <div class="leaf-guide-card" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800; color:#065f46;">
-                <span>📸</span>
-                <span>Best Photo Guide for Accurate Results</span>
-              </div>
-              <span style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">Field Tips</span>
-            </div>
-
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; font-size:11.5px; color:#334155;">
-              <div style="display:flex; align-items:center; gap:6px; background:#f8fafc; padding:6px 8px; border-radius:8px; border:1px solid #f1f5f9;">
-                <span>☀️</span> <span>Clear daylight, avoid shadows</span>
-              </div>
-              <div style="display:flex; align-items:center; gap:6px; background:#f8fafc; padding:6px 8px; border-radius:8px; border:1px solid #f1f5f9;">
-                <span>🍃</span> <span>One leaf filling the camera frame</span>
-              </div>
-              <div style="display:flex; align-items:center; gap:6px; background:#f8fafc; padding:6px 8px; border-radius:8px; border:1px solid #f1f5f9;">
-                <span>📱</span> <span>Hold steady 15–20 cm from leaf</span>
-              </div>
-              <div style="display:flex; align-items:center; gap:6px; background:#f8fafc; padding:6px 8px; border-radius:8px; border:1px solid #f1f5f9;">
-                <span>🌿</span> <span>Middle canopy leaves recommended</span>
-              </div>
-            </div>
-
-            <!-- Optional Collapsed Technical Details -->
-            <details style="margin-top:10px; padding-top:8px; border-top:1px dashed #e2e8f0; font-size:11px;">
-              <summary style="font-weight:700; color:#64748b; cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between;">
-                <span>🔬 View Technical AI Specifications (PyTorch / ResNet-18)</span>
-                <span style="font-size:10px; color:#94a3b8;">▾</span>
-              </summary>
-              <div style="margin-top:8px; display:grid; grid-template-columns:1fr 1fr; gap:6px; background:#f8fafc; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0; font-size:10px; color:#475569;">
-                <div><strong>Architecture:</strong> ResNet-18 Custom</div>
-                <div><strong>Resolution:</strong> 224 × 224 RGB Normalized</div>
-                <div><strong>Accuracy:</strong> 86.1% Test Accuracy</div>
-                <div><strong>Explainability:</strong> Grad-CAM Heatmap Layer4</div>
-              </div>
-            </details>
-          </div>
+          
 
           <!-- Validation Error Box -->
           <div class="upload-error-box" id="uploadErrorBox" style="display:none;">
@@ -591,7 +511,7 @@
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span id="fig5LatencyBadge" style="display:none; background:#f1f5f9; color:#475569; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #cbd5e1;">⚡ 24.5ms</span>
+            <span id="fig5LatencyBadge" style="display:none;"></span>
             <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ AI Scan Complete</span>
           </div>
         </div>
@@ -633,37 +553,7 @@
           </div>
         </div>
 
-        <!-- Technical Drawer: CNN Model Architecture & Pipeline -->
-        <details class="tech-drawer-details">
-          <summary class="tech-drawer-summary">
-            <span>🔬 Technical Details — CNN Model Architecture &amp; Preprocessing</span>
-            <span>▾</span>
-          </summary>
-          <div class="tech-drawer-body">
-            <table class="tech-table">
-              <tr>
-                <td style="width:35%; font-weight:700; color:#0f172a;">Backbone Architecture</td>
-                <td>Deep Residual Network (ResNet-18) with custom 5-class linear classifier</td>
-              </tr>
-              <tr>
-                <td style="font-weight:700; color:#0f172a;">Input Tensor Dimensions</td>
-                <td>224 × 224 × 3 RGB (Bilinear interpolation &amp; center crop)</td>
-              </tr>
-              <tr>
-                <td style="font-weight:700; color:#0f172a;">Normalization Constants</td>
-                <td>ImageNet Standard: Mean = [0.485, 0.456, 0.406], Std = [0.229, 0.224, 0.225]</td>
-              </tr>
-              <tr>
-                <td style="font-weight:700; color:#0f172a;">Activation &amp; Scoring</td>
-                <td>Calibrated Softmax Distribution over 5 discrete agronomic classes</td>
-              </tr>
-              <tr>
-                <td style="font-weight:700; color:#0f172a;">Held-out Benchmark</td>
-                <td>86.05% Test Accuracy across 5 classes (Thesis validation benchmark)</td>
-              </tr>
-            </table>
-          </div>
-        </details>
+        
 
         <!-- Step Navigation Footer -->
         <div class="step-nav-bar">
@@ -671,9 +561,6 @@
             ← Back to Input (Step 1)
           </button>
           <div class="step-nav-actions">
-            <button class="step-nav-btn step-nav-btn-cnn" onclick="runCNNInferenceOnly()">
-              🔄 Re-Check Leaf
-            </button>
             <button class="step-nav-btn step-nav-btn-snn" onclick="switchView('snn')">
               🌦️ Check Weather Risk (Step 3) →
             </button>
@@ -704,7 +591,7 @@
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span id="fig6LatencyBadge" style="display:none; background:#f1f5f9; color:#475569; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #cbd5e1;">⚡ 1.8ms</span>
+            <span id="fig6LatencyBadge" style="display:none;"></span>
             <span style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0;">✓ Live Verified</span>
           </div>
         </div>
@@ -792,48 +679,7 @@
           <strong>Climate Summary:</strong> Temperature and moisture readings are supportive of healthy cotton plant growth.
         </div>
 
-        <!-- Technical Drawer: SNN Architecture & 33-Feature Vector -->
-        <details class="tech-drawer-details">
-          <summary class="tech-drawer-summary">
-            <span>⚡ Technical Details — SNN Architecture, LIF Equations &amp; 33-Feature Vector</span>
-            <span>▾</span>
-          </summary>
-          <div class="tech-drawer-body">
-            <div style="margin-bottom:10px;">
-              <strong style="color:#0f172a; font-size:11.5px;">Leaky Integrate-and-Fire (LIF) Dynamics:</strong>
-              <div style="font-family:monospace; font-size:11px; background:#f8fafc; padding:6px 10px; border-radius:6px; border:1px solid #e2e8f0; margin-top:4px; color:#0f172a;">
-                V[t] = β · V[t-1] + W · X[t] - S[t-1] · V_th &nbsp;&nbsp;|&nbsp;&nbsp; β = 0.95, V_th = 1.0, T = 10
-              </div>
-            </div>
-            <table class="tech-table">
-              <tr>
-                <th style="width:28%;">Feature Category</th>
-                <th style="width:32%;">Parameters Included</th>
-                <th>Source Provenance</th>
-              </tr>
-              <tr>
-                <td><strong>Dynamic Telemetry (6)</strong></td>
-                <td>Temperature, Humidity, Soil Moisture, Rainfall, AQI, Ozone</td>
-                <td><span class="provenance-tag tag-auto-weather">AUTO · WEATHER API</span></td>
-              </tr>
-              <tr>
-                <td><strong>Canopy &amp; Optical (10)</strong></td>
-                <td>NDVI, EVI, GNDVI, SIF 740, F687, F760, Fluor Ratio, Chlorophyll, LAI, Light</td>
-                <td><span class="provenance-tag tag-field-profile">FIELD PROFILE</span></td>
-              </tr>
-              <tr>
-                <td><strong>Soil Nutrients (3)</strong></td>
-                <td>Soil Nitrogen (N), Soil Phosphorus (P), Soil Potassium (K)</td>
-                <td><span class="provenance-tag tag-manual-input">SOIL LAB</span></td>
-              </tr>
-              <tr>
-                <td><strong>Geo &amp; Phenology (14)</strong></td>
-                <td>Latitude, Longitude, Days Since Sowing, Growth Stage (Vegetative/Flowering/Boll)</td>
-                <td><span class="provenance-tag tag-field-profile">FIELD PROFILE</span></td>
-              </tr>
-            </table>
-          </div>
-        </details>
+        
 
         <!-- Step Navigation Footer -->
         <div class="step-nav-bar">
@@ -841,9 +687,6 @@
             ← Back to Leaf Health (Step 2)
           </button>
           <div class="step-nav-actions">
-            <button class="step-nav-btn step-nav-btn-snn" onclick="runSNNInferenceOnly()">
-              🔄 Re-Check Weather
-            </button>
             <button class="step-nav-btn step-nav-btn-primary" onclick="runAnalysis()">
               📋 Full Farm Action Plan (Step 4) →
             </button>
@@ -871,7 +714,7 @@
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span id="fig7PipelineLatencyPill" style="display:none; background:#f1f5f9; color:#475569; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #cbd5e1;">⚡ 26.7ms</span>
+            <span id="fig7PipelineLatencyPill" style="display:none;"></span>
             <span class="exact-completed-badge" id="exactCompletedBadge" style="background:#ede9fe; color:#6d28d9; font-weight:700; font-size:11px; padding:4px 12px; border-radius:999px; border:1px solid #ddd6fe;">✓ Assessment Ready</span>
           </div>
         </div>
@@ -999,21 +842,11 @@
 
           </div>
 
-          <!-- 4. Expert Rule Engine Safeguard Banner -->
-          <div class="exact-expert-card" id="exactExpertCard">
-            <div class="exact-expert-header">
-              <div class="exact-expert-title">
-                <span>🛡️</span>
-                <span>Expert Rule Engine Safeguard</span>
-              </div>
-              <span class="exact-expert-badge" id="exactExpertRuleBadge">EVR-007 · Standard Synthesis (Active)</span>
-            </div>
-            <div class="exact-expert-body" id="exactExpertRuleDesc">
-              All visual symptoms and microclimate environmental variables have been cross-evaluated against 7 deterministic agronomic safety rules.
-            </div>
-            <div class="exact-expert-precaution" id="exactExpertPrecaution">
-              <strong>Agronomic Precaution:</strong> Multimodal concordance confirmed. Standard irrigation scheduling and pest scouting protocols apply.
-            </div>
+          <!-- 4. Expert Rule Engine Safeguard (Hidden for clean farmer view) -->
+          <div class="exact-expert-card" id="exactExpertCard" style="display:none !important;">
+            <span class="exact-expert-badge" id="exactExpertRuleBadge"></span>
+            <div class="exact-expert-body" id="exactExpertRuleDesc"></div>
+            <div class="exact-expert-precaution" id="exactExpertPrecaution"></div>
           </div>
 
           <!-- 5. Key Insights Card -->
@@ -1039,58 +872,59 @@
             </div>
           </div>
 
-          <!-- 6. Recommended Actions Card (3 Action Guidance Tiles) -->
-          <div class="exact-section-card">
-            <div class="exact-section-title">Recommended Actions</div>
-            <div class="exact-actions-grid" id="exactActionsGrid">
-              
-              <div class="exact-action-tile">
-                <div class="exact-action-top">
-                  <span>💧</span>
-                  <span>Improve Irrigation</span>
-                </div>
-                <p class="exact-action-desc">Increase watering frequency in affected zone.</p>
+          <!-- 6. Unified Farmer Action Plan & Field Validation Checklist -->
+          <div class="exact-section-card" id="unifiedActionCard" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:18px 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+              <div style="font-size:14px; font-weight:800; color:#065f46; display:flex; align-items:center; gap:8px;">
+                <span style="font-size:20px;">📋</span>
+                <span>Action Plan &amp; What to Check Next in Your Field</span>
               </div>
-
-              <div class="exact-action-tile">
-                <div class="exact-action-top">
-                  <span>🌱</span>
-                  <span>Soil Moisture Check</span>
-                </div>
-                <p class="exact-action-desc">Verify soil moisture at deeper root zone.</p>
-              </div>
-
-              <div class="exact-action-tile">
-                <div class="exact-action-top">
-                  <span>📈</span>
-                  <span>Monitor Recovery</span>
-                </div>
-                <p class="exact-action-desc">Reassess in 48–72 hours for improvement.</p>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- 7. Interactive Field Validation Checklist (What to Check Next) -->
-          <div class="exact-checklist-card" id="exactChecklistCard">
-            <div class="exact-checklist-header">
-              <div style="font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px;">
-                <span>✅</span>
-                <span>What to Check Next (Field Validation Checklist)</span>
-              </div>
-              <span id="exactChecklistCount" style="font-size:11px; font-weight:700; color:#059669; background:#ecfdf5; padding:3px 10px; border-radius:999px; border:1px solid #a7f3d0;">
+              <span id="exactChecklistCount" style="font-size:11px; font-weight:700; color:#059669; background:#ffffff; padding:3px 12px; border-radius:999px; border:1px solid #a7f3d0;">
                 0 / 3 Done
               </span>
             </div>
+
+            <!-- Part 1: Immediate Recommended Steps -->
+            <div style="font-size:11px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">
+              🌾 Recommended Actions:
+            </div>
+            <div class="exact-actions-grid" id="exactActionsGrid" style="margin-bottom:18px;">
+              <div class="exact-action-tile">
+                <div class="exact-action-top">
+                  <span>💧</span>
+                  <span>Check Soil Moisture</span>
+                </div>
+                <p class="exact-action-desc">Verify root zone moisture level before next watering.</p>
+              </div>
+              <div class="exact-action-tile">
+                <div class="exact-action-top">
+                  <span>🌱</span>
+                  <span>Canopy Inspection</span>
+                </div>
+                <p class="exact-action-desc">Check middle leaves across field rows for consistent vigor.</p>
+              </div>
+              <div class="exact-action-tile">
+                <div class="exact-action-top">
+                  <span>📈</span>
+                  <span>Routine Observation</span>
+                </div>
+                <p class="exact-action-desc">Track recovery over next 3–5 days.</p>
+              </div>
+            </div>
+
+            <!-- Part 2: Field Checklist -->
+            <div style="font-size:11px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">
+              ✅ Field Verification Checklist (Tick items as you inspect):
+            </div>
             <div class="exact-checklist-items" id="exactChecklistItems">
-              <!-- Populated dynamically with interactive checkboxes -->
+              <!-- Dynamically populated checkboxes -->
             </div>
           </div>
 
           <!-- 8. Action Options Buttons Group (4 Accessible Farmer Action Tiles) -->
           <div class="exact-action-buttons-group">
             
-            <a href="reports.html" class="exact-btn-report" id="exactReportBtn">
+            <a href="history.html" class="exact-btn-report" id="exactReportBtn">
               <span>📄</span>
               <span>View Full Report</span>
             </a>
@@ -1112,37 +946,13 @@
 
           </div>
 
-          <!-- 9. Collapsible Technical Details Drawer (For Agronomists & Researchers) -->
-          <details class="tech-drawer-details" style="margin-top:8px;">
-            <summary class="tech-drawer-summary">
-              <span>🔬 Technical Details — Multimodal Latency, SNN Spikes &amp; Decision Trace</span>
-              <span>▾</span>
-            </summary>
-            <div class="tech-drawer-body">
-              <table class="tech-table">
-                <tr>
-                  <td style="width:35%; font-weight:700; color:#0f172a;">Pipeline Latency Breakdown</td>
-                  <td id="techLatencyBreakdown">⚡ Total: 26.7ms (CNN 24.5ms · SNN 1.8ms · Fusion 0.4ms)</td>
-                </tr>
-                <tr>
-                  <td style="font-weight:700; color:#0f172a;">Multimodal Concordance</td>
-                  <td id="techConcordanceScore">Concordance: 95.0% · Relationship: ALIGNED</td>
-                </tr>
-                <tr>
-                  <td style="font-weight:700; color:#0f172a;">SNN Spikes &amp; LIF Integration</td>
-                  <td id="techSnnSpikesSummary">8 spikes across T=10 timesteps (β = 0.95, V_th = 1.0)</td>
-                </tr>
-                <tr>
-                  <td style="font-weight:700; color:#0f172a;">CNN Classifier Distribution</td>
-                  <td id="techCnnSoftmaxSummary">ResNet-18 Calibrated Softmax over 5 Stress Classes</td>
-                </tr>
-                <tr>
-                  <td style="font-weight:700; color:#0f172a;">Deterministic Rule Gate</td>
-                  <td id="techRuleGateSummary">7/7 Expert Safety Constraints Verified</td>
-                </tr>
-              </table>
-            </div>
-          </details>
+          <!-- Compatibility hooks for technical values -->
+          <div style="display:none;">
+            <span id="techLatencyBreakdown"></span>
+            <span id="techConcordanceScore"></span>
+            <span id="techRuleGateSummary"></span>
+            <span id="techCnnSoftmaxSummary"></span>
+          </div>
 
         </div>
 
@@ -1155,9 +965,7 @@
             <button class="btn btn-outline" onclick="resetAnalysisState()" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:600;">
               ➕ New Analysis
             </button>
-            <button class="btn btn-primary" onclick="runAnalysis()" style="padding:8px 18px; font-size:12px; border-radius:8px; font-weight:700;">
-              🚀 Re-Run Full Assessment
-            </button>
+            
           </div>
         </div>
 
