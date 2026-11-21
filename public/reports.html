@@ -628,7 +628,9 @@
           </div>
 
           <!-- Filter Toolbar -->
-          <div class="filter-toolbar" style="margin-bottom:16px;">
+          <!-- Filter Toolbar (Hidden for clean farmer view) -->
+          <div style="display:none !important;">
+<div class="filter-toolbar" style="margin-bottom:16px;">
             <div class="filter-left-group">
               <div class="filter-search-box">
                 <span class="filter-search-icon">🔍</span>
@@ -661,6 +663,9 @@
             <button class="btn btn-action-outline" onclick="fetchReportsList()" style="padding:6px 12px; font-size:11.5px; border-radius:6px; cursor:pointer;">
               🔄 Refresh
             </button>
+          </div>
+
+          
           </div>
 
           <!-- Reports Table Container -->

@@ -161,28 +161,28 @@
           <span class="view-step-badge" id="stepBadge1">1</span>
           <div class="view-step-text-wrap">
             <span class="view-step-num">Step 1</span>
-            <span class="view-step-name">📸 Leaf &amp; Weather</span>
+            <span class="view-step-name">📸 Leaf &amp; Environment Conditions</span>
           </div>
         </button>
         <button class="view-step-btn" id="stepBtnCNN" onclick="switchView('cnn')">
           <span class="view-step-badge" id="stepBadge2">2</span>
           <div class="view-step-text-wrap">
             <span class="view-step-num">Step 2</span>
-            <span class="view-step-name">🌿 Leaf Health Check</span>
+            <span class="view-step-name">🌿 Visual Screening (CNN)</span>
           </div>
         </button>
         <button class="view-step-btn" id="stepBtnSNN" onclick="switchView('snn')">
           <span class="view-step-badge" id="stepBadge3">3</span>
           <div class="view-step-text-wrap">
             <span class="view-step-num">Step 3</span>
-            <span class="view-step-name">🌦️ Weather &amp; Soil Risk</span>
+            <span class="view-step-name">🌦️ Climate Risk (SNN)</span>
           </div>
         </button>
         <button class="view-step-btn" id="stepBtnCombined" onclick="switchView('combined')">
           <span class="view-step-badge" id="stepBadge4">4</span>
           <div class="view-step-text-wrap">
             <span class="view-step-num">Step 4</span>
-            <span class="view-step-name">📋 Farm Action Plan</span>
+            <span class="view-step-name">Combined Assessment</span>
           </div>
         </button>
       </div>
@@ -503,7 +503,7 @@
             <div style="width:36px; height:36px; border-radius:10px; background:#ecfdf5; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid #d1fae5;">🍃</div>
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
-                <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Leaf Condition Diagnosis</h3>
+                <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Visual Screening (CNN)</h3>
                 <span class="provenance-tag tag-cnn-model">CNN MODEL</span>
                 <span class="provenance-tag tag-farmer-upload">FARMER UPLOAD</span>
               </div>
@@ -558,14 +558,14 @@
         <!-- Step Navigation Footer -->
         <div class="step-nav-bar">
           <button class="step-nav-btn step-nav-btn-back" onclick="switchView('input')">
-            ← Back to Input (Step 1)
+            ← Back to Leaf &amp; Environment (Step 1)
           </button>
           <div class="step-nav-actions">
             <button class="step-nav-btn step-nav-btn-snn" onclick="switchView('snn')">
-              🌦️ Check Weather Risk (Step 3) →
+              🌦️ Climate Risk (SNN) (Step 3) →
             </button>
             <button class="step-nav-btn step-nav-btn-primary" onclick="runAnalysis()">
-              📋 Full Farm Action Plan (Step 4) →
+              Combined Assessment (Step 4) →
             </button>
           </div>
         </div>
@@ -583,7 +583,7 @@
             <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid #dbeafe;">⛅</div>
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
-                <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Field Climate &amp; Soil Moisture Risk</h3>
+                <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Climate Risk (SNN)</h3>
                 <span class="provenance-tag tag-snn-model">CLIMATE CHECK</span>
                 <span class="provenance-tag tag-auto-weather">LIVE WEATHER</span>
               </div>
@@ -684,11 +684,11 @@
         <!-- Step Navigation Footer -->
         <div class="step-nav-bar">
           <button class="step-nav-btn step-nav-btn-back" onclick="switchView('cnn')">
-            ← Back to Leaf Health (Step 2)
+            ← Back to Visual Screening (Step 2)
           </button>
           <div class="step-nav-actions">
             <button class="step-nav-btn step-nav-btn-primary" onclick="runAnalysis()">
-              📋 Full Farm Action Plan (Step 4) →
+              Combined Assessment (Step 4) →
             </button>
           </div>
         </div>
@@ -706,7 +706,7 @@
             <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid #dbeafe;">📋</div>
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
-                <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Crop Health Assessment &amp; Action Plan</h3>
+                <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Combined Assessment</h3>
                 <span class="provenance-tag tag-gemini-ai">FARM ADVISORY</span>
                 <span class="provenance-tag tag-snn-model">EXPERT VERIFIED</span>
               </div>
@@ -959,7 +959,7 @@
         <!-- Step Navigation Footer -->
         <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:14px; margin-top:6px; flex-wrap:wrap; gap:8px;">
           <button class="btn btn-outline" onclick="switchView('snn')" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:600;">
-            ← Back to Climate Check (Step 3)
+            ← Back to Climate Risk (Step 3)
           </button>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button class="btn btn-outline" onclick="resetAnalysisState()" style="padding:8px 14px; font-size:12px; border-radius:8px; font-weight:600;">
