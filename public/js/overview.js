@@ -6,6 +6,8 @@
 let rawAllRecords = [];
 let latestRecordUuid = null;
 let currentSearchQuery = "";
+let currentCategoryFilter = null;
+let currentEnvCategoryFilter = null;
 
 // Auth check
 const currentUser = typeof requireLogin === "function" ? requireLogin() : null;
@@ -144,18 +146,36 @@ function renderOverviewDashboard() {
     } catch (_) {}
   });
 
-  // Populate KPI 1: Total Analyses
+  // Populate KPI 1: Field Status & Leaves Checked
   const totalValEl = document.getElementById("statTotalScans");
+  const leavesValEl = document.getElementById("statLeavesCheckedVal");
+  const statusValEl = document.getElementById("statOverallStatus");
   const totalSubEl = document.getElementById("kpiTotalSub");
   const totalTrendEl = document.getElementById("kpiTotalTrend");
+
   if (totalValEl) totalValEl.textContent = String(totalAnalyses);
+  if (leavesValEl) leavesValEl.textContent = String(totalAnalyses);
+
+  if (statusValEl) {
+    if (totalAnalyses === 0) {
+      statusValEl.textContent = "Good Health";
+      statusValEl.style.color = "#059669";
+    } else if (stressedCount > 0 || alertsCount > 0) {
+      statusValEl.textContent = "Attention Needed";
+      statusValEl.style.color = "#ea580c";
+    } else {
+      statusValEl.textContent = "All Healthy";
+      statusValEl.style.color = "#059669";
+    }
+  }
+
   if (totalSubEl) {
-    totalSubEl.textContent = totalAnalyses > 0 ? "Total verified sessions" : "No recorded scans yet";
+    totalSubEl.textContent = totalAnalyses > 0 ? "Based on recent scans" : "Ready for first check";
   }
   if (totalTrendEl) {
     totalTrendEl.innerHTML = totalAnalyses > 0 
-      ? `<span style="color:#059669; font-weight:700;">+${recentWeekCount}</span> this past week`
-      : `<span>●</span> Ready for your first leaf check`;
+      ? `<span style="color:#059669; font-weight:700;">+${recentWeekCount}</span> checks this past week`
+      : `<span>●</span> Wardha Field Station`;
   }
 
   // Populate KPI 2: Healthy Plants
@@ -644,7 +664,38 @@ async function fetchOverviewWeather(lat = currentOverviewLat, lon = currentOverv
       oSub.textContent = `${(ozoneVal / 1000).toFixed(3)} ppm Ground O₃`;
     }
 
-    // 6. Render Weather Forecast Widget
+    // 6. Farmer Action Badges (Irrigation & Spraying Guidance)
+    const irrigEl = document.getElementById("overviewIrrigationText");
+    const sprayEl = document.getElementById("overviewSprayText");
+    const sprayCondEl = document.getElementById("ovSprayCondition");
+
+    const tempVal = data.current ? data.current.temperature_c : 25;
+    const rainVal = data.current ? data.current.rainfall_mm : 0;
+    const rainFc = data.forecast?.daily_forecast?.[1]?.rainfall_total_mm || 0;
+
+    if (irrigEl) {
+      if (rainVal > 5 || rainFc > 10) {
+        irrigEl.textContent = "Rain expected soon — skip irrigation to prevent waterlogging.";
+      } else if (tempVal >= 36) {
+        irrigEl.textContent = "High heat — irrigate during early morning or late evening.";
+      } else {
+        irrigEl.textContent = "Safe to irrigate today as scheduled.";
+      }
+    }
+
+    if (sprayEl) {
+      if (rainVal > 2 || rainFc > 5) {
+        sprayEl.textContent = "Rain forecasted — postpone foliar spray & fertilizer.";
+      } else {
+        sprayEl.textContent = "Good weather for foliar spray, weeding, and scouting.";
+      }
+    }
+
+    if (sprayCondEl) {
+      sprayCondEl.textContent = (rainVal > 2 || rainFc > 5) ? "Postpone Spraying" : "Safe for Spraying";
+    }
+
+    // 7. Render Weather Forecast Widget
     renderForecastWidget(data);
 
     if (errorBox) errorBox.style.display = "none";
@@ -1039,7 +1090,6 @@ function renderForecastWidget(data) {
 // =========================================================
 
 let visualDistChartInstance = null;
-let currentCategoryFilter = null;
 let latestVisualDistData = null;
 
 function computeVisualDistributionFromRecords(records) {
@@ -1154,7 +1204,71 @@ async function fetchVisualDistribution(userEmailParam = "") {
   renderVisualDistLegend(data.categories);
 }
 
+function renderCropHealthBreakdown(data) {
+  const container = document.getElementById("cropHealthBarsContainer");
+  const emptyEl = document.getElementById("visualDistEmpty");
+  const contentEl = document.getElementById("visualDistContent");
+  const statusBadge = document.getElementById("cropHealthStatusBadge");
+
+  if (!data || !data.total_analyses || data.total_analyses === 0) {
+    if (emptyEl) emptyEl.style.display = "block";
+    if (contentEl) contentEl.style.display = "none";
+    if (statusBadge) {
+      statusBadge.textContent = "Ready for First Scan";
+      statusBadge.style.background = "#f1f5f9";
+      statusBadge.style.color = "#475569";
+    }
+    return;
+  }
+
+  if (emptyEl) emptyEl.style.display = "none";
+  if (contentEl) contentEl.style.display = "block";
+
+  const categories = data.categories || [];
+  const healthyCat = categories.find(c => c.key === "healthy");
+  const healthyPct = healthyCat ? Math.round(healthyCat.pct) : 0;
+
+  if (statusBadge) {
+    if (healthyPct >= 80) {
+      statusBadge.textContent = "🟢 Good Health";
+      statusBadge.style.background = "#ecfdf5";
+      statusBadge.style.color = "#059669";
+    } else if (healthyPct >= 50) {
+      statusBadge.textContent = "🟡 Moderate Attention";
+      statusBadge.style.background = "#fffbeb";
+      statusBadge.style.color = "#b45309";
+    } else {
+      statusBadge.textContent = "🔴 Urgent Care Needed";
+      statusBadge.style.background = "#fef2f2";
+      statusBadge.style.color = "#dc2626";
+    }
+  }
+
+  if (container) {
+    container.innerHTML = categories.map(cat => {
+      const pct = Math.round(cat.pct || 0);
+      return `
+        <div class="breakdown-row" style="cursor:pointer; margin-bottom:10px;" onclick="toggleCategoryFilter('${cat.key}', '${cat.name}')" title="Click to filter by ${cat.name}">
+          <div class="breakdown-label-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span style="display:inline-flex; align-items:center; gap:6px;">
+              <span>${cat.icon}</span>
+              <strong style="font-size:12px; color:#1e293b;">${cat.name}</strong>
+            </span>
+            <span style="font-size:11.5px; font-weight:700; color:#475569;">
+              ${cat.count} scans (${pct}%)
+            </span>
+          </div>
+          <div style="width:100%; height:7px; background:#f1f5f9; border-radius:999px; overflow:hidden;">
+            <div style="height:100%; width:${pct}%; background:${cat.color}; border-radius:999px; transition:width 0.4s ease;"></div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+}
+
 function renderVisualDistDonut(data) {
+  renderCropHealthBreakdown(data);
   const canvas = document.getElementById("visualDistCanvas");
   if (!canvas) return;
 
@@ -1855,7 +1969,7 @@ function renderRecentAnalysesTable() {
     if (countBadge) countBadge.textContent = "0 Scans";
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" style="padding:0;">
+        <td colspan="6" style="padding:0;">
           <div class="agro-empty-state">
             <div class="empty-icon">🌱</div>
             <div class="empty-title">No analyses yet</div>
@@ -1940,7 +2054,7 @@ function renderRecentAnalysesTable() {
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" style="padding:0;">
+        <td colspan="6" style="padding:0;">
           <div class="agro-empty-state">
             <div class="empty-icon icon-info">🔍</div>
             <div class="empty-title">No matching records found</div>
@@ -2023,81 +2137,57 @@ function renderRecentAnalysesTable() {
     pageNumbersContainer.innerHTML = pagesHtml;
   }
 
-  // 5. Render Rows
+  // 5. Render Rows (6 Clean Farmer-Friendly Columns)
   tbody.innerHTML = pageRecords.map(r => {
     const { topClass, topPct } = getRecordTopClass(r);
-    const { isAlert, ruleName } = getRecordExpertStatus(r);
+    const { isAlert, ruleName, rulePrecaution } = getRecordExpertStatus(r);
     const { relationship } = getRecordFinalAssessment(r);
 
     // Visual Class Badge & Color
-    let classBadge = `<span style="background:#ecfdf5; color:#059669; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">🟢 Healthy</span>`;
-    let classColor = "#059669";
+    let classBadge = `<span style="background:#ecfdf5; color:#059669; font-weight:700; padding:3px 9px; border-radius:999px; font-size:11.5px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">🟢 Healthy</span>`;
     const lowerClass = topClass.toLowerCase();
 
+    let practicalAdvice = "Maintain routine irrigation and weekly crop scouting.";
     if (lowerClass.includes("water")) {
-      classBadge = `<span style="background:#eff6ff; color:#2563eb; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">💧 Water Stress</span>`;
-      classColor = "#2563eb";
+      classBadge = `<span style="background:#eff6ff; color:#2563eb; font-weight:700; padding:3px 9px; border-radius:999px; font-size:11.5px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">💧 Water Stress</span>`;
+      practicalAdvice = rulePrecaution || "Schedule drip or furrow irrigation during cool evening hours to restore turgor.";
     } else if (lowerClass.includes("heat")) {
-      classBadge = `<span style="background:#fff7ed; color:#ea580c; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">☀️ Heat Stress</span>`;
-      classColor = "#ea580c";
+      classBadge = `<span style="background:#fff7ed; color:#ea580c; font-weight:700; padding:3px 9px; border-radius:999px; font-size:11.5px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">☀️ Heat Scorch</span>`;
+      practicalAdvice = rulePrecaution || "High thermal risk: inspect soil moisture at 15–30 cm depth; avoid midday moisture stress.";
     } else if (lowerClass.includes("nutrient")) {
-      classBadge = `<span style="background:#fefce8; color:#ca8a04; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">🍃 Nutrient Def.</span>`;
-      classColor = "#ca8a04";
+      classBadge = `<span style="background:#fefce8; color:#ca8a04; font-weight:700; padding:3px 9px; border-radius:999px; font-size:11.5px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">🍂 Nutrient Def.</span>`;
+      practicalAdvice = rulePrecaution || "Collect petiole samples for N-P-K check; consider balanced foliar spray (19:19:19).";
     } else if (lowerClass.includes("pollution")) {
-      classBadge = `<span style="background:#f5f3ff; color:#7c3aed; font-weight:700; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;">🌫️ Pollution</span>`;
-      classColor = "#7c3aed";
+      classBadge = `<span style="background:#f5f3ff; color:#7c3aed; font-weight:700; padding:3px 9px; border-radius:999px; font-size:11.5px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">🌫️ Dust / Injury</span>`;
+      practicalAdvice = rulePrecaution || "Inspect upper leaves for particulate film; consider canopy wash if stomata are clogged.";
+    } else {
+      practicalAdvice = rulePrecaution || "Crop health is stable; continue scheduled watering and routine insect scouting.";
     }
 
-    // SNN Environmental Risk Badge
+    // Environmental Risk / Weather
     const sev = r.stress_severity || "Moderate";
-    let envPill = `<span style="background:#fef3c7; color:#d97706; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap;">🟡 Moderate</span>`;
+    let envBadge = `<span style="background:#fef3c7; color:#d97706; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px;">🟡 Moderate</span>`;
     if (sev === "High") {
-      envPill = `<span style="background:#fee2e2; color:#dc2626; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap;">🔴 High</span>`;
+      envBadge = `<span style="background:#fee2e2; color:#dc2626; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px;">🔴 High Risk</span>`;
     } else if (sev === "Low") {
-      envPill = `<span style="background:#ecfdf5; color:#059669; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap;">🟢 Low</span>`;
+      envBadge = `<span style="background:#ecfdf5; color:#059669; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px;">🟢 Low Risk</span>`;
     }
 
-    // SNN micro telemetry
-    const tempStr = r.temperature !== undefined ? `${r.temperature.toFixed(1)}°C` : "31°C";
-    const humStr = r.humidity !== undefined ? `${r.humidity.toFixed(0)}%` : "72%";
-    let soilNum = 68;
-    if (r.soil_moisture !== undefined) {
-      soilNum = r.soil_moisture <= 1.0 ? Math.round(r.soil_moisture * 100) : Math.round(r.soil_moisture);
-    }
-    const envTelemetrySub = `<div style="font-size:10px; color:#64748b; margin-top:2px; white-space:nowrap;">${tempStr} · ${humStr} · ${soilNum}% SM</div>`;
-
-    // Expert Check Badge
-    let expertBadge = `<span style="background:#f8fafc; color:#475569; border:1px solid #e2e8f0; font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:6px; white-space:nowrap;" title="Verified by Agronomic Rules">🛡️ Normal</span>`;
-    if (isAlert) {
-      const shortRule = ruleName.length > 15 ? `${ruleName.substring(0, 14)}…` : ruleName;
-      expertBadge = `<span style="background:#fffbeb; color:#b45309; border:1px solid #fed7aa; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;" title="${ruleName}">⚠️ ${shortRule}</span>`;
-    }
-
-    // Final Assessment Badge
-    let finalBadge = `<span style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;">⚖️ Aligned</span>`;
-    if (relationship.includes("DIVERGENT") || relationship.includes("CONFLICT")) {
-      finalBadge = `<span style="background:#fef3c7; color:#d97706; border:1px solid #fde68a; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;">⚡ Divergent</span>`;
-    } else if (relationship.includes("VETO") || relationship.includes("OVERRULE") || relationship.includes("CRITICAL")) {
-      finalBadge = `<span style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;">🛡️ Safety Veto</span>`;
-    }
+    const tempStr = r.temperature !== undefined ? `${r.temperature.toFixed(1)}°C` : "25°C";
+    const fieldNameDisplay = (r.field_name || "Wardha Field").split("—")[0].trim();
 
     // Date & Time
     const dt = r.created_at ? new Date(r.created_at) : new Date();
     const dateFormatted = dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     const timeFormatted = dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-    const uuidShort = (r.record_uuid || "").substring(0, 8);
     const imgUrl = r.image_url || "images/leaf_placeholder.jpg";
     const reportUrl = getApiUrl(`/api/v1/records/${r.record_uuid}/report`);
 
     return `
       <tr class="table-row-compact">
         <td>
-          <div style="font-weight:700; color:#0f172a; white-space:nowrap;">${dateFormatted}</div>
-          <div style="font-size:10px; color:#64748b; margin-top:1px; display:flex; align-items:center; gap:4px;">
-            <span>${timeFormatted}</span>
-            <span>·</span>
-            <span style="font-family:monospace; color:#94a3b8;">${uuidShort}</span>
-          </div>
+          <div style="font-weight:700; color:#0f172a; font-size:12px; white-space:nowrap;">${dateFormatted}</div>
+          <div style="font-size:10.5px; color:#64748b; margin-top:2px;">${timeFormatted}</div>
         </td>
         <td style="text-align:center;">
           <img
@@ -2105,39 +2195,30 @@ function renderRecentAnalysesTable() {
             alt="Leaf"
             class="leaf-thumb-compact"
             onclick="openQuickViewModal('${r.record_uuid}')"
-            title="Click for quick preview"
+            title="Tap to preview leaf"
             onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'36\\' height=\\'36\\'><rect width=\\'36\\' height=\\'36\\' fill=\\'%23e2e8f0\\'/><text x=\\'50%\\' y=\\'55%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%2364748b\\' font-size=\\'14\\'>🌿</text></svg>'"
           />
         </td>
         <td>
           ${classBadge}
+          <div style="font-size:10px; color:#64748b; margin-top:3px; font-weight:500;">${topPct.toFixed(0)}% confidence</div>
         </td>
         <td>
-          <div style="font-weight:700; color:#0f172a; font-size:11.5px;">${topPct.toFixed(1)}%</div>
-          <div class="evidence-bar-wrap">
-            <div class="evidence-bar-fill" style="width:${Math.min(100, Math.max(10, Math.round(topPct)))}%; background:${classColor};"></div>
+          <div style="font-weight:700; color:#1e293b; font-size:11.5px;">${tempStr} · ${fieldNameDisplay}</div>
+          <div style="margin-top:2px;">${envBadge}</div>
+        </td>
+        <td>
+          <div style="font-size:11.5px; color:#334155; line-height:1.4; max-width:280px; font-weight:500;">
+            ${practicalAdvice}
           </div>
-        </td>
-        <td>
-          ${envPill}
-          ${envTelemetrySub}
-        </td>
-        <td>
-          ${expertBadge}
-        </td>
-        <td>
-          ${finalBadge}
         </td>
         <td style="text-align:right;">
           <div class="table-actions-group">
-            <button type="button" class="tbl-action-btn view-btn" onclick="openQuickViewModal('${r.record_uuid}')" title="Quick preview modal">
+            <button type="button" class="tbl-action-btn view-btn" onclick="openQuickViewModal('${r.record_uuid}')" title="Quick preview">
               👁️ View
             </button>
-            <a href="analysis_detail.html?uuid=${r.record_uuid}" class="tbl-action-btn open-btn" title="Open full analysis page">
-              Open →
-            </a>
-            <a href="${reportUrl}" target="_blank" class="tbl-action-btn report-btn" title="Generate & view official PDF agronomic report">
-              PDF ↗
+            <a href="${reportUrl}" target="_blank" class="tbl-action-btn report-btn" title="Download agronomic report">
+              📄 PDF
             </a>
           </div>
         </td>
