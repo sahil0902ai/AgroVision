@@ -188,306 +188,319 @@
       </div>
 
       <!-- ============================================================
-           STEP 1: Leaf & Environment Workspace (Two-Column Layout + Bottom Context)
+           STEP 1: Leaf & Environment Workspace (Equal Height Dual Columns + Combined Action Bar)
            ============================================================ -->
-      <div id="viewInput" class="dash-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; width:100%;">
+      <div id="viewInput" class="dash-grid" style="display:flex; flex-direction:column; gap:20px; width:100%;">
 
-        <!-- LEFT: Cotton Leaf Image Component -->
-        <div class="panel upload-panel" style="display:flex; flex-direction:column; height:auto; gap:12px;">
-          
-          <!-- Header Bar -->
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:16px;">🍃</span>
-              <h3 style="font-size:14px; color:#0d3b2e; font-weight:800; margin:0;">Cotton Leaf Image</h3>
-            </div>
-            <span class="provenance-tag tag-farmer-upload" id="uploadSourceBadge">FARMER UPLOAD</span>
-          </div>
+        <!-- Dual Column Grid: Both Columns Match Exactly in Height & Length -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:stretch; width:100%;">
 
-          <!-- Drag and Drop Upload Dropzone (Enlarged & Spacious) -->
-          <div
-            class="upload-dropzone"
-            id="uploadDropzone"
-            ondragover="handleDragOver(event)"
-            ondragleave="handleDragLeave(event)"
-            ondrop="handleDrop(event)"
-            onclick="triggerFileInput(event)"
-            role="button"
-            tabindex="0"
-            aria-label="Upload cotton leaf image"
-            style="padding: 26px 20px; min-height: 205px; border-radius: 14px; border: 2px dashed #a7f3d0; background: #fbfdfc; transition: all 0.2s ease; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;"
-          >
-            <!-- 1. Clean Empty State (Before Upload) -->
-            <div id="uploadEmptyState" class="upload-state-empty" style="display:flex; flex-direction:column; align-items:center; gap:6px;">
-              <div class="upload-icon-circle" style="width:52px; height:52px; border-radius:14px; background:#ecfdf5; border:1px solid #a7f3d0; display:flex; align-items:center; justify-content:center; margin-bottom:4px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:26px; height:26px; color:#059669;">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="17 8 12 3 7 8"/>
-                  <line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
-              </div>
-              <div class="upload-prompt-title" style="font-size:14px; font-weight:800; color:#0d3b2e;">Drag &amp; drop cotton leaf image here</div>
-              <div class="upload-prompt-sub" style="font-size:11.5px; color:#64748b;">or click anywhere to browse photo from your device</div>
-              <button type="button" class="btn btn-outline" style="margin: 6px 0 8px; font-size:12px; font-weight:700; padding:7px 18px; border-color:#059669; color:#059669; background:#ffffff; border-radius:8px; box-shadow:0 1px 3px rgba(5,150,105,0.08);" onclick="document.getElementById('fileInput').click()">
-                📁 Browse Leaf Photo
-              </button>
-              <div class="upload-specs-pills" style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center;">
-                <span class="upload-spec-pill" style="font-size:10px; font-weight:700; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:6px; border:1px solid #e2e8f0;">JPG / JPEG</span>
-                <span class="upload-spec-pill" style="font-size:10px; font-weight:700; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:6px; border:1px solid #e2e8f0;">PNG</span>
-                <span class="upload-spec-pill" style="font-size:10px; font-weight:700; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:6px; border:1px solid #e2e8f0;">WEBP</span>
-                <span class="upload-spec-pill highlight" style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:6px; border:1px solid #a7f3d0;">Max 10 MB</span>
-              </div>
-            </div>
-
-            <!-- 2. Validated Upload State (After Upload) -->
-            <div id="uploadSuccessState" class="upload-state-success" style="display:none; width:100%;">
-              <div class="upload-preview-card" style="display:flex; gap:16px; align-items:center; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px; width:100%; box-sizing:border-box;">
-                <div class="upload-thumb-wrap" style="width:80px; height:80px; border-radius:10px; overflow:hidden; border:1px solid #cbd5e1; flex-shrink:0;">
-                  <img id="previewImg" src="" alt="Uploaded cotton leaf" class="upload-thumb-img" style="width:100%; height:100%; object-fit:cover;" />
+          <!-- LEFT COLUMN: Cotton Leaf Image Component (Full Height) -->
+          <div class="panel upload-panel" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; box-sizing:border-box; margin:0;">
+            
+            <div>
+              <!-- Header Bar -->
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:18px;">📸</span>
+                  <h3 style="font-size:14.5px; color:#0d3b2e; font-weight:800; margin:0;">Cotton Leaf Image</h3>
                 </div>
-                <div class="upload-meta-info" style="flex:1; text-align:left;">
-                  <div class="upload-meta-header" style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
-                    <span class="upload-status-ready" id="uploadStatusBadge" style="font-size:11px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">✓ Image Ready for AI</span>
+                <span class="provenance-tag tag-farmer-upload" id="uploadSourceBadge">FARMER UPLOAD</span>
+              </div>
+
+              <!-- Drag and Drop Upload Dropzone (Expanded & Vertically Centered) -->
+              <div
+                class="upload-dropzone"
+                id="uploadDropzone"
+                ondragover="handleDragOver(event)"
+                ondragleave="handleDragLeave(event)"
+                ondrop="handleDrop(event)"
+                onclick="triggerFileInput(event)"
+                role="button"
+                tabindex="0"
+                aria-label="Upload cotton leaf image"
+                style="padding: 34px 22px; min-height: 380px; border-radius: 14px; border: 2px dashed #a7f3d0; background: #fbfdfc; transition: all 0.2s ease; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;"
+              >
+                <!-- 1. Clean Empty State (Before Upload) -->
+                <div id="uploadEmptyState" class="upload-state-empty" style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                  <div class="upload-icon-circle" style="width:60px; height:60px; border-radius:16px; background:#ecfdf5; border:1px solid #a7f3d0; display:flex; align-items:center; justify-content:center; margin-bottom:6px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:30px; height:30px; color:#059669;">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
                   </div>
-                  <div class="upload-meta-filename" id="fileNameLabel" style="font-size:12.5px; font-weight:700; color:#0f172a; max-width:200px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">cotton_leaf.jpg</div>
-                  <div class="upload-meta-details" style="font-size:11px; color:#64748b; margin-top:2px;">
-                    <span id="fileSizeLabel">1.4 MB</span>
-                    <span class="upload-meta-dot">•</span>
-                    <span id="fileDimensionsLabel">224 × 224 px</span>
-                    <span class="upload-meta-dot">•</span>
-                    <span id="fileFormatLabel">JPG</span>
-                  </div>
-                  <div class="upload-actions-bar" style="display:flex; gap:8px; margin-top:8px;">
-                    <button type="button" class="btn-upload-action btn-replace" onclick="replaceSelectedImage(event)" title="Choose a different image" style="font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; background:#f8fafc; border:1px solid #cbd5e1; color:#334155; cursor:pointer;">
-                      🔄 Replace
-                    </button>
-                    <button type="button" class="btn-upload-action btn-remove" onclick="clearSelectedImage(event)" title="Remove image" style="font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; background:#fff1f2; border:1px solid #fecdd3; color:#e11d48; cursor:pointer;">
-                      🗑️ Remove
-                    </button>
+                  <div class="upload-prompt-title" style="font-size:15px; font-weight:800; color:#0d3b2e;">Drag &amp; drop cotton leaf photo here</div>
+                  <div class="upload-prompt-sub" style="font-size:12px; color:#64748b;">or click anywhere to browse photo from your device</div>
+                  <button type="button" class="btn btn-outline" style="margin: 8px 0 12px; font-size:12.5px; font-weight:700; padding:8px 22px; border-color:#059669; color:#059669; background:#ffffff; border-radius:8px; box-shadow:0 1px 3px rgba(5,150,105,0.08);" onclick="document.getElementById('fileInput').click()">
+                    📁 Browse Leaf Photo
+                  </button>
+                  <div class="upload-specs-pills" style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center;">
+                    <span class="upload-spec-pill" style="font-size:10px; font-weight:700; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:6px; border:1px solid #e2e8f0;">JPG / JPEG</span>
+                    <span class="upload-spec-pill" style="font-size:10px; font-weight:700; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:6px; border:1px solid #e2e8f0;">PNG</span>
+                    <span class="upload-spec-pill" style="font-size:10px; font-weight:700; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:6px; border:1px solid #e2e8f0;">WEBP</span>
+                    <span class="upload-spec-pill highlight" style="font-size:10px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:6px; border:1px solid #a7f3d0;">Max 10 MB</span>
                   </div>
                 </div>
+
+                <!-- 2. Validated Upload State (After Upload) -->
+                <div id="uploadSuccessState" class="upload-state-success" style="display:none; width:100%;">
+                  <div class="upload-preview-card" style="display:flex; gap:16px; align-items:center; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; width:100%; box-sizing:border-box;">
+                    <div class="upload-thumb-wrap" style="width:86px; height:86px; border-radius:10px; overflow:hidden; border:1px solid #cbd5e1; flex-shrink:0;">
+                      <img id="previewImg" src="" alt="Uploaded cotton leaf" class="upload-thumb-img" style="width:100%; height:100%; object-fit:cover;" />
+                    </div>
+                    <div class="upload-meta-info" style="flex:1; text-align:left;">
+                      <div class="upload-meta-header" style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+                        <span class="upload-status-ready" id="uploadStatusBadge" style="font-size:11px; font-weight:700; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:999px; border:1px solid #a7f3d0;">✓ Image Ready for AI</span>
+                      </div>
+                      <div class="upload-meta-filename" id="fileNameLabel" style="font-size:13px; font-weight:700; color:#0f172a; max-width:200px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">cotton_leaf.jpg</div>
+                      <div class="upload-meta-details" style="font-size:11px; color:#64748b; margin-top:2px;">
+                        <span id="fileSizeLabel">1.4 MB</span>
+                        <span class="upload-meta-dot">•</span>
+                        <span id="fileDimensionsLabel">224 × 224 px</span>
+                        <span class="upload-meta-dot">•</span>
+                        <span id="fileFormatLabel">JPG</span>
+                      </div>
+                      <div class="upload-actions-bar" style="display:flex; gap:8px; margin-top:10px;">
+                        <button type="button" class="btn-upload-action btn-replace" onclick="replaceSelectedImage(event)" title="Choose a different image" style="font-size:11px; font-weight:700; padding:4px 10px; border-radius:6px; background:#f8fafc; border:1px solid #cbd5e1; color:#334155; cursor:pointer;">
+                          🔄 Replace
+                        </button>
+                        <button type="button" class="btn-upload-action btn-remove" onclick="clearSelectedImage(event)" title="Remove image" style="font-size:11px; font-weight:700; padding:4px 10px; border-radius:6px; background:#fff1f2; border:1px solid #fecdd3; color:#e11d48; cursor:pointer;">
+                          🗑️ Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3. Validation Loading State -->
+                <div id="uploadValidatingState" class="upload-state-validating" style="display:none; flex-direction:column; align-items:center;">
+                  <div class="upload-spinner" style="font-size:26px;">⏳</div>
+                  <div style="font-size:13px; font-weight:700; color:#0f172a; margin-top:8px;">Validating image file…</div>
+                  <div style="font-size:11.5px; color:#64748b;">Checking format, resolution &amp; clarity</div>
+                </div>
+              </div>
+
+              <!-- Hidden Native File Input -->
+              <input
+                type="file"
+                id="fileInput"
+                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                style="display:none"
+                onchange="handleFileSelect(event)"
+              />
+
+              <!-- Validation Error Box -->
+              <div class="upload-error-box" id="uploadErrorBox" style="display:none; margin-top:12px;">
+                <div class="upload-error-title">
+                  <span>⚠️</span>
+                  <span id="uploadErrorTitle">Image Validation Failed</span>
+                </div>
+                <div class="upload-error-msg" id="uploadErrorMsg">
+                  Please select a valid, non-corrupted JPG, PNG, or WEBP image under 10MB.
+                </div>
               </div>
             </div>
 
-            <!-- 3. Validation Loading State -->
-            <div id="uploadValidatingState" class="upload-state-validating" style="display:none; flex-direction:column; align-items:center;">
-              <div class="upload-spinner" style="font-size:24px;">⌛</div>
-              <div style="font-size:12.5px; font-weight:700; color:#0f172a; margin-top:8px;">Validating image file…</div>
-              <div style="font-size:11px; color:#64748b;">Checking format, file size &amp; decoding integrity</div>
+            <!-- Clean Guidance Tip at Bottom of Left Panel -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:14px; display:flex; align-items:center; gap:10px; font-size:11.5px; color:#475569;">
+              <span style="font-size:18px;">🌿</span>
+              <span><strong>Farmer Tip:</strong> Middle canopy leaves with clear daylight provide optimal stress diagnosis.</span>
             </div>
+
           </div>
 
-          <!-- Hidden Native File Input -->
-          <input
-            type="file"
-            id="fileInput"
-            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-            style="display:none"
-            onchange="handleFileSelect(event)"
-          />
+          <!-- RIGHT COLUMN: Environmental Conditions (Power BI Analytical Control Surface) -->
+          <div class="panel" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; box-sizing:border-box; margin:0;">
+            
+            <div>
+              <!-- Panel Header & Mode Switcher -->
+              <div class="env-panel-header" style="margin-bottom:14px;">
+                <div class="env-panel-title-wrap">
+                  <span style="font-size:16px;">🌦️</span>
+                  <h3 class="env-panel-title">Environmental Conditions</h3>
+                </div>
+                <div class="env-mode-toggle">
+                  <button type="button" id="sourceAutoBtn" class="btn-env-mode active-auto" onclick="setEnvSourceMode('auto')" title="Stream live microclimate data from Weather API">
+                    ⚡ Auto Weather
+                  </button>
+                  <button type="button" id="sourceManualBtn" class="btn-env-mode inactive" onclick="setEnvSourceMode('manual')" title="Switch to manual field observation entry">
+                    ✏️ Manual Entry
+                  </button>
+                </div>
+              </div>
 
-          
+              <!-- 6 Horizontal Analytical Sliders List -->
+              <div class="env-sliders-list" style="display:flex; flex-direction:column; gap:10px;">
+                
+                <!-- 1. Temperature (°C) -->
+                <div class="env-analytics-card" id="cardEnvTemp">
+                  <div class="env-card-top-row">
+                    <div class="env-card-label-group">
+                      <span class="env-card-icon">🌡️</span>
+                      <span class="env-card-label">Temperature (°C)</span>
+                    </div>
+                    <span class="env-source-badge badge-auto" id="sourcePillTemp">AUTO · Weather API</span>
+                  </div>
+                  <div class="env-card-body-row">
+                    <div class="env-slider-track-wrap">
+                      <div class="env-min-max-row">
+                        <span>0°C</span>
+                        <span>50°C</span>
+                      </div>
+                      <input type="range" class="env-slider-input slider-temp" id="sliderTemp" min="0" max="50" step="0.5" value="28" oninput="handleSliderChange('Temp')" />
+                    </div>
+                    <div class="env-val-box">
+                      <input type="number" class="env-num-input" id="numInputTemp" min="0" max="50" step="0.5" value="28.0" oninput="handleNumInputChange('Temp')" />
+                      <span class="env-unit-label">°C</span>
+                    </div>
+                  </div>
+                </div>
 
-          <!-- Validation Error Box -->
-          <div class="upload-error-box" id="uploadErrorBox" style="display:none;">
-            <div class="upload-error-title">
-              <span>⚠️</span>
-              <span id="uploadErrorTitle">Image Validation Failed</span>
+                <!-- 2. Humidity (%) -->
+                <div class="env-analytics-card" id="cardEnvHumidity">
+                  <div class="env-card-top-row">
+                    <div class="env-card-label-group">
+                      <span class="env-card-icon">💧</span>
+                      <span class="env-card-label">Relative Humidity (%)</span>
+                    </div>
+                    <span class="env-source-badge badge-auto" id="sourcePillHumidity">AUTO · Weather API</span>
+                  </div>
+                  <div class="env-card-body-row">
+                    <div class="env-slider-track-wrap">
+                      <div class="env-min-max-row">
+                        <span>0%</span>
+                        <span>100%</span>
+                      </div>
+                      <input type="range" class="env-slider-input slider-humidity" id="sliderHumidity" min="0" max="100" step="1" value="65" oninput="handleSliderChange('Humidity')" />
+                    </div>
+                    <div class="env-val-box">
+                      <input type="number" class="env-num-input" id="numInputHumidity" min="0" max="100" step="1" value="65" oninput="handleNumInputChange('Humidity')" />
+                      <span class="env-unit-label">%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3. Rainfall (mm) -->
+                <div class="env-analytics-card" id="cardEnvRainfall">
+                  <div class="env-card-top-row">
+                    <div class="env-card-label-group">
+                      <span class="env-card-icon">🌧️</span>
+                      <span class="env-card-label">7-Day Rainfall (mm)</span>
+                    </div>
+                    <span class="env-source-badge badge-auto" id="sourcePillRainfall">AUTO · Weather API</span>
+                  </div>
+                  <div class="env-card-body-row">
+                    <div class="env-slider-track-wrap">
+                      <div class="env-min-max-row">
+                        <span>0 mm</span>
+                        <span>200 mm</span>
+                      </div>
+                      <input type="range" class="env-slider-input slider-rainfall" id="sliderRainfall" min="0" max="200" step="1" value="12" oninput="handleSliderChange('Rainfall')" />
+                    </div>
+                    <div class="env-val-box">
+                      <input type="number" class="env-num-input" id="numInputRainfall" min="0" max="200" step="1" value="12" oninput="handleNumInputChange('Rainfall')" />
+                      <span class="env-unit-label">mm</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 4. Soil Moisture (%) -->
+                <div class="env-analytics-card" id="cardEnvSoil">
+                  <div class="env-card-top-row">
+                    <div class="env-card-label-group">
+                      <span class="env-card-icon">🌱</span>
+                      <span class="env-card-label">Soil Moisture (%)</span>
+                    </div>
+                    <span class="env-source-badge badge-manual" id="sourcePillSoil">MANUAL INPUT</span>
+                  </div>
+                  <div class="env-card-body-row">
+                    <div class="env-slider-track-wrap">
+                      <div class="env-min-max-row">
+                        <span>0%</span>
+                        <span>100%</span>
+                      </div>
+                      <input type="range" class="env-slider-input slider-soil" id="sliderSoil" min="0" max="100" step="1" value="58" oninput="handleSliderChange('Soil')" />
+                    </div>
+                    <div class="env-val-box">
+                      <input type="number" class="env-num-input" id="numInputSoil" min="0" max="100" step="1" value="58" oninput="handleNumInputChange('Soil')" />
+                      <span class="env-unit-label">%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 5. Air Quality Index (AQI) -->
+                <div class="env-analytics-card" id="cardEnvAQI">
+                  <div class="env-card-top-row">
+                    <div class="env-card-label-group">
+                      <span class="env-card-icon">🌫️</span>
+                      <span class="env-card-label">Air Quality Index (AQI)</span>
+                    </div>
+                    <span class="env-source-badge badge-auto" id="sourcePillAQI">AUTO · Weather API</span>
+                  </div>
+                  <div class="env-card-body-row">
+                    <div class="env-slider-track-wrap">
+                      <div class="env-min-max-row">
+                        <span>0 AQI</span>
+                        <span>500 AQI</span>
+                      </div>
+                      <input type="range" class="env-slider-input slider-aqi" id="sliderAQI" min="0" max="500" step="1" value="84" oninput="handleSliderChange('AQI')" />
+                    </div>
+                    <div class="env-val-box">
+                      <input type="number" class="env-num-input" id="numInputAQI" min="0" max="500" step="1" value="84" oninput="handleNumInputChange('AQI')" />
+                      <span class="env-unit-label">AQI</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 6. Ozone (ppb) -->
+                <div class="env-analytics-card" id="cardEnvOzone">
+                  <div class="env-card-top-row">
+                    <div class="env-card-label-group">
+                      <span class="env-card-icon">☀️</span>
+                      <span class="env-card-label">Ozone (ppb)</span>
+                    </div>
+                    <span class="env-source-badge badge-auto" id="sourcePillOzone">AUTO · Weather API</span>
+                  </div>
+                  <div class="env-card-body-row">
+                    <div class="env-slider-track-wrap">
+                      <div class="env-min-max-row">
+                        <span>0 ppb</span>
+                        <span>200 ppb</span>
+                      </div>
+                      <input type="range" class="env-slider-input slider-ozone" id="sliderOzone" min="0" max="200" step="1" value="41" oninput="handleSliderChange('Ozone')" />
+                    </div>
+                    <div class="env-val-box">
+                      <input type="number" class="env-num-input" id="numInputOzone" min="0" max="200" step="1" value="41" oninput="handleNumInputChange('Ozone')" />
+                      <span class="env-unit-label">ppb</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
-            <div class="upload-error-msg" id="uploadErrorMsg">
-              Please select a valid, non-corrupted JPG, PNG, or WEBP image under 10MB.
-            </div>
+
           </div>
 
         </div>
 
-        <!-- RIGHT: Environmental Conditions (Power BI Analytical Control Surface) -->
-        <div class="panel" style="display:flex; flex-direction:column; height:auto;">
-          
-          <!-- Panel Header & Mode Switcher -->
-          <div class="env-panel-header">
-            <div class="env-panel-title-wrap">
-              <span style="font-size:16px;">⛅</span>
-              <h3 class="env-panel-title">Environmental Conditions</h3>
-            </div>
-            <div class="env-mode-toggle">
-              <button type="button" id="sourceAutoBtn" class="btn-env-mode active-auto" onclick="setEnvSourceMode('auto')" title="Stream live microclimate data from Weather API">
-                ⚡ Auto Weather
-              </button>
-              <button type="button" id="sourceManualBtn" class="btn-env-mode inactive" onclick="setEnvSourceMode('manual')" title="Switch to manual field observation entry">
-                ✍️ Manual Entry
-              </button>
-            </div>
-          </div>
-
-          <!-- 6 Horizontal Analytical Sliders List -->
-          <div class="env-sliders-list">
-            
-            <!-- 1. Temperature (°C) -->
-            <div class="env-analytics-card" id="cardEnvTemp">
-              <div class="env-card-top-row">
-                <div class="env-card-label-group">
-                  <span class="env-card-icon">🌡️</span>
-                  <span class="env-card-label">Temperature (°C)</span>
-                </div>
-                <span class="env-source-badge badge-auto" id="sourcePillTemp">AUTO · Weather API</span>
-              </div>
-              <div class="env-card-body-row">
-                <div class="env-slider-track-wrap">
-                  <div class="env-min-max-row">
-                    <span>0 °C</span>
-                    <span>50 °C</span>
-                  </div>
-                  <input type="range" class="env-slider-input slider-temp" id="sliderTemp" min="0" max="50" step="0.1" value="31.0" oninput="handleSliderChange('Temp')" />
-                </div>
-                <div class="env-val-box">
-                  <input type="number" class="env-num-input" id="numInputTemp" min="0" max="50" step="0.1" value="31.0" oninput="handleNumInputChange('Temp')" />
-                  <span class="env-unit-label">°C</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 2. Humidity (%) -->
-            <div class="env-analytics-card" id="cardEnvHumidity">
-              <div class="env-card-top-row">
-                <div class="env-card-label-group">
-                  <span class="env-card-icon">💧</span>
-                  <span class="env-card-label">Humidity (%)</span>
-                </div>
-                <span class="env-source-badge badge-auto" id="sourcePillHumidity">AUTO · Weather API</span>
-              </div>
-              <div class="env-card-body-row">
-                <div class="env-slider-track-wrap">
-                  <div class="env-min-max-row">
-                    <span>0 %</span>
-                    <span>100 %</span>
-                  </div>
-                  <input type="range" class="env-slider-input slider-humidity" id="sliderHumidity" min="0" max="100" step="1" value="72" oninput="handleSliderChange('Humidity')" />
-                </div>
-                <div class="env-val-box">
-                  <input type="number" class="env-num-input" id="numInputHumidity" min="0" max="100" step="1" value="72" oninput="handleNumInputChange('Humidity')" />
-                  <span class="env-unit-label">%</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 3. Rainfall (mm) -->
-            <div class="env-analytics-card" id="cardEnvRainfall">
-              <div class="env-card-top-row">
-                <div class="env-card-label-group">
-                  <span class="env-card-icon">🌧️</span>
-                  <span class="env-card-label">Rainfall (mm)</span>
-                </div>
-                <span class="env-source-badge badge-auto" id="sourcePillRainfall">AUTO · Weather API</span>
-              </div>
-              <div class="env-card-body-row">
-                <div class="env-slider-track-wrap">
-                  <div class="env-min-max-row">
-                    <span>0 mm</span>
-                    <span>200 mm</span>
-                  </div>
-                  <input type="range" class="env-slider-input slider-rainfall" id="sliderRainfall" min="0" max="200" step="0.5" value="5.0" oninput="handleSliderChange('Rainfall')" />
-                </div>
-                <div class="env-val-box">
-                  <input type="number" class="env-num-input" id="numInputRainfall" min="0" max="200" step="0.5" value="5.0" oninput="handleNumInputChange('Rainfall')" />
-                  <span class="env-unit-label">mm</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 4. Soil Moisture (%) -->
-            <div class="env-analytics-card card-manual-highlight" id="cardEnvSoil">
-              <div class="env-card-top-row">
-                <div class="env-card-label-group">
-                  <span class="env-card-icon">🌱</span>
-                  <span class="env-card-label" style="color:#065f46;">Soil Moisture (%)</span>
-                </div>
-                <span class="env-source-badge badge-manual" id="sourcePillSoil">MANUAL INPUT</span>
-              </div>
-              <div class="env-card-body-row">
-                <div class="env-slider-track-wrap">
-                  <div class="env-min-max-row">
-                    <span>0 %</span>
-                    <span>100 %</span>
-                  </div>
-                  <input type="range" class="env-slider-input slider-soil" id="sliderSoil" min="0" max="100" step="1" value="68" oninput="handleSliderChange('Soil')" />
-                </div>
-                <div class="env-val-box" style="border-color:#a7f3d0; background:#f0fdf4;">
-                  <input type="number" class="env-num-input" id="numInputSoil" min="0" max="100" step="1" value="68" oninput="handleNumInputChange('Soil')" style="color:#065f46;" />
-                  <span class="env-unit-label" style="color:#059669;">%</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 5. Air Quality (AQI) -->
-            <div class="env-analytics-card" id="cardEnvAqi">
-              <div class="env-card-top-row">
-                <div class="env-card-label-group">
-                  <span class="env-card-icon">🫧</span>
-                  <span class="env-card-label">AQI</span>
-                </div>
-                <span class="env-source-badge badge-auto" id="sourcePillAqi">AUTO · Weather API</span>
-              </div>
-              <div class="env-card-body-row">
-                <div class="env-slider-track-wrap">
-                  <div class="env-min-max-row">
-                    <span>0</span>
-                    <span>500</span>
-                  </div>
-                  <input type="range" class="env-slider-input slider-aqi" id="sliderAqi" min="0" max="500" step="1" value="64" oninput="handleSliderChange('Aqi')" />
-                </div>
-                <div class="env-val-box">
-                  <input type="number" class="env-num-input" id="numInputAqi" min="0" max="500" step="1" value="64" oninput="handleNumInputChange('Aqi')" />
-                  <span class="env-unit-label">AQI</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 6. Ozone (ppb) -->
-            <div class="env-analytics-card" id="cardEnvOzone">
-              <div class="env-card-top-row">
-                <div class="env-card-label-group">
-                  <span class="env-card-icon">☀️</span>
-                  <span class="env-card-label">Ozone (ppb)</span>
-                </div>
-                <span class="env-source-badge badge-auto" id="sourcePillOzone">AUTO · Weather API</span>
-              </div>
-              <div class="env-card-body-row">
-                <div class="env-slider-track-wrap">
-                  <div class="env-min-max-row">
-                    <span>0 ppb</span>
-                    <span>200 ppb</span>
-                  </div>
-                  <input type="range" class="env-slider-input slider-ozone" id="sliderOzone" min="0" max="200" step="1" value="41" oninput="handleSliderChange('Ozone')" />
-                </div>
-                <div class="env-val-box">
-                  <input type="number" class="env-num-input" id="numInputOzone" min="0" max="200" step="1" value="41" oninput="handleNumInputChange('Ozone')" />
-                  <span class="env-unit-label">ppb</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Main Actions Bar (Farmer Friendly) -->
-          <div class="step-nav-bar" style="margin-top:auto; padding-top:16px;">
-            <button class="step-nav-btn step-nav-btn-back" type="button" onclick="resetAnalysisState()" title="Reset fields">
-              ↺ Reset
+        <!-- COMBINED FULL-WIDTH ACTION BAR (Span Across Both Columns) -->
+        <div class="panel" style="background:#ffffff; border:1px solid #bbf7d0; border-radius:14px; padding:16px 22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 2px 8px rgba(5,150,105,0.06);">
+          <button class="step-nav-btn step-nav-btn-back" type="button" onclick="resetAnalysisState()" title="Reset fields" style="padding:10px 18px; font-size:12.5px; border-radius:8px;">
+            ↺ Reset Form
+          </button>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button class="step-nav-btn step-nav-btn-cnn" type="button" onclick="runCNNInferenceOnly()" title="Quick check of leaf photo only" style="padding:10px 16px; font-size:12px; font-weight:600; border-radius:8px;">
+              🍃 Leaf Scan Only
             </button>
-            <div class="step-nav-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-              <button class="step-nav-btn step-nav-btn-cnn" type="button" onclick="runCNNInferenceOnly()" title="Quick check of leaf photo only">
-                🍃 Leaf Scan Only
-              </button>
-              <button class="step-nav-btn step-nav-btn-snn" type="button" onclick="runSNNInferenceOnly()" title="Quick check of weather & soil risk only">
-                🌦️ Weather Risk Only
-              </button>
-              <button class="step-nav-btn step-nav-btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="font-size:13.5px; padding:12px 24px; font-weight:800;">
-                <span>🌿 Run Complete Crop Health Check</span>
-                <span style="font-size:15px;">→</span>
-              </button>
-            </div>
+            <button class="step-nav-btn step-nav-btn-snn" type="button" onclick="runSNNInferenceOnly()" title="Quick check of weather &amp; soil risk only" style="padding:10px 16px; font-size:12px; font-weight:600; border-radius:8px;">
+              🌦️ Weather Risk Only
+            </button>
+            <button class="step-nav-btn step-nav-btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="font-size:14px; padding:12px 28px; font-weight:800; background:linear-gradient(135deg, #059669, #047857); border-radius:8px; box-shadow:0 4px 14px rgba(5,150,105,0.22); display:inline-flex; align-items:center; gap:8px;">
+              <span>🚀 Combine &amp; Run Complete Assessment</span>
+              <span style="font-size:16px;">→</span>
+            </button>
           </div>
-
         </div>
 
       </div>

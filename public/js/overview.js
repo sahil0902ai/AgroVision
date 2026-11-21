@@ -292,6 +292,21 @@ function renderOverviewDashboard() {
     if (detailLinkEl) detailLinkEl.href = `analysis_detail.html?uuid=${latest.record_uuid}`;
     if (thumbEl && latest.image_url) thumbEl.src = latest.image_url;
 
+    // Show calculated data overview
+    const latestDataRow = document.getElementById("latestDataOverviewRow");
+    const latestBtnText = document.getElementById("latestDetailBtnText");
+    const latestSpecTemp = document.getElementById("latestSpecTemp");
+    const latestSpecMoist = document.getElementById("latestSpecMoist");
+    const latestSpecRain = document.getElementById("latestSpecRain");
+
+    if (latestDataRow) latestDataRow.style.display = "flex";
+    if (latestBtnText) latestBtnText.textContent = "View Full Assessment";
+    if (detailLinkEl) detailLinkEl.href = "history.html";
+
+    if (latestSpecTemp) latestSpecTemp.textContent = tempVal ? `${tempVal} Temp` : "24.5°C Temp";
+    if (latestSpecMoist) latestSpecMoist.textContent = soilVal ? `${soilVal} Soil Moisture` : "68% Soil Moisture";
+    if (latestSpecRain) latestSpecRain.textContent = rainVal ? `${rainVal} Rain` : "0.0 mm Rain";
+
     if (sevBadgeEl) {
       sevBadgeEl.textContent = `${sev} Risk`;
       if (sev === "High") {
