@@ -67,6 +67,16 @@ async def predict_leaf_stress(
             detail=f"Image size is too large. Please upload a smaller image (max {settings.MAX_UPLOAD_SIZE_MB}MB)."
         )
 
+    # Validate botanical cotton leaf presence
+    from ..services.leaf_validator import validate_cotton_leaf_image
+    is_leaf, leaf_msg, leaf_stats = validate_cotton_leaf_image(content)
+    if not is_leaf:
+        logger.warning(f"Botanical leaf validation rejected image in /cnn/predict: {leaf_msg} (stats: {leaf_stats})")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=leaf_msg
+        )
+
     # 3. Check CNN service readiness
     cnn_service = CNNService.get_instance()
     if not cnn_service.weights_loaded:

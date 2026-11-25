@@ -55,6 +55,12 @@ async def predict_cotton_stress(
             detail=f"Image size is too large (max {settings.MAX_UPLOAD_SIZE_MB}MB)."
         )
 
+    # Validate botanical cotton leaf presence
+    from app.services.leaf_validator import validate_cotton_leaf_image
+    is_leaf, leaf_msg, _ = validate_cotton_leaf_image(image_bytes)
+    if not is_leaf:
+        raise HTTPException(status_code=400, detail=leaf_msg)
+
     env_data = {
         "temperature": temperature,
         "humidity": humidity,

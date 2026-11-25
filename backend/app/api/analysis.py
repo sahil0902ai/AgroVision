@@ -97,7 +97,7 @@ async def run_unified_analysis(
         ozone_ppm = oz_val
 
     # -------------------------------------------------------------
-    # 2. Validate Image
+    # 2. Validate Image & Botanical Leaf Verification
     # -------------------------------------------------------------
     if not file.content_type or not any(file.content_type.startswith(t) for t in ["image/", "application/octet-stream"]):
         raise HTTPException(status_code=400, detail="Uploaded file must be a valid image format (JPEG, PNG, or WEBP).")
@@ -107,6 +107,12 @@ async def run_unified_analysis(
         raise HTTPException(status_code=400, detail="Uploaded image file contains 0 bytes.")
     if len(image_bytes) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Image file size exceeds maximum permitted limit of 10 MB.")
+
+    from ..services.leaf_validator import validate_cotton_leaf_image
+    is_leaf, leaf_msg, leaf_stats = validate_cotton_leaf_image(image_bytes)
+    if not is_leaf:
+        logger.warning(f"Botanical leaf validation failed: {leaf_msg} (stats: {leaf_stats})")
+        raise HTTPException(status_code=400, detail=leaf_msg)
 
     cnn_engine, snn_engine, gradcam = pipeline_service._get_pipeline()
 
