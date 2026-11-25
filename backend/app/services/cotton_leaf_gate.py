@@ -272,8 +272,9 @@ class CottonLeafGate:
             )
 
         # 4. Foliar Presence vs Unrelated Object Check
-        # A. Face detection check: if a human face is detected
-        if diag.get("face_count", 0) > 0:
+        # A. Face detection check: human faces have skin locus >= 18% and lack chlorophyll (green < 15%)
+        # Note: Leaf veins/spots can occasionally trigger false positive Haar detections, so verify lack of chlorophyll green
+        if diag.get("face_count", 0) > 0 and diag["green_ratio"] < 0.15 and diag["skin_ratio"] >= 0.18:
             return (
                 False,
                 "UNRELATED_IMAGE",
@@ -299,8 +300,10 @@ class CottonLeafGate:
                 diag
             )
 
-        # C. Document / UI pure white > 40%
-        if diag["doc_white_ratio"] >= 0.40:
+        # C. Document / UI pure white check:
+        # High white is only a document if foliar presence is absent (< 15%)
+        # (Farmers and researchers frequently photograph cotton leaves on white paper or clean trays)
+        if diag["doc_white_ratio"] >= 0.65 and diag["foliar_ratio"] < 0.15:
             return (
                 False,
                 "UNRELATED_IMAGE",
@@ -333,35 +336,55 @@ class CottonLeafGate:
                 prob_cotton = float(self.model.predict_proba(feat_vec)[0, 1])
                 diag["cotton_probability"] = round(prob_cotton, 4)
 
-                if prob_cotton >= 0.50:
+                # A. High or Moderate ML Cotton Leaf Confidence
+                if prob_cotton >= 0.35:
                     return True, "VALID_COTTON_LEAF", "Valid cotton leaf detected.", diag
+
+                # B. Borderline Zone (0.18 <= prob_cotton < 0.35):
+                # Verify broad foliar geometry typical of Gossypium (cotton) canopy or macro close-ups:
+                # Cotton leaves are broad (aspect ratio <= 2.3), have a single dominant blade,
+                # and are not fragmented compound leaflets or long monocot grass blades.
+                is_broad_foliar = (diag["aspect_ratio"] <= 2.3) and (diag["contour_count"] <= 5)
+                is_canopy_close_up = (diag["foliar_ratio"] >= 0.60) and (diag["aspect_ratio"] <= 2.2)
+                if (prob_cotton >= 0.18) and (is_broad_foliar or is_canopy_close_up) and (diag["foliar_dominance"] >= 0.45):
+                    return True, "VALID_COTTON_LEAF", "Valid cotton leaf detected.", diag
+
+                # C. Non-Cotton Plant Leaf vs Unrelated Object
+                is_botanical_leaf = (diag["green_ratio"] >= 0.12 or diag["foliar_ratio"] >= 0.25) and diag["foliar_dominance"] >= 0.45
+                
+                # Definite non-cotton botanical signatures:
+                # 1. Monocot grass blade / corn / maize: aspect ratio >= 2.5
+                is_monocot_blade = (diag["aspect_ratio"] >= 2.5) and (diag["green_ratio"] >= 0.15)
+                # 2. Fern or compound leaf: multiple fragmented separated leaflets
+                is_compound_leaf = (diag["contour_count"] >= 7) and (diag["foliar_dominance"] < 0.50)
+                # 3. Very low cotton probability on a plant leaf (< 0.18)
+                is_unsupported_species = (prob_cotton < 0.18) and is_botanical_leaf
+
+                if is_monocot_blade or is_compound_leaf or is_unsupported_species:
+                    return (
+                        False,
+                        "UNSUPPORTED_PLANT",
+                        "Unsupported Plant — AgroVision currently analyses cotton leaves only. Please upload an image of a cotton plant leaf.",
+                        diag
+                    )
                 else:
-                    # Differentiate non-cotton plant leaf from unrelated object:
-                    # Genuine plant leaves have substantial chlorophyll green (>= 12%) and high contour dominance
-                    is_botanical_leaf = (diag["green_ratio"] >= 0.12) and diag["foliar_dominance"] >= 0.50
-                    if is_botanical_leaf:
-                        return (
-                            False,
-                            "UNSUPPORTED_PLANT",
-                            "Unsupported Plant — AgroVision currently analyses cotton leaves only. Please upload an image of a cotton plant leaf.",
-                            diag
-                        )
-                    else:
-                        return (
-                            False,
-                            "UNRELATED_IMAGE",
-                            "Invalid Image — This image does not appear to contain a cotton leaf. Please upload a clear cotton leaf photograph.",
-                            diag
-                        )
+                    return (
+                        False,
+                        "UNRELATED_IMAGE",
+                        "Invalid Image — This image does not appear to contain a cotton leaf. Please upload a clear cotton leaf photograph.",
+                        diag
+                    )
             except Exception as e:
                 logger.error(f"Error during Cotton Leaf Gate model inference: {e}", exc_info=True)
 
         # 6. Deterministic Fallback if model unavailable
-        # Cotton leaves have palmate structure: aspect ratio between 1.0 and 2.2, convexity deficit 0.08 to 0.45
-        is_cotton_geometry = (1.0 <= diag["aspect_ratio"] <= 2.2) and (0.08 <= diag["convexity_deficit"] <= 0.55)
-        if is_cotton_geometry:
+        # Cotton leaves have palmate/cordate structure: aspect ratio <= 2.3, foliar dominance >= 0.45
+        is_cotton_geometry = (diag["aspect_ratio"] <= 2.3) and (diag["contour_count"] <= 5) and (diag["foliar_dominance"] >= 0.45)
+        is_monocot_or_compound = (diag["aspect_ratio"] >= 2.5) or (diag["contour_count"] >= 7 and diag["foliar_dominance"] < 0.50)
+        
+        if is_cotton_geometry and (diag["foliar_ratio"] >= 0.20):
             return True, "VALID_COTTON_LEAF", "Valid cotton leaf detected.", diag
-        elif (diag["green_ratio"] >= 0.15 or diag["chlorosis_ratio"] >= 0.15) and diag["foliar_dominance"] >= 0.50:
+        elif is_monocot_or_compound and (diag["green_ratio"] >= 0.12):
             return (
                 False,
                 "UNSUPPORTED_PLANT",

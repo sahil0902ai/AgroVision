@@ -68,6 +68,7 @@ source_cotton_images = [
     os.path.join(BASE_DIR, "datasets", "sample_leaves", "2_heat_stress", "original_0021.png"),
     os.path.join(BASE_DIR, "datasets", "sample_leaves", "3_nutrient_deficiency", "original_0031.jpg"),
     os.path.join(BASE_DIR, "datasets", "sample_leaves", "4_pollution", "original_0031.jpg"),
+    os.path.join(BASE_DIR, "datasets", "sample_leaves", "cotton_macro_canopy.jpg"),
 ]
 
 # Copy to test assets for Group A
@@ -103,7 +104,7 @@ for idx, src in enumerate(source_cotton_images):
     hf.save(os.path.join(cotton_dir, f"{base_name}_fliph.jpg"), quality=90)
     aug_count += 1
     
-    # Illumination variations (overcast, direct sun, shadow)
+    # Illumination & Saturation variations (overcast, direct sun, shadow)
     np_base = np.array(base_im, dtype=np.float32)
     brighter = np.clip(np_base * 1.15 + 10, 0, 255).astype(np.uint8)
     darker = np.clip(np_base * 0.85 - 10, 0, 255).astype(np.uint8)
@@ -111,9 +112,26 @@ for idx, src in enumerate(source_cotton_images):
     Image.fromarray(darker).save(os.path.join(cotton_dir, f"{base_name}_dark.jpg"), quality=90)
     aug_count += 2
     
-    # Multi-scale center crops
+    # Saturation shift (lower for overcast/shade, higher for direct sun)
+    hsv_im = cv2.cvtColor(np.array(base_im), cv2.COLOR_RGB2HSV).astype(np.float32)
+    hsv_low_sat = hsv_im.copy()
+    hsv_low_sat[:, :, 1] = np.clip(hsv_low_sat[:, :, 1] * 0.70, 0, 255)
+    rgb_low_sat = cv2.cvtColor(hsv_low_sat.astype(np.uint8), cv2.COLOR_HSV2RGB)
+    Image.fromarray(rgb_low_sat).save(os.path.join(cotton_dir, f"{base_name}_lowsat.jpg"), quality=90)
+    aug_count += 1
+
+    # White canvas background (simulating leaf on white paper / lab tray)
     w, h = base_im.size
-    for scale in [0.88, 0.94]:
+    canvas_w, canvas_h = int(w * 1.25), int(h * 1.25)
+    white_canvas = Image.new("RGB", (canvas_w, canvas_h), (250, 250, 250))
+    paste_x = (canvas_w - w) // 2
+    paste_y = (canvas_h - h) // 2
+    white_canvas.paste(base_im, (paste_x, paste_y))
+    white_canvas.resize((w, h), Image.Resampling.LANCZOS).save(os.path.join(cotton_dir, f"{base_name}_whitebg.jpg"), quality=90)
+    aug_count += 1
+
+    # Multi-scale crops: both whole leaf and close-up macro views
+    for scale in [0.65, 0.78, 0.88, 0.94]:
         nw, nh = int(w * scale), int(h * scale)
         left = (w - nw) // 2
         top = (h - nh) // 2
