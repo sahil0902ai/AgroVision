@@ -2,9 +2,12 @@ services:
   - type: web
     name: agrovision-api
     env: python
-    buildCommand: pip install -r backend/requirements.txt
+    buildCommand: bash build.sh
     startCommand: python run.py
+    healthCheckPath: /api/health
     plan: free
     envVars:
-      - key: PORT
-        value: 8000
+      - key: PYTHON_VERSION
+        value: 3.10.13
+      - key: PYTHONUNBUFFERED
+        value: "1"

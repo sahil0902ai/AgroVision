@@ -37,8 +37,9 @@ Because PyTorch and SNN models require Python C-extensions, host the backend on 
 3. Connect your repository: `sahil0902ai/AgroVision`.
 4. Configure settings:
    - **Language**: `Python 3` (or `Docker`)
-   - **Build Command**: `pip install -r backend/requirements.txt`
+   - **Build Command**: `bash build.sh` (or `pip install -r requirements.txt`)
    - **Start Command**: `python run.py`
+   - **Health Check Path**: `/api/health`
    - **Plan**: `Free`
 5. Click **"Create Web Service"**.
 6. Render will generate a URL like `https://agrovision-api.onrender.com`.

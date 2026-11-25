@@ -17,14 +17,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Upgrade pip and base packaging tools
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Install PyTorch CPU using --extra-index-url (preserves PyPI for build tools)
-RUN pip install --no-cache-dir torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
+# Install PyTorch CPU first from PyTorch official CPU wheel index
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 # Copy requirements and install remaining dependencies
-COPY backend/requirements.txt /app/backend/requirements.txt
-RUN pip install --no-cache-dir -r /app/backend/requirements.txt
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy backend source code, model weights, and frontend assets
+# Copy backend source code, model weights, datasets, and frontend assets
 COPY backend/ /app/backend/
 COPY datasets/ /app/datasets/
 COPY frontend/ /app/frontend/
