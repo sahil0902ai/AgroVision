@@ -5,6 +5,7 @@
    ========================================================= */
 
 let selectedFile = null;
+let activeAnalysisId = 0;
 let latestCNNResult = null;
 let latestSNNResult = null;
 let latestSNNPayload = null;
@@ -484,10 +485,19 @@ function showUploadError(title, message) {
   if (successState) successState.style.display = "none";
   if (emptyState) emptyState.style.display = "flex";
 
+  let displayTitle = title;
+  let displayMsg = message;
+  if (message && message.includes(" — ")) {
+    const parts = message.split(" — ");
+    displayTitle = parts[0].trim();
+    displayMsg = parts.slice(1).join(" — ").trim();
+  }
+
   if (errorBox) {
-    if (errorTitle) errorTitle.textContent = title;
-    if (errorMsg) errorMsg.textContent = message;
+    if (errorTitle) errorTitle.textContent = displayTitle;
+    if (errorMsg) errorMsg.textContent = displayMsg;
     errorBox.style.display = "block";
+    errorBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 }
 
@@ -589,17 +599,17 @@ function validateAndProcessFile(file) {
 
   const testImg = new Image();
   testImg.onload = () => {
-    // Verify readable dimensions
-    if (testImg.naturalWidth < 16 || testImg.naturalHeight < 16) {
+    // 1. Resolution Check: Minimum 150x150 required for reliable 224x224 CNN foliar analysis
+    if (testImg.naturalWidth < 150 || testImg.naturalHeight < 150) {
       try { URL.revokeObjectURL(objectUrl); } catch (e) {}
       showUploadError(
-        "Low Resolution / Corrupted Image",
-        `The uploaded image is too small (${testImg.naturalWidth}×${testImg.naturalHeight} px) or corrupted. Minimum resolution is 16×16 px.`
+        "Image Quality Too Low",
+        "Image Quality Too Low — Please upload a clearer photograph with the cotton leaf properly visible."
       );
       return;
     }
 
-    // 5. Botanical Foliar Pre-Validation (reject cars, faces, buildings, vehicles, random objects)
+    // 2. Botanical Foliar Pre-Validation (reject cars, faces, buildings, vehicles, random objects)
     try {
       const cvs = document.createElement("canvas");
       const ctx = cvs.getContext("2d", { willReadFrequently: true });
@@ -645,11 +655,11 @@ function validateAndProcessFile(file) {
       }
 
       const foliarRatio = foliarCount / totalSamplePixels;
-      if (foliarRatio < 0.08) {
+      if (foliarRatio < 0.12) {
         try { URL.revokeObjectURL(objectUrl); } catch (e) {}
         showUploadError(
-          "⚠️ No Cotton Leaf Detected",
-          "The uploaded image does not appear to contain a cotton plant leaf (foliar coverage: " + Math.round(foliarRatio * 100) + "%). Please upload a clear photo of a cotton plant leaf from your field."
+          "Invalid Image",
+          "Invalid Image — This image does not appear to contain a cotton leaf. Please upload a clear cotton leaf photograph."
         );
         return;
       }
@@ -659,6 +669,13 @@ function validateAndProcessFile(file) {
 
     // Validation Successful!
     selectedFile = file;
+
+    // Invalidate any previous analysis results immediately so old predictions cannot leak
+    latestCombinedData = null;
+    latestCNNResult = null;
+    latestSNNResult = null;
+    latestSNNPayload = null;
+    activeAnalysisId++;
 
     // Populate metadata labels
     const previewImg = document.getElementById("previewImg");
@@ -1738,6 +1755,8 @@ async function runAnalysis() {
     return;
   }
 
+  const thisRequestId = ++activeAnalysisId;
+
   const analyzeBtn = document.getElementById("analyzeBtn");
   if (analyzeBtn) {
     analyzeBtn.disabled = true;
@@ -1757,12 +1776,10 @@ async function runAnalysis() {
     scanWrap.style.display = "block";
     scanWrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
-  if (scanFill) scanFill.style.width = "20%";
-  if (scanPct) scanPct.textContent = "20%";
-  if (scanStatus) scanStatus.textContent = "🔍 Step 1/4: Checking leaf foliar texture & environmental parameters...";
-  if (scanTitle) scanTitle.textContent = "Analyzing Crop Health & Microclimate...";
-
-  const delay = (ms) => new Promise(res => setTimeout(res, ms));
+  if (scanFill) scanFill.style.width = "40%";
+  if (scanPct) scanPct.textContent = "40%";
+  if (scanStatus) scanStatus.textContent = "Analyzing Cotton Leaf Foliage & Microclimate Risk...";
+  if (scanTitle) scanTitle.textContent = "Executing Deep Learning Inference...";
 
   // Stepper badge visual elements
   const b1 = document.getElementById("stepBadge1");
@@ -1774,9 +1791,9 @@ async function runAnalysis() {
   const b4 = document.getElementById("stepBadge4");
   const btn4 = document.getElementById("stepBtnCombined");
 
-  if (btn1) { btn1.classList.add("active"); btn1.classList.remove("completed"); }
-  if (btn2) { btn2.classList.remove("active", "completed"); if (b2) b2.textContent = "2"; }
-  if (btn3) { btn3.classList.remove("active", "completed"); if (b3) b3.textContent = "3"; }
+  if (btn1) { btn1.classList.add("completed"); btn1.classList.remove("active"); if (b1) b1.textContent = "✓"; }
+  if (btn2) { btn2.classList.add("active"); if (b2) b2.textContent = "2"; }
+  if (btn3) { btn3.classList.add("active"); if (b3) b3.textContent = "3"; }
   if (btn4) { btn4.classList.remove("active", "completed"); if (b4) b4.textContent = "4"; }
 
   // Update Decision Trace: Ingestion complete, processing stages active
@@ -1802,246 +1819,50 @@ async function runAnalysis() {
 
     const user = typeof requireLogin === "function" ? requireLogin() : null;
 
-    // Launch background asynchronous model inference
-    const networkPromise = (async () => {
-      let dataResult = null;
-      try {
-        const formData = new FormData();
-        formData.append("file", selectedFile);
-        formData.append("temperature", temp.toString());
-        formData.append("humidity", humidity.toString());
-        formData.append("soil_moisture", soilMoisture.toString());
-        formData.append("rainfall_mm", rainfall.toString());
-        formData.append("aqi", aqi.toString());
-        formData.append("ozone", ozone.toString());
-        formData.append("growth_stage", "Flowering");
-        formData.append("days_since_sowing", "60");
-        formData.append("field_name", currentFieldName || "Field A — Wardha South Station");
-        formData.append("weather_source", envSourceMode === "auto" ? "AUTO · Weather API" : "MANUAL INPUT");
-        if (currentWeatherContext) {
-          formData.append("weather_context_json", JSON.stringify(currentWeatherContext));
-        }
-        if (user?.email) {
-          formData.append("user_email", user.email);
-        }
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("temperature", temp.toString());
+    formData.append("humidity", humidity.toString());
+    formData.append("soil_moisture", soilMoisture.toString());
+    formData.append("rainfall_mm", rainfall.toString());
+    formData.append("aqi", aqi.toString());
+    formData.append("ozone", ozone.toString());
+    formData.append("growth_stage", "Flowering");
+    formData.append("days_since_sowing", "60");
+    formData.append("field_name", currentFieldName || "Field A — Wardha South Station");
+    formData.append("weather_source", envSourceMode === "auto" ? "AUTO · Weather API" : "MANUAL INPUT");
+    if (currentWeatherContext) {
+      formData.append("weather_context_json", JSON.stringify(currentWeatherContext));
+    }
+    if (user?.email) {
+      formData.append("user_email", user.email);
+    }
 
-        const response = await fetch(getApiUrl("/api/analysis"), {
-          method: "POST",
-          body: formData
-        });
+    const response = await fetch(getApiUrl("/api/analysis"), {
+      method: "POST",
+      body: formData
+    });
 
-        if (response.ok) {
-          dataResult = await response.json();
-        } else {
-          const errJson = await response.json().catch(() => ({}));
-          const errMsg = errJson.detail || `Analysis rejected by server (HTTP ${response.status})`;
-          throw new Error(errMsg);
-        }
-      } catch (unifiedErr) {
-        if (unifiedErr.message && (
-          unifiedErr.message.includes("leaf") ||
-          unifiedErr.message.includes("Leaf") ||
-          unifiedErr.message.includes("cotton") ||
-          unifiedErr.message.includes("resolution") ||
-          unifiedErr.message.includes("texture") ||
-          unifiedErr.message.includes("rejected") ||
-          unifiedErr.message.includes("400")
-        )) {
-          throw unifiedErr;
-        }
-        console.warn("Direct /api/analysis unreachable, executing multi-stage pipeline:", unifiedErr);
-      }
+    if (!response.ok) {
+      const errJson = await response.json().catch(() => ({}));
+      const errMsg = errJson.detail || `Server returned error (${response.status})`;
+      throw new Error(errMsg);
+    }
 
-      if (!dataResult) {
-        // Step A: Real CNN Visual Inference
-        const cnnForm = new FormData();
-        cnnForm.append("file", selectedFile);
-        const cnnRes = await fetch(getApiUrl("/api/cnn/predict"), {
-          method: "POST",
-          body: cnnForm
-        });
-        if (!cnnRes.ok) {
-          const errJson = await cnnRes.json().catch(() => ({}));
-          throw new Error(errJson.detail || `CNN visual inference failed (HTTP ${cnnRes.status})`);
-        }
-        const cnnData = await cnnRes.json();
+    const data = await response.json();
 
-        // Step B: Real SNN Environmental Simulation
-        const now = new Date();
-        const snnPayload = {
-          ...SNN_FIXED_INPUTS,
-          latitude: currentFieldLat || 20.975,
-          longitude: currentFieldLon || 78.72,
-          temperature: temp,
-          humidity: humidity,
-          rainfall: rainfall,
-          soil_moisture: soilMoisture,
-          aqi: aqi,
-          ozone: ozone,
-          growth_stage: "Flowering",
-          days_since_sowing: 60,
-          observation_date: now.toISOString().split("T")[0]
-        };
-        const snnRes = await fetch(getApiUrl("/api/snn/predict"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(snnPayload)
-        });
-        if (!snnRes.ok) {
-          const errJson = await snnRes.json().catch(() => ({}));
-          throw new Error(errJson.detail || `SNN climate simulation failed (HTTP ${snnRes.status})`);
-        }
-        const snnData = await snnRes.json();
+    // If a newer image was selected or another request started while waiting, discard stale response
+    if (thisRequestId !== activeAnalysisId) {
+      console.warn("Discarding superseded analysis response.");
+      return;
+    }
 
-        // Step C: Multimodal Fusion & Deterministic Expert Veto
-        const cnnClass = cnnData.prediction?.class || cnnData.predicted_class || "Healthy";
-        const cnnConf = cnnData.prediction?.confidence !== undefined ? cnnData.prediction.confidence : (cnnData.confidence || 0.95);
-        const snnSev = snnData.predicted_severity || snnData.prediction?.class || "Low";
-        const snnConf = snnData.prediction?.confidence !== undefined ? snnData.prediction.confidence : (snnData.confidence || 0.95);
-
-        const combinePayload = {
-          field_name: currentFieldName || "Field A — Wardha South Station",
-          visual_evidence: {
-            predicted_class: cnnClass,
-            confidence: cnnConf,
-            probabilities: cnnData.probabilities || {}
-          },
-          environmental_evidence: {
-            severity: snnSev,
-            confidence: snnConf,
-            spike_counts: snnData.spike_counts || {},
-            timesteps: snnData.timesteps || 10
-          },
-          environmental_inputs: {
-            temperature: temp,
-            humidity: humidity,
-            soil_moisture: soilMoisture,
-            rainfall: rainfall,
-            aqi: aqi,
-            ozone: ozone,
-            growth_stage: "Flowering"
-          },
-          weather_context: currentWeatherContext || null
-        };
-
-        const combRes = await fetch(getApiUrl("/api/analysis/combine"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(combinePayload)
-        });
-        if (!combRes.ok) {
-          const errJson = await combRes.json().catch(() => ({}));
-          throw new Error(errJson.detail || `Combine synthesis failed (HTTP ${combRes.status})`);
-        }
-        const combData = await combRes.json();
-        const durationMs = performance.now() - perfStart;
-        dataResult = {
-          record_uuid: combData.record_uuid || `AV-${Date.now()}`,
-          field_name: currentFieldName || "Field A — Wardha South Station",
-          cnn: {
-            predicted_class: cnnClass,
-            confidence: cnnConf,
-            confidence_percentage: Math.round(cnnConf * 1000) / 10,
-            probabilities: cnnData.probabilities || {},
-            image_url: cnnData.image_url,
-            heatmap_url: cnnData.heatmap_url,
-            architecture: "ResNet-18 Custom",
-            input_resolution: "224x224 RGB",
-            inference_time_ms: cnnData.inference_time_ms || 24.5
-          },
-          snn: {
-            predicted_severity: snnSev,
-            confidence: snnConf,
-            confidence_percentage: Math.round(snnConf * 1000) / 10,
-            spike_counts: snnData.spike_counts || {},
-            timesteps: snnData.timesteps || 10,
-            inference_time_ms: snnData.inference_time_ms || 1.8
-          },
-          environment: {
-            temperature: temp,
-            humidity: humidity,
-            rainfall: rainfall,
-            soil_moisture: soilMoisture,
-            aqi: aqi,
-            ozone: ozone,
-            growth_stage: "Flowering",
-            days_since_sowing: 60,
-            weather_source: envSourceMode === "auto" ? "AUTO · Weather API" : "MANUAL INPUT"
-          },
-          fusion: combData.fusion || {
-            relationship: "ALIGNED",
-            alignment_score: 0.95,
-            summary: "Visual and environmental evidence successfully aligned.",
-            interpretation: "Foliar and abiotic conditions congruent.",
-            visual_lead_evidence: `${cnnClass} (${(cnnConf * 100).toFixed(1)}%)`,
-            environmental_lead_evidence: `${snnSev} Risk`
-          },
-          expert_veto: combData.expert_veto || {
-            overall_status: "PASSED",
-            rule_count: 7,
-            triggered_rules: []
-          },
-          final_assessment: {
-            diagnosis: cnnClass,
-            environmental_risk: snnSev,
-            relationship: combData.fusion?.relationship || "ALIGNED",
-            summary: combData.final_assessment?.summary || "Analysis completed successfully.",
-            requires_immediate_action: combData.final_assessment?.requires_immediate_action || false,
-            recommendations: combData.final_assessment?.precautions || combData.final_assessment?.recommendations || [],
-            what_to_check_next: combData.final_assessment?.what_to_check_next || [
-              "Verify soil moisture at root depth before irrigation",
-              "Monitor canopy foliage for symptom progression"
-            ]
-          },
-          metadata: {
-            record_uuid: combData.record_uuid || `AV-${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            latencies: {
-              cnn_ms: cnnData.inference_time_ms || 24.5,
-              snn_ms: snnData.inference_time_ms || 1.8,
-              fusion_ms: 0.5,
-              total_ms: Math.round(durationMs * 10) / 10
-            }
-          }
-        };
-      }
-      return dataResult;
-    })();
-
-    // Stage 1 -> Stage 2: Foliar visual screening
-    await delay(380);
-    if (scanFill) scanFill.style.width = "52%";
-    if (scanPct) scanPct.textContent = "52%";
-    if (scanStatus) scanStatus.textContent = "🌿 Step 2/4: Screening foliar symptoms via ResNet-18 CNN...";
-    if (scanTitle) scanTitle.textContent = "Running Visual Foliar Deep Learning...";
-    if (b1) b1.textContent = "✓";
-    if (btn1) { btn1.classList.add("completed"); btn1.classList.remove("active"); }
-    if (btn2) btn2.classList.add("active");
-
-    // Stage 2 -> Stage 3: Temporal microclimate simulation
-    await delay(420);
-    if (scanFill) scanFill.style.width = "80%";
-    if (scanPct) scanPct.textContent = "80%";
-    if (scanStatus) scanStatus.textContent = "🌦️ Step 3/4: Simulating 10-timestep microclimate stress via SNN...";
-    if (scanTitle) scanTitle.textContent = "Simulating Temporal Weather Risk...";
-    if (b2) b2.textContent = "✓";
-    if (btn2) { btn2.classList.add("completed"); btn2.classList.remove("active"); }
-    if (btn3) btn3.classList.add("active");
-
-    // Await network response
-    const data = await networkPromise;
-
-    // Stage 3 -> Stage 4: Synthesis
-    await delay(380);
     if (scanFill) scanFill.style.width = "100%";
     if (scanPct) scanPct.textContent = "100%";
-    if (scanStatus) scanStatus.textContent = "⚖️ Step 4/4: Synthesizing agronomic diagnosis & field guidance...";
-    if (scanTitle) scanTitle.textContent = "Finalizing Agricultural Assessment...";
-    if (b3) b3.textContent = "✓";
-    if (btn3) { btn3.classList.add("completed"); btn3.classList.remove("active"); }
-    if (btn4) btn4.classList.add("active");
-
-    await delay(320);
+    if (scanStatus) scanStatus.textContent = "Analysis Complete";
+    if (btn2) { btn2.classList.add("completed"); btn2.classList.remove("active"); if (b2) b2.textContent = "✓"; }
+    if (btn3) { btn3.classList.add("completed"); btn3.classList.remove("active"); if (b3) b3.textContent = "✓"; }
+    if (btn4) { btn4.classList.add("active"); if (b4) b4.textContent = "4"; }
 
     const duration = performance.now() - perfStart;
 

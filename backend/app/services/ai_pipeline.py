@@ -104,6 +104,12 @@ class AIPipelineService:
                 f"Image size is too large (max {MAX_PIPELINE_IMAGE_BYTES // (1024 * 1024)}MB)."
             )
 
+        # Botanical cotton leaf validation gate
+        from .cotton_leaf_gate import validate_cotton_leaf_image
+        is_leaf, leaf_msg, _ = validate_cotton_leaf_image(image_bytes)
+        if not is_leaf:
+            raise ValueError(leaf_msg)
+
         cnn_engine, snn_engine, gradcam = self._get_pipeline()
 
         # 1. Run CNN leaf image inference
