@@ -292,6 +292,24 @@ function renderOverviewDashboard() {
     if (detailLinkEl) detailLinkEl.href = `analysis_detail.html?uuid=${latest.record_uuid}`;
     if (thumbEl && latest.image_url) thumbEl.src = latest.image_url;
 
+    // Extract Telemetry values from latest record before referencing
+    const tempVal = latest.temperature !== undefined ? `${latest.temperature.toFixed(1)}°C` : "31.0°C";
+    const humVal = latest.humidity !== undefined ? `${latest.humidity.toFixed(0)}%` : "72%";
+    const rainVal = latest.rainfall_mm !== undefined ? `${latest.rainfall_mm.toFixed(1)} mm` : "18.0 mm";
+    
+    let soilNum = 68;
+    if (latest.soil_moisture !== undefined) {
+      soilNum = latest.soil_moisture <= 1.0 ? Math.round(latest.soil_moisture * 100) : Math.round(latest.soil_moisture);
+    }
+    const soilVal = `${soilNum}%`;
+    const aqiVal = latest.aqi !== undefined ? `${Math.round(latest.aqi)}` : "84";
+    
+    let ozoneNum = 41;
+    if (latest.ozone !== undefined) {
+      ozoneNum = latest.ozone <= 1.0 ? Math.round(latest.ozone * 1000) : Math.round(latest.ozone);
+    }
+    const ozoneVal = `${ozoneNum} ppb`;
+
     // Show calculated data overview
     const latestDataRow = document.getElementById("latestDataOverviewRow");
     const latestBtnText = document.getElementById("latestDetailBtnText");
@@ -303,9 +321,9 @@ function renderOverviewDashboard() {
     if (latestBtnText) latestBtnText.textContent = "View Full Assessment";
     if (detailLinkEl) detailLinkEl.href = "history.html";
 
-    if (latestSpecTemp) latestSpecTemp.textContent = tempVal ? `${tempVal} Temp` : "24.5°C Temp";
-    if (latestSpecMoist) latestSpecMoist.textContent = soilVal ? `${soilVal} Soil Moisture` : "68% Soil Moisture";
-    if (latestSpecRain) latestSpecRain.textContent = rainVal ? `${rainVal} Rain` : "0.0 mm Rain";
+    if (latestSpecTemp) latestSpecTemp.textContent = `${tempVal} Temp`;
+    if (latestSpecMoist) latestSpecMoist.textContent = `${soilVal} Soil Moisture`;
+    if (latestSpecRain) latestSpecRain.textContent = `${rainVal} Rain`;
 
     if (sevBadgeEl) {
       sevBadgeEl.textContent = `${sev} Risk`;
@@ -336,23 +354,7 @@ function renderOverviewDashboard() {
       statLatestSub.textContent = `${sev} Environmental Risk`;
     }
 
-    // 5. Update Telemetry Grid from latest record
-    const tempVal = latest.temperature !== undefined ? `${latest.temperature.toFixed(1)}°C` : "31.0°C";
-    const humVal = latest.humidity !== undefined ? `${latest.humidity.toFixed(0)}%` : "72%";
-    const rainVal = latest.rainfall_mm !== undefined ? `${latest.rainfall_mm.toFixed(1)} mm` : "18.0 mm";
-    
-    let soilNum = 68;
-    if (latest.soil_moisture !== undefined) {
-      soilNum = latest.soil_moisture <= 1.0 ? Math.round(latest.soil_moisture * 100) : Math.round(latest.soil_moisture);
-    }
-    const soilVal = `${soilNum}%`;
-    const aqiVal = latest.aqi !== undefined ? `${Math.round(latest.aqi)}` : "84";
-    
-    let ozoneNum = 41;
-    if (latest.ozone !== undefined) {
-      ozoneNum = latest.ozone <= 1.0 ? Math.round(latest.ozone * 1000) : Math.round(latest.ozone);
-    }
-    const ozoneVal = `${ozoneNum} ppb`;
+    // 5. Update Telemetry Grid from latest record (values initialized above)
 
     const tTemp = document.getElementById("telemetryTemp");
     const tHum = document.getElementById("telemetryHumidity");
