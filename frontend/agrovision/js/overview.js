@@ -1053,7 +1053,7 @@ function renderForecastWidget(data) {
       if (popBarEl) popBarEl.style.width = `${Math.min(100, Math.max(0, popPct))}%`;
 
       if (badgeEl) {
-        badgeEl.className = `forecast-agri-badge ${day.agri_risk_level === "High" ? "agri-badge-high" : (day.agri_risk_level === "Moderate" ? "agri-badge-moderate" : "agri-badge-low")}`;
+        badgeEl.style.display = "none";
       }
       if (advEl) {
         advEl.textContent = day.agri_advice || (day.agri_risk_level === "High" ? "Elevated abiotic risk" : "Favorable conditions");
@@ -1086,7 +1086,7 @@ function renderForecastWidget(data) {
                 </div>
               </div>
             </td>
-            <td>
+            <td style="display:none;">
               <span class="forecast-agri-badge ${riskClass}" style="display:inline-flex; padding:2px 6px;">
                 ${d.agri_advice}
               </span>

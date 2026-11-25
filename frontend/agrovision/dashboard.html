@@ -190,7 +190,7 @@
       <!-- ============================================================
            STEP 1: Leaf & Environment Workspace (Equal Height Dual Columns + Combined Action Bar)
            ============================================================ -->
-      <div id="viewInput" class="dash-grid" style="display:flex; flex-direction:column; gap:20px; width:100%;">
+      <div id="viewInput" class="step1-workspace" style="display:flex; flex-direction:column; gap:20px; width:100%;">
 
         <!-- Dual Column Grid: Both Columns Match Exactly in Height & Length -->
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:stretch; width:100%;">
@@ -490,12 +490,7 @@
             ↺ Reset Form
           </button>
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <button class="step-nav-btn step-nav-btn-cnn" type="button" onclick="runCNNInferenceOnly()" title="Quick check of leaf photo only" style="padding:10px 16px; font-size:12px; font-weight:600; border-radius:8px;">
-              🍃 Leaf Scan Only
-            </button>
-            <button class="step-nav-btn step-nav-btn-snn" type="button" onclick="runSNNInferenceOnly()" title="Quick check of weather &amp; soil risk only" style="padding:10px 16px; font-size:12px; font-weight:600; border-radius:8px;">
-              🌦️ Weather Risk Only
-            </button>
+            
             <button class="step-nav-btn step-nav-btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="font-size:14px; padding:12px 28px; font-weight:800; background:linear-gradient(135deg, #059669, #047857); border-radius:8px; box-shadow:0 4px 14px rgba(5,150,105,0.22); display:inline-flex; align-items:center; gap:8px;">
               <span>🚀 Combine &amp; Run Complete Assessment</span>
               <span style="font-size:16px;">→</span>
