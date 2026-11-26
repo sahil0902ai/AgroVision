@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Data Fetching & KPI Computation
 // ---------------------------------------------------------
 async function loadHistoryData() {
-  const user = typeof requireLogin === "function" ? requireLogin() : null;
+  const user = typeof getCurrentUser === "function" ? getCurrentUser() : (typeof requireLogin === "function" ? requireLogin() : null);
   const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
 
   const tbody = document.getElementById("historyTbody");
@@ -298,8 +298,11 @@ function getRecordTopClass(r) {
   let topClass = "Evaluated";
   let topPct = 0;
   try {
-    if (r.cnn_predictions_json) {
-      const cObj = JSON.parse(r.cnn_predictions_json);
+    let cObj = r.cnn_predictions_json;
+    if (typeof cObj === "string") {
+      cObj = JSON.parse(cObj);
+    }
+    if (cObj && typeof cObj === "object" && Object.keys(cObj).length > 0) {
       const tKey = Object.keys(cObj).reduce((a, b) => cObj[a] > cObj[b] ? a : b);
       topClass = tKey.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
       const rawVal = cObj[tKey];
@@ -318,8 +321,11 @@ function getRecordExpertStatus(r) {
   let ruleName = "Normal Baseline";
   let rulePrecaution = "";
   try {
-    if (r.expert_veto_json) {
-      const expObj = JSON.parse(r.expert_veto_json);
+    let expObj = r.expert_veto_json;
+    if (typeof expObj === "string") {
+      expObj = JSON.parse(expObj);
+    }
+    if (expObj && typeof expObj === "object") {
       if (expObj.triggered_rules && expObj.triggered_rules.length > 0) {
         isAlert = true;
         ruleName = expObj.triggered_rules[0].name || expObj.triggered_rules[0].rule_id || "Expert Rule";
@@ -341,8 +347,11 @@ function getRecordFinalAssessment(r) {
   let relationship = "ALIGNED";
   let summary = "";
   try {
-    if (r.fusion_json) {
-      const fObj = JSON.parse(r.fusion_json);
+    let fObj = r.fusion_json;
+    if (typeof fObj === "string") {
+      fObj = JSON.parse(fObj);
+    }
+    if (fObj && typeof fObj === "object") {
       relationship = (fObj.relationship || "ALIGNED").toUpperCase();
       summary = fObj.summary || "";
     }

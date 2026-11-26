@@ -41,14 +41,17 @@ def get_records(
 
     if isinstance(user_email, str) and user_email.strip():
         clean_email = user_email.strip().lower()
-        query = query.filter(
-            or_(
-                AnalysisRecordDB.user_email == clean_email,
-                AnalysisRecordDB.user_email.is_(None),
-                AnalysisRecordDB.user_email == "farmer@agrovision.org",
-                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+        if clean_email in ("farmer@agrovision.org", "default_farmer@agrovision.org"):
+            query = query.filter(
+                or_(
+                    AnalysisRecordDB.user_email == clean_email,
+                    AnalysisRecordDB.user_email.is_(None),
+                    AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                    AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+                )
             )
-        )
+        else:
+            query = query.filter(AnalysisRecordDB.user_email == clean_email)
 
     if isinstance(field_name, str) and field_name.strip():
         query = query.filter(AnalysisRecordDB.field_name.ilike(f"%{field_name.strip()}%"))
@@ -98,14 +101,17 @@ def export_records_csv(
     query = db.query(AnalysisRecordDB)
     if isinstance(user_email, str) and user_email.strip():
         clean_email = user_email.strip().lower()
-        query = query.filter(
-            or_(
-                AnalysisRecordDB.user_email == clean_email,
-                AnalysisRecordDB.user_email.is_(None),
-                AnalysisRecordDB.user_email == "farmer@agrovision.org",
-                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+        if clean_email in ("farmer@agrovision.org", "default_farmer@agrovision.org"):
+            query = query.filter(
+                or_(
+                    AnalysisRecordDB.user_email == clean_email,
+                    AnalysisRecordDB.user_email.is_(None),
+                    AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                    AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+                )
             )
-        )
+        else:
+            query = query.filter(AnalysisRecordDB.user_email == clean_email)
     if isinstance(stress_severity, str) and stress_severity.strip():
         query = query.filter(AnalysisRecordDB.stress_severity.ilike(stress_severity.strip()))
     if isinstance(growth_stage, str) and growth_stage.strip():

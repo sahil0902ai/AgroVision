@@ -3724,10 +3724,12 @@ function showSaveSuccessToast(uuid) {
   if (!toast) {
     toast = document.createElement("div");
     toast.id = "agroSaveToast";
-    toast.style.cssText = "position:fixed; bottom:24px; right:24px; background:#ffffff; border:1px solid #a7f3d0; border-left:4px solid #059669; padding:14px 18px; border-radius:12px; box-shadow:0 10px 25px -5px rgba(0,0,0,0.15); z-index:99999; display:flex; align-items:center; gap:14px; max-width:440px; animation:slideInUp 0.3s ease;";
+    toast.className = "agro-save-toast";
+    toast.style.cssText = "position:fixed; bottom:24px; right:24px; background:#ffffff; border:1px solid #a7f3d0; border-left:4px solid #059669; padding:14px 18px; border-radius:12px; box-shadow:0 10px 25px -5px rgba(0,0,0,0.15); z-index:99999; display:flex; align-items:center; gap:14px; max-width:480px; animation:slideInUp 0.3s ease;";
     document.body.appendChild(toast);
   }
 
+  const reportLink = getApiUrl(`/api/v1/records/${encodeURIComponent(uuid)}/report`);
   toast.innerHTML = `
     <div style="font-size:22px;">✅</div>
     <div style="flex:1;">
@@ -3737,12 +3739,15 @@ function showSaveSuccessToast(uuid) {
     <a href="history.html" style="background:#059669; color:#ffffff; font-size:11.5px; font-weight:700; padding:6px 12px; border-radius:8px; text-decoration:none; white-space:nowrap;">
       View History &rarr;
     </a>
+    <a href="${reportLink}" target="_blank" style="background:#0284c7; color:#ffffff; font-size:11.5px; font-weight:700; padding:6px 12px; border-radius:8px; text-decoration:none; white-space:nowrap;">
+      Report 📄
+    </a>
     <button type="button" onclick="document.getElementById('agroSaveToast').style.display='none'" style="background:none; border:none; color:#94a3b8; font-size:14px; cursor:pointer; padding:2px 4px;">✕</button>
   `;
   toast.style.display = "flex";
   setTimeout(() => {
     if (toast) toast.style.display = "none";
-  }, 8000);
+  }, 10000);
 }
 
 async function saveCurrentAnalysis() {
@@ -3758,49 +3763,74 @@ async function saveCurrentAnalysis() {
   }
 
   try {
-    const user = typeof requireLogin === "function" ? requireLogin() : null;
+    const user = typeof getCurrentUser === "function" ? getCurrentUser() : null;
     const cleanEmail = user?.email || "farmer@agrovision.org";
     const now = new Date();
 
-    const recUuid = latestCombinedData?.record_uuid || `AV-${Date.now()}`;
+    const recUuid = latestCombinedData?.record_uuid || latestCombinedData?.session_uuid || `AV-${Date.now()}`;
     const fieldName = currentFieldName || "Field A — Wardha South Station";
 
     // Extract diagnosis & metrics
-    const topClass = latestCNNResult?.predicted_class || latestCombinedData?.cnn?.predicted_class || "Healthy Leaf";
-    const confScore = latestCNNResult?.confidence !== undefined ?
-      (latestCNNResult.confidence <= 1.0 ? latestCNNResult.confidence * 100 : latestCNNResult.confidence) :
-      (latestCombinedData?.cnn?.confidence_percentage || 95.0);
-    const snnSev = latestSNNResult?.predicted_severity || latestCombinedData?.snn?.predicted_severity || "Low";
+    const topClass = latestCNNResult?.prediction?.class || latestCNNResult?.predicted_class || latestCombinedData?.cnn?.predicted_class || latestCombinedData?.visual_assessment?.class || "Healthy Leaf";
+    const confScore = latestCNNResult?.prediction?.confidence !== undefined ?
+      (latestCNNResult.prediction.confidence <= 1.0 ? latestCNNResult.prediction.confidence * 100 : latestCNNResult.prediction.confidence) :
+      (latestCombinedData?.cnn?.confidence_percentage || (latestCombinedData?.visual_assessment?.confidence ? latestCombinedData.visual_assessment.confidence * 100 : 95.0));
+    const snnSev = latestSNNResult?.predicted_severity || latestSNNResult?.prediction?.class || latestCombinedData?.snn?.predicted_severity || latestCombinedData?.environmental_assessment?.severity || "Low";
+
+    // Read actual environmental slider inputs
+    const temp = parseFloat(document.getElementById("sliderTemp")?.value) || latestSNNPayload?.temperature || latestCombinedData?.environment?.temperature || latestCombinedData?.environmental_inputs?.temperature || 28.5;
+    const humidity = parseFloat(document.getElementById("sliderHumidity")?.value) || latestSNNPayload?.humidity || latestCombinedData?.environment?.humidity || latestCombinedData?.environmental_inputs?.humidity || 65.0;
+    const rainfall = parseFloat(document.getElementById("sliderRainfall")?.value) || latestSNNPayload?.rainfall || latestCombinedData?.environment?.rainfall || latestCombinedData?.environmental_inputs?.rainfall_mm || 0.0;
+    const soilRaw = parseFloat(document.getElementById("sliderSoil")?.value) || (latestSNNPayload?.soil_moisture ? latestSNNPayload.soil_moisture * 100 : 45.0);
+    const soilMoisture = soilRaw <= 1.0 ? soilRaw : soilRaw / 100.0;
+    const aqi = parseFloat(document.getElementById("sliderAqi")?.value) || latestSNNPayload?.aqi || latestCombinedData?.environment?.aqi || latestCombinedData?.environmental_inputs?.aqi || 55.0;
+    const ozoneRaw = parseFloat(document.getElementById("sliderOzone")?.value) || 40.0;
+    const ozone = ozoneRaw > 1.0 ? ozoneRaw / 1000.0 : ozoneRaw;
+
+    // Resolve Image URL
+    let leafImgUrl = latestCNNResult?.image_url || latestCombinedData?.cnn?.image_url || latestCombinedData?.image_url || "";
+    if (!leafImgUrl) {
+      const preview = document.getElementById("previewImg");
+      if (preview && preview.src && !preview.src.startsWith("data:image/svg")) {
+        leafImgUrl = preview.src;
+      }
+    }
+
+    const cnnProbs = latestCNNResult?.probabilities || latestCombinedData?.cnn?.probabilities || latestCombinedData?.visual_assessment?.probabilities || {};
+    const spikeCounts = latestSNNResult?.spike_counts || latestCombinedData?.snn?.spike_counts || latestCombinedData?.environmental_assessment?.spike_counts || {};
+    const fusionData = latestCombinedData?.fusion || {
+      relationship: "ALIGNED",
+      alignment_score: 0.95,
+      summary: `Foliar diagnosis: ${topClass}. Weather risk: ${snnSev}.`
+    };
+    const expertVetoData = latestCombinedData?.expert_veto || {};
+    const recsData = currentActionRecommendations || latestCombinedData?.final_assessment?.precautions || latestCombinedData?.precautions || [
+      { title: "Routine Irrigation", description: "Maintain standard watering cycle." },
+      { title: "Canopy Scouting", description: "Perform regular leaf checks." }
+    ];
 
     const payload = {
       record_uuid: recUuid,
       user_email: cleanEmail,
       field_name: fieldName,
-      image_url: latestCNNResult?.image_url || latestCombinedData?.cnn?.image_url || "",
-      temperature: currentTemperature || 24.5,
-      humidity: currentHumidity || 68.0,
-      soil_moisture: currentSoilMoisture || 0.68,
-      rainfall_mm: currentRainfall || 0.0,
+      image_url: leafImgUrl,
+      temperature: temp,
+      humidity: humidity,
+      soil_moisture: soilMoisture,
+      rainfall_mm: rainfall,
       forecast_rainfall_mm: 0.0,
-      aqi: currentAQI || 50.0,
-      ozone: currentOzone || 41.0,
+      aqi: aqi,
+      ozone: ozone,
       growth_stage: "Flowering",
       stress_severity: snnSev,
       confidence_score: confScore,
-      cnn_predictions_json: latestCNNResult?.probabilities || latestCombinedData?.cnn?.probabilities || {},
-      spike_counts_json: latestSNNResult?.spike_counts || latestCombinedData?.snn?.spike_counts || {},
-      fusion_json: latestCombinedData?.fusion || {
-        relationship: "BASELINE_HEALTHY",
-        alignment_score: 0.95,
-        summary: `Foliar diagnosis: ${topClass}. Weather risk: ${snnSev}.`
-      },
-      expert_veto_json: latestCombinedData?.expert_veto || {},
-      recommendations_json: currentActionRecommendations || [
-        { title: "Routine Irrigation", description: "Maintain standard watering cycle." },
-        { title: "Canopy Scouting", description: "Perform regular leaf checks." }
-      ],
+      cnn_predictions_json: JSON.stringify(cnnProbs),
+      spike_counts_json: JSON.stringify(spikeCounts),
+      fusion_json: JSON.stringify(fusionData),
+      expert_veto_json: JSON.stringify(expertVetoData),
+      recommendations_json: JSON.stringify(recsData),
       weather_source: envSourceMode === "auto" ? "AUTO · Weather API" : "MANUAL INPUT",
-      weather_context_json: currentWeatherContext || null,
+      weather_context_json: currentWeatherContext ? JSON.stringify(currentWeatherContext) : null,
       created_at: now.toISOString()
     };
 
@@ -3837,12 +3867,19 @@ async function saveCurrentAnalysis() {
       console.warn("Local storage save notice:", lsErr);
     }
 
-    // 3. Broadcast synchronization event
+    // 3. Update 'View Full Report' button target to point directly to print report
+    const exactReportBtn = document.getElementById("exactReportBtn");
+    if (exactReportBtn) {
+      exactReportBtn.href = getApiUrl(`/api/v1/records/${encodeURIComponent(payload.record_uuid)}/report`);
+      exactReportBtn.target = "_blank";
+    }
+
+    // 4. Broadcast synchronization event
     if (window.AgroVisionSync) {
       window.AgroVisionSync.emit("analysisSaved", payload);
     }
 
-    // 4. Update Save Button UI
+    // 5. Update Save Button UI
     if (btn) {
       btn.innerHTML = "<span>✓</span> <span>Saved to Field &amp; Reports!</span>";
       btn.style.background = "#ecfdf5";
@@ -3851,7 +3888,7 @@ async function saveCurrentAnalysis() {
       btn.disabled = false;
     }
 
-    // 5. Friendly non-blocking toast banner with direct view link
+    // 6. Friendly toast banner with direct view links
     showSaveSuccessToast(payload.record_uuid);
 
   } catch (err) {

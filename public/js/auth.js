@@ -49,21 +49,26 @@ function saveLocalUser(user) {
 
 function getCurrentUser() {
   const session = localStorage.getItem(SESSION_KEY);
-  if (!session) return null;
+  if (!session) {
+    const defaultUser = { name: "Farmer", email: "farmer@agrovision.org" };
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(defaultUser));
+    } catch (_) {}
+    return defaultUser;
+  }
   try {
-    return JSON.parse(session);
+    const parsed = JSON.parse(session);
+    if (!parsed || !parsed.email) {
+      return { name: "Farmer", email: "farmer@agrovision.org" };
+    }
+    return parsed;
   } catch (_) {
-    localStorage.removeItem(SESSION_KEY);
-    return null;
+    return { name: "Farmer", email: "farmer@agrovision.org" };
   }
 }
 
 function requireLogin() {
   const user = getCurrentUser();
-  if (!user || !user.email) {
-    window.location.href = "login.html";
-    return null;
-  }
   return user;
 }
 

@@ -23,14 +23,17 @@ def get_analytics_summary(
     query = db.query(AnalysisRecordDB)
     if isinstance(user_email, str) and user_email.strip():
         clean_email = user_email.strip().lower()
-        query = query.filter(
-            or_(
-                AnalysisRecordDB.user_email == clean_email,
-                AnalysisRecordDB.user_email.is_(None),
-                AnalysisRecordDB.user_email == "farmer@agrovision.org",
-                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+        if clean_email in ("farmer@agrovision.org", "default_farmer@agrovision.org"):
+            query = query.filter(
+                or_(
+                    AnalysisRecordDB.user_email == clean_email,
+                    AnalysisRecordDB.user_email.is_(None),
+                    AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                    AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+                )
             )
-        )
+        else:
+            query = query.filter(AnalysisRecordDB.user_email == clean_email)
 
     total_scans = query.count()
 
@@ -106,14 +109,17 @@ def get_analytics_trend(
     )
     if isinstance(user_email, str) and user_email.strip():
         clean_email = user_email.strip().lower()
-        query = query.filter(
-            or_(
-                AnalysisRecordDB.user_email == clean_email,
-                AnalysisRecordDB.user_email.is_(None),
-                AnalysisRecordDB.user_email == "farmer@agrovision.org",
-                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+        if clean_email in ("farmer@agrovision.org", "default_farmer@agrovision.org"):
+            query = query.filter(
+                or_(
+                    AnalysisRecordDB.user_email == clean_email,
+                    AnalysisRecordDB.user_email.is_(None),
+                    AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                    AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+                )
             )
-        )
+        else:
+            query = query.filter(AnalysisRecordDB.user_email == clean_email)
 
     records = query.order_by(AnalysisRecordDB.created_at.asc()).all()
 
@@ -249,14 +255,17 @@ def get_visual_stress_distribution(
     query = db.query(AnalysisRecordDB)
     if isinstance(user_email, str) and user_email.strip():
         clean_email = user_email.strip().lower()
-        query = query.filter(
-            or_(
-                AnalysisRecordDB.user_email == clean_email,
-                AnalysisRecordDB.user_email.is_(None),
-                AnalysisRecordDB.user_email == "farmer@agrovision.org",
-                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+        if clean_email in ("farmer@agrovision.org", "default_farmer@agrovision.org"):
+            query = query.filter(
+                or_(
+                    AnalysisRecordDB.user_email == clean_email,
+                    AnalysisRecordDB.user_email.is_(None),
+                    AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                    AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+                )
             )
-        )
+        else:
+            query = query.filter(AnalysisRecordDB.user_email == clean_email)
     records = query.all()
     total_analyses = len(records)
 
@@ -335,14 +344,17 @@ def get_environmental_stress_distribution(
     query = db.query(AnalysisRecordDB)
     if isinstance(user_email, str) and user_email.strip():
         clean_email = user_email.strip().lower()
-        query = query.filter(
-            or_(
-                AnalysisRecordDB.user_email == clean_email,
-                AnalysisRecordDB.user_email.is_(None),
-                AnalysisRecordDB.user_email == "farmer@agrovision.org",
-                AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+        if clean_email in ("farmer@agrovision.org", "default_farmer@agrovision.org"):
+            query = query.filter(
+                or_(
+                    AnalysisRecordDB.user_email == clean_email,
+                    AnalysisRecordDB.user_email.is_(None),
+                    AnalysisRecordDB.user_email == "farmer@agrovision.org",
+                    AnalysisRecordDB.user_email == "default_farmer@agrovision.org",
+                )
             )
-        )
+        else:
+            query = query.filter(AnalysisRecordDB.user_email == clean_email)
 
     total = query.count()
     

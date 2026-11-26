@@ -7,9 +7,7 @@
 let currentRecordData = null;
 
 // Auth check
-if (typeof requireLogin === "function") {
-  requireLogin();
-}
+const currentUser = typeof getCurrentUser === "function" ? getCurrentUser() : null;
 
 function getApiUrl(endpoint) {
   if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
@@ -77,18 +75,45 @@ function showDetailError(msg) {
 async function fetchRecordDetail(identifier) {
   try {
     const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(identifier)}`));
-    if (!res.ok) {
-      throw new Error(`Record ${identifier} could not be retrieved.`);
+    if (res.ok) {
+      const record = await res.json();
+      currentRecordData = record;
+      renderRecordDetail(record);
+      return;
     }
-
-    const record = await res.json();
-    currentRecordData = record;
-    renderRecordDetail(record);
-
   } catch (err) {
-    console.error("Error fetching detail:", err);
-    showDetailError(err.message);
+    console.warn("Backend fetch failed, attempting local fallback:", err);
   }
+
+  // Fallback to client localStorage history or sessionStorage
+  try {
+    let found = null;
+    const storedHist = localStorage.getItem("agrovision_analysis_history");
+    if (storedHist) {
+      const hist = JSON.parse(storedHist);
+      if (Array.isArray(hist)) {
+        found = hist.find(r => r.record_uuid === identifier || r.id === identifier);
+      }
+    }
+    if (!found) {
+      const storedLatest = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
+      if (storedLatest) {
+        const parsed = JSON.parse(storedLatest);
+        if (parsed && (parsed.record_uuid === identifier || parsed.id === identifier)) {
+          found = parsed;
+        }
+      }
+    }
+    if (found) {
+      currentRecordData = found;
+      renderRecordDetail(found);
+      return;
+    }
+  } catch (lsErr) {
+    console.warn("Local storage lookup failed:", lsErr);
+  }
+
+  showDetailError(`Record ${identifier} could not be retrieved from server or local session.`);
 }
 
 function renderRecordDetail(r) {
@@ -116,34 +141,45 @@ function renderRecordDetail(r) {
   // Parse JSON payloads safely
   let cnnObj = {};
   try {
-    if (r.cnn_predictions_json) cnnObj = JSON.parse(r.cnn_predictions_json);
+    if (r.cnn_predictions_json) {
+      cnnObj = typeof r.cnn_predictions_json === "string" ? JSON.parse(r.cnn_predictions_json) : r.cnn_predictions_json;
+    }
   } catch (_) {}
 
   let spikesObj = {};
   try {
-    if (r.spike_counts_json) spikesObj = JSON.parse(r.spike_counts_json);
+    if (r.spike_counts_json) {
+      spikesObj = typeof r.spike_counts_json === "string" ? JSON.parse(r.spike_counts_json) : r.spike_counts_json;
+    }
   } catch (_) {}
 
   let fusionObj = {};
   try {
-    if (r.fusion_json) fusionObj = JSON.parse(r.fusion_json);
+    if (r.fusion_json) {
+      fusionObj = typeof r.fusion_json === "string" ? JSON.parse(r.fusion_json) : r.fusion_json;
+    }
   } catch (_) {}
 
   let expertObj = {};
   try {
-    if (r.expert_veto_json) expertObj = JSON.parse(r.expert_veto_json);
+    if (r.expert_veto_json) {
+      expertObj = typeof r.expert_veto_json === "string" ? JSON.parse(r.expert_veto_json) : r.expert_veto_json;
+    }
   } catch (_) {}
 
   let weatherContext = null;
   try {
-    if (r.weather_context_json) weatherContext = JSON.parse(r.weather_context_json);
-    else if (r.weather_context) weatherContext = r.weather_context;
+    if (r.weather_context_json) {
+      weatherContext = typeof r.weather_context_json === "string" ? JSON.parse(r.weather_context_json) : r.weather_context_json;
+    } else if (r.weather_context) {
+      weatherContext = r.weather_context;
+    }
   } catch (_) {}
 
   let recsList = [];
   try {
     if (r.recommendations_json) {
-      recsList = JSON.parse(r.recommendations_json);
+      recsList = typeof r.recommendations_json === "string" ? JSON.parse(r.recommendations_json) : r.recommendations_json;
       if (!Array.isArray(recsList)) recsList = [String(recsList)];
     }
   } catch (_) {}
