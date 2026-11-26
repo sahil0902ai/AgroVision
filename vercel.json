@@ -4,6 +4,14 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/api/analysis",
+      "destination": "https://agrovision-lsgn.onrender.com/api/analysis/full"
+    },
+    {
+      "source": "/api/analysis/run",
+      "destination": "https://agrovision-lsgn.onrender.com/api/analysis/full"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://agrovision-lsgn.onrender.com/api/:path*"
     },

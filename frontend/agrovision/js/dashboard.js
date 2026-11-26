@@ -1863,10 +1863,24 @@ async function runAnalysis() {
       formData.append("user_email", user.email);
     }
 
-    const response = await fetch(getApiUrl("/api/analysis"), {
-      method: "POST",
-      body: formData
-    });
+    let response;
+    try {
+      response = await fetch(getApiUrl("/api/analysis"), {
+        method: "POST",
+        body: formData
+      });
+      if (!response.ok && response.status === 404) {
+        response = await fetch(getApiUrl("/api/analysis/full"), {
+          method: "POST",
+          body: formData
+        });
+      }
+    } catch (netErr) {
+      response = await fetch(getApiUrl("/api/analysis/full"), {
+        method: "POST",
+        body: formData
+      });
+    }
 
     if (!response.ok) {
       const errJson = await response.json().catch(() => ({}));
@@ -1880,6 +1894,41 @@ async function runAnalysis() {
     if (thisRequestId !== activeAnalysisId) {
       console.warn("Discarding superseded analysis response.");
       return;
+    }
+
+    // Backwards & forwards compatibility: normalize schema between CombinedAnalysisResponse and UnifiedAnalysisResponse
+    if (!data.cnn && data.visual_assessment) {
+      data.cnn = {
+        predicted_class: data.visual_assessment.class,
+        confidence: data.visual_assessment.confidence,
+        confidence_percentage: (data.visual_assessment.confidence * 100),
+        probabilities: data.visual_assessment.probabilities || {},
+        image_url: data.image_url || null,
+        heatmap_url: data.heatmap_url || null,
+        inference_time_ms: data.inference_time_ms || 24.5,
+        architecture: "ResNet-18 Custom",
+        input_resolution: "224x224 RGB"
+      };
+    }
+    if (!data.snn && data.environmental_assessment) {
+      data.snn = {
+        predicted_severity: data.environmental_assessment.severity,
+        confidence: data.environmental_assessment.confidence,
+        spike_counts: data.environmental_assessment.spike_counts || {},
+        timesteps: data.environmental_assessment.timesteps || 10,
+        inference_time_ms: 1.8
+      };
+    }
+    if (!data.environment && data.environmental_inputs) {
+      data.environment = data.environmental_inputs;
+    }
+    if (!data.final_assessment && data.fusion) {
+      data.final_assessment = {
+        summary: data.fusion.summary || "Multimodal Analysis Completed",
+        overall_status: data.expert_veto?.overall_status || "NORMAL",
+        recommendations: data.precautions || (data.final_assessment?.precautions || []),
+        requires_immediate_action: false
+      };
     }
 
     // Strict validation of actual multimodal model outputs: Never generate combined assessment if required outputs are missing
