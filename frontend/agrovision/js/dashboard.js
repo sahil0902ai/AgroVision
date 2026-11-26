@@ -14,10 +14,59 @@ let latestCombinedData = null;
 // Weather State
 let currentWeatherContext = null;
 let envSourceMode = "auto"; // "auto" or "manual"
-let currentFieldName = "Field A — North Parcel (Wardha)";
+let currentFieldName = "Live GPS Station";
 let currentFieldLat = 20.975;
 let currentFieldLon = 78.72;
 let currentActionRecommendations = null;
+
+// Auto-detect user's live location seamlessly
+function initFieldLocation() {
+  try {
+    const savedGps = localStorage.getItem("agrovision_gps_coords");
+    if (savedGps) {
+      const parsed = JSON.parse(savedGps);
+      if (parsed && parsed.lat && parsed.lon) {
+        currentFieldLat = parseFloat(parsed.lat);
+        currentFieldLon = parseFloat(parsed.lon);
+        if (parsed.name) currentFieldName = `📍 ${parsed.name} (Live GPS)`;
+      }
+    }
+  } catch (_) {}
+
+  if (typeof navigator !== "undefined" && navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = parseFloat(pos.coords.latitude.toFixed(4));
+        const lon = parseFloat(pos.coords.longitude.toFixed(4));
+        currentFieldLat = lat;
+        currentFieldLon = lon;
+        let cityName = "Live GPS Location";
+        try {
+          const directKey = typeof atob === "function" ? atob("YzI0OTFiY2RlZmExZjVmOGU4MjAwMjdlMWQ3M2YxNWU=") : "";
+          const weatherCheck = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${directKey}&units=metric`);
+          if (weatherCheck.ok) {
+            const wJson = await weatherCheck.json();
+            if (wJson && wJson.name) cityName = wJson.name;
+          }
+        } catch (_) {}
+        currentFieldName = `📍 ${cityName} (Live GPS)`;
+        try {
+          localStorage.setItem("agrovision_gps_coords", JSON.stringify({ lat, lon, name: cityName }));
+        } catch (_) {}
+        const el = document.getElementById("fieldName");
+        if (el) el.textContent = currentFieldName;
+        if (typeof fetchFieldWeather === "function") {
+          fetchFieldWeather(lat, lon, false);
+        }
+      },
+      (err) => {
+        console.warn("Geolocation notice:", err?.message || err);
+      },
+      { timeout: 8000, maximumAge: 60000, enableHighAccuracy: true }
+    );
+  }
+}
+initFieldLocation();
 
 // Proactively warm up backend so leaf analysis and API queries never wait on cold start
 function warmupBackend() {
