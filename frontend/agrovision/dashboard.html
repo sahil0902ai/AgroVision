@@ -543,20 +543,21 @@
           
           <!-- Left: Leaf Image -->
           <div style="text-align:center;">
-            <img id="fig5LeafImg" src="" alt="Uploaded cotton leaf" style="width:150px; height:150px; border-radius:12px; object-fit:cover; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.04);" />
-            <div id="fig5FileName" style="font-size:11px; color:#64748b; margin-top:6px; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;">cotton_leaf.jpg</div>
+            <img id="fig5LeafImg" src="" alt="Uploaded cotton leaf" style="width:150px; height:150px; border-radius:12px; object-fit:cover; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.04); display:none;" />
+            <div id="fig5LeafPlaceholder" style="width:150px; height:150px; border-radius:12px; border:2px dashed #cbd5e1; background:#f8fafc; display:flex; align-items:center; justify-content:center; font-size:32px; color:#94a3b8; margin:0 auto;">🍃</div>
+            <div id="fig5FileName" style="font-size:11px; color:#64748b; margin-top:6px; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;">No leaf scanned yet</div>
           </div>
 
           <!-- Right: Diagnosis & Confidence -->
           <div>
             <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Diagnosed Leaf Condition</div>
-            <div id="fig5ClassTitle" style="font-size:1.6rem; font-weight:800; color:#0d3b2e; margin:2px 0 6px;">Healthy Leaf</div>
-            <span id="fig5ConfPill" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; border:1px solid #a7f3d0; margin-bottom:14px;">98.7% Probability</span>
+            <div id="fig5ClassTitle" style="font-size:1.6rem; font-weight:800; color:#0d3b2e; margin:2px 0 6px;">Awaiting Leaf Scan</div>
+            <span id="fig5ConfPill" style="display:none; background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:3px 12px; border-radius:999px; border:1px solid #a7f3d0; margin-bottom:14px;"></span>
 
             <!-- Class Probabilities -->
             <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; margin-bottom:8px; letter-spacing:0.05em;">Possible Conditions Checked:</div>
             <div id="fig5ProbRows" style="display:flex; flex-direction:column; gap:7px;">
-              <!-- Probabilities filled dynamically -->
+              <div style="font-size:12px; color:#94a3b8; font-style:italic; padding:6px 0;">Upload a cotton leaf in Step 1 to compute visual class probabilities.</div>
             </div>
           </div>
         </div>
@@ -568,7 +569,7 @@
             <span>What this means for your crop:</span>
           </div>
           <p id="fig5CalloutText" style="margin:0 0 8px; font-size:12.5px; color:#334155; line-height:1.5;">
-            The leaf shows healthy green color, firm structure, and normal veins without visible stress.
+            Upload or select a cotton leaf image in Step 1 to perform authentic CNN visual screening.
           </p>
           <div style="background:#ffffff; border:1px solid #e2e8f0; border-left:3px solid #059669; padding:8px 12px; font-size:11.5px; color:#475569; border-radius:0 6px 6px 0;">
             <strong>Farmer Guidance:</strong> This scan provides visual screening for common crop stress. Always combine with field soil moisture and weather observations.
@@ -618,16 +619,16 @@
         </div>
 
         <!-- Stress Risk Banner -->
-        <div id="fig6Banner" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+        <div id="fig6Banner" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
           <div style="display:flex; align-items:center; gap:14px;">
-            <div style="width:48px; height:48px; border-radius:12px; background:#ffffff; border:1px solid #bbf7d0; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;">🌱</div>
+            <div style="width:48px; height:48px; border-radius:12px; background:#ffffff; border:1px solid #cbd5e1; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;">⚡</div>
             <div>
-              <div style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.05em;">Field Weather Risk Level</div>
-              <div id="fig6ClassTitle" style="font-size:1.6rem; font-weight:800; color:#059669; margin:2px 0 0;">Low Risk</div>
+              <div style="font-size:10.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Field Weather Risk Level</div>
+              <div id="fig6ClassTitle" style="font-size:1.6rem; font-weight:800; color:#0f172a; margin:2px 0 0;">Awaiting Climate Scan</div>
             </div>
           </div>
           <div style="text-align:right;">
-            <span id="fig6StatusPill" style="background:#ecfdf5; color:#059669; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #a7f3d0; display:inline-block;">● Good Growing Conditions</span>
+            <span id="fig6StatusPill" style="background:#f1f5f9; color:#475569; font-size:11px; font-weight:700; padding:4px 12px; border-radius:999px; border:1px solid #cbd5e1; display:inline-block;">● Ready for Input</span>
           </div>
         </div>
 
@@ -727,8 +728,6 @@
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
                 <h3 style="font-size:1.15rem; color:#0f172a; font-weight:800; margin:0;">Combined Assessment</h3>
-                <span class="provenance-tag tag-gemini-ai">FARM ADVISORY</span>
-                <span class="provenance-tag tag-snn-model">EXPERT VERIFIED</span>
               </div>
               </div>
           </div>
@@ -738,228 +737,220 @@
           </div>
         </div>
 
+        <!-- Empty State when no analysis has run -->
+        <div id="combinedEmptyState" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 24px; text-align:center; background:#f8fafc; border:2px dashed #cbd5e1; border-radius:14px; margin:16px 0;">
+          <div style="font-size:36px; margin-bottom:12px;">🌱</div>
+          <div style="font-size:16px; font-weight:700; color:#1e293b; margin-bottom:6px;">No Analysis Completed Yet</div>
+          <p style="font-size:13px; color:#64748b; max-width:440px; margin:0 0 16px 0;">Please upload a cotton leaf image in Step 1 and run the multimodal analysis to view the combined diagnosis and recommended actions.</p>
+          <button type="button" class="btn btn-primary" onclick="switchView('input')" style="padding:8px 18px; font-size:13px; font-weight:600; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+            <span>📸 Go to Leaf Upload</span>
+          </button>
+        </div>
+
         <!-- ============================================================
              FULL-WIDTH COMBINED ASSESSMENT CARD ARCHITECTURE
              ============================================================ -->
-        <div class="exact-assessment-shell" id="exactAssessmentShell">
+        <div class="exact-assessment-shell" id="exactAssessmentShell" style="display:none;">
 
-          <!-- 1. Top Evidence Grid (3 Full-Width Multi-Modality Cards) -->
-          <div class="exact-evidence-grid">
-            
-            <!-- Card 1: Leaf Condition -->
-            <div class="exact-evidence-card">
-              <div class="exact-evidence-lbl">
-                Leaf Condition<br><span style="color:#94a3b8; font-weight:500;">(Visual Health)</span>
+          <!-- COMBINED MULTI-MODAL ASSESSMENT & ADVISORY -->
+          <div class="exact-section-card" id="combFusionSection" style="margin-bottom:16px; background:#ffffff; border:1px solid #e2e8f0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #f1f5f9; padding-bottom:10px; flex-wrap:wrap; gap:8px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:18px;">📋</span>
+                <span class="exact-section-title" style="margin:0; font-size:15px;">Combined Multi-Modal Assessment &amp; Advisory</span>
               </div>
-              <div class="exact-evidence-val" id="exactEvidVisVal" style="color:#059669;">Healthy</div>
-              <div class="exact-evidence-sub" id="exactEvidVisConf" style="color:#059669;">98.7% Confidence</div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="provenance-tag tag-gemini-ai">MULTIMODAL FUSION</span>
+                <span class="provenance-tag tag-snn-model">EXPERT VETO ENGINE</span>
+              </div>
             </div>
 
-            <!-- Card 2: Field Climate -->
-            <div class="exact-evidence-card">
-              <div class="exact-evidence-lbl">
-                Field Climate<br><span style="color:#94a3b8; font-weight:500;">(Weather &amp; Soil)</span>
-              </div>
-              <div class="exact-evidence-val" id="exactEvidEnvVal" style="color:#2563eb;">Low Stress</div>
-              <div class="exact-evidence-sub" id="exactEvidEnvRisk" style="color:#64748b;">Optimal Growing</div>
-            </div>
-
-            <!-- Card 3: Farm Status -->
-            <div class="exact-evidence-card">
-              <div class="exact-evidence-lbl">
-                Farm Status<br><span style="color:#94a3b8; font-weight:500;">(Combined Result)</span>
-              </div>
-              <div class="exact-evidence-val" id="exactEvidAlignVal" style="color:#059669;">Good Health</div>
-              <div class="exact-evidence-sub" style="color:#64748b;">Holistic Diagnosis</div>
-            </div>
-
-          </div>
-
-          <!-- 2. Final Assessment Hero Box -->
-          <div class="exact-final-box" id="exactFinalBox">
-            <div class="exact-final-header">
-              <div class="exact-final-header-left">
-                <span style="font-size:18px;">🍃</span>
-                <span>Final Assessment</span>
-              </div>
-              <span class="exact-action-badge" id="exactActionBadge">• Action Recommended</span>
-            </div>
-            <div class="exact-final-title" id="exactFinalTitle">Water Stress Observable</div>
-            <p class="exact-final-desc" id="exactFinalDesc">
-              Visual symptoms indicate water stress while environmental conditions are in low-risk range. This suggests localized stress due to irrigation, soil variation, or microclimate.
-            </p>
-          </div>
-
-          <!-- 3. Dual Analytics Grid (Assessment Breakdown Donut + 5-Class Stress Factor Bar Chart) -->
-          <div class="exact-analytics-grid">
-            
-            <!-- Left Chart Card: Assessment Breakdown Donut -->
-            <div class="exact-section-card" style="margin-bottom:0;">
-              <div class="exact-section-title">Assessment Breakdown</div>
-              <div class="exact-breakdown-layout">
-                
-                <!-- Donut Chart with Center Value -->
-                <div class="exact-donut-wrap">
-                  <canvas id="exactDonutChart"></canvas>
-                  <div class="exact-donut-center">
-                    <div class="exact-donut-val" id="exactDonutScore">72%</div>
-                    <div class="exact-donut-sub">Overall Confidence</div>
-                  </div>
+            <!-- Top Synthesis Banner -->
+            <div id="combFusionBanner" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 18px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div>
+                <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Evidence Relationship</div>
+                <div style="display:flex; align-items:center; gap:10px; margin-top:2px;">
+                  <span id="combRelationshipBadge" style="font-size:13px; font-weight:800; padding:4px 12px; border-radius:8px; background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;">ALIGNED</span>
+                  <span id="combAlignmentScore" style="font-size:12px; font-weight:700; color:#475569;">Concordance Score: 95%</span>
                 </div>
+              </div>
+              <div id="combFusionSummary" style="font-size:12.5px; color:#334155; max-width:550px; line-height:1.45;">
+                Visual foliar symptoms align with environmental microclimate telemetry.
+              </div>
+            </div>
 
-                <!-- 3-Item Legend -->
-                <div class="exact-breakdown-legend">
-                  
-                  <!-- Legend Item 1: Visual Evidence (CNN) -->
-                  <div class="exact-legend-row">
-                    <div class="exact-legend-left">
-                      <span class="exact-dot" style="background:#10b981;"></span>
-                      <span>Visual Evidence (CNN)</span>
+            <!-- Summary Evidence Grid (3 Quick Cards) -->
+            <div class="exact-evidence-grid" style="margin-bottom:16px;">
+              <!-- Card 1: Leaf Condition -->
+              <div class="exact-evidence-card">
+                <div class="exact-evidence-lbl">
+                  Leaf Condition<br><span style="color:#94a3b8; font-weight:500;">(Visual Health)</span>
+                </div>
+                <div class="exact-evidence-val" id="exactEvidVisVal" style="color:#059669;">Healthy</div>
+                <div class="exact-evidence-sub" id="exactEvidVisConf" style="color:#059669;">95.0% Confidence</div>
+              </div>
+
+              <!-- Card 2: Field Climate -->
+              <div class="exact-evidence-card">
+                <div class="exact-evidence-lbl">
+                  Field Climate<br><span style="color:#94a3b8; font-weight:500;">(Weather &amp; Soil)</span>
+                </div>
+                <div class="exact-evidence-val" id="exactEvidEnvVal" style="color:#2563eb;">Low Stress</div>
+                <div class="exact-evidence-sub" id="exactEvidEnvRisk" style="color:#64748b;">Optimal Growing</div>
+              </div>
+
+              <!-- Card 3: Farm Status -->
+              <div class="exact-evidence-card">
+                <div class="exact-evidence-lbl">
+                  Farm Status<br><span style="color:#94a3b8; font-weight:500;">(Combined Result)</span>
+                </div>
+                <div class="exact-evidence-val" id="exactEvidAlignVal" style="color:#059669;">Good Health</div>
+                <div class="exact-evidence-sub" style="color:#64748b;">Holistic Diagnosis</div>
+              </div>
+            </div>
+
+            <!-- Final Assessment Hero Box -->
+            <div class="exact-final-box" id="exactFinalBox" style="margin-bottom:16px;">
+              <div class="exact-final-header">
+                <div class="exact-final-header-left">
+                  <span style="font-size:18px;">🍃</span>
+                  <span>Final Integrated Diagnosis</span>
+                </div>
+                <span class="exact-action-badge" id="exactActionBadge">• Assessment Ready</span>
+              </div>
+              <div class="exact-final-title" id="exactFinalTitle">Crop in Good Health — Optimal Vigor</div>
+              <p class="exact-final-desc" id="exactFinalDesc">
+                Both your cotton leaf scan and environmental sensor telemetry indicate healthy crop vigor without biotic or abiotic distress. Continue routine monitoring and scheduled field care.
+              </p>
+            </div>
+
+            <!-- Dual Analytics Grid -->
+            <div class="exact-analytics-grid" style="margin-bottom:16px;">
+              <!-- Left Chart Card: Assessment Breakdown Donut -->
+              <div class="exact-section-card" style="margin-bottom:0; background:#f8fafc;">
+                <div class="exact-section-title">Assessment Evidence Weighting</div>
+                <div class="exact-breakdown-layout">
+                  <div class="exact-donut-wrap">
+                    <canvas id="exactDonutChart"></canvas>
+                    <div class="exact-donut-center">
+                      <div class="exact-donut-val" id="exactDonutScore">72%</div>
+                      <div class="exact-donut-sub">Concordance</div>
                     </div>
-                    <span class="exact-legend-pct" id="exactLegendCnnPct">45%</span>
                   </div>
-
-                  <!-- Legend Item 2: Environmental Evidence (SNN) -->
-                  <div class="exact-legend-row">
-                    <div class="exact-legend-left">
-                      <span class="exact-dot" style="background:#3b82f6;"></span>
-                      <span>Environmental Evidence (SNN)</span>
+                  <div class="exact-breakdown-legend">
+                    <div class="exact-legend-row">
+                      <div class="exact-legend-left">
+                        <span class="exact-dot" style="background:#10b981;"></span>
+                        <span>Visual Evidence (CNN)</span>
+                      </div>
+                      <span class="exact-legend-pct" id="exactLegendCnnPct">45%</span>
                     </div>
-                    <span class="exact-legend-pct" id="exactLegendSnnPct">35%</span>
-                  </div>
-
-                  <!-- Legend Item 3: Rule & Context Check -->
-                  <div class="exact-legend-row">
-                    <div class="exact-legend-left">
-                      <span class="exact-dot" style="background:#f59e0b;"></span>
-                      <span>Rule &amp; Context Check</span>
+                    <div class="exact-legend-row">
+                      <div class="exact-legend-left">
+                        <span class="exact-dot" style="background:#3b82f6;"></span>
+                        <span>Climate Evidence (SNN)</span>
+                      </div>
+                      <span class="exact-legend-pct" id="exactLegendSnnPct">35%</span>
                     </div>
-                    <span class="exact-legend-pct" id="exactLegendRulePct">20%</span>
+                    <div class="exact-legend-row">
+                      <div class="exact-legend-left">
+                        <span class="exact-dot" style="background:#f59e0b;"></span>
+                        <span>Agronomic Rule Safeguards</span>
+                      </div>
+                      <span class="exact-legend-pct" id="exactLegendRulePct">20%</span>
+                    </div>
                   </div>
-
                 </div>
-
               </div>
-            </div>
 
-            <!-- Right Chart Card: 5-Class Stress Factor Comparison (Power BI Bar Chart) -->
-            <div class="exact-factor-card">
-              <div class="exact-factor-header">
-                <div style="font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
-                  <span>📈</span>
-                  <span>Stress by Analysis (5-Class Profile)</span>
+              <!-- Right Chart Card: 5-Class Stress Factor Comparison -->
+              <div class="exact-factor-card">
+                <div class="exact-factor-header">
+                  <div style="font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                    <span>📈</span>
+                    <span>Stress Profile (5-Class Comparison)</span>
+                  </div>
+                  <span class="provenance-tag tag-cnn-model">REAL TELEMETRY</span>
                 </div>
-                <span class="provenance-tag tag-cnn-model">REAL TELEMETRY</span>
-              </div>
-              <div style="position:relative; height:160px; width:100%;">
-                <canvas id="combinedStressFactorChart"></canvas>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- 4. Expert Rule Engine Safeguard (Hidden for clean farmer view) -->
-          <div class="exact-expert-card" id="exactExpertCard" style="display:none !important;">
-            <span class="exact-expert-badge" id="exactExpertRuleBadge"></span>
-            <div class="exact-expert-body" id="exactExpertRuleDesc"></div>
-            <div class="exact-expert-precaution" id="exactExpertPrecaution"></div>
-          </div>
-
-          <!-- 5. Key Insights Card -->
-          <div class="exact-section-card">
-            <div class="exact-section-title">Key Insights</div>
-            <div class="exact-insights-list" id="exactInsightsList">
-              <div class="exact-insight-item">
-                <span class="exact-check-icon">✓</span>
-                <span>Leaf shows signs of dehydration and edge burn consistent with water stress.</span>
-              </div>
-              <div class="exact-insight-item">
-                <span class="exact-check-icon">✓</span>
-                <span>Environmental parameters are within optimal range overall.</span>
-              </div>
-              <div class="exact-insight-item">
-                <span class="exact-check-icon">✓</span>
-                <span>Stress may be localized or due to short-term irrigation gap.</span>
-              </div>
-              <div class="exact-insight-item">
-                <span class="exact-check-icon">✓</span>
-                <span>Continue monitoring soil moisture &amp; plant recovery.</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 6. Unified Farmer Action Plan & Field Validation Checklist -->
-          <div class="exact-section-card" id="unifiedActionCard" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:18px 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-              <div style="font-size:14px; font-weight:800; color:#065f46; display:flex; align-items:center; gap:8px;">
-                <span style="font-size:20px;">📋</span>
-                <span>Action Plan &amp; What to Check Next in Your Field</span>
-              </div>
-              <span id="exactChecklistCount" style="font-size:11px; font-weight:700; color:#059669; background:#ffffff; padding:3px 12px; border-radius:999px; border:1px solid #a7f3d0;">
-                0 / 3 Done
-              </span>
-            </div>
-
-            <!-- Part 1: Immediate Recommended Steps -->
-            <div style="font-size:11px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">
-              🌾 Recommended Actions:
-            </div>
-            <div class="exact-actions-grid" id="exactActionsGrid" style="margin-bottom:18px;">
-              <div class="exact-action-tile">
-                <div class="exact-action-top">
-                  <span>💧</span>
-                  <span>Check Soil Moisture</span>
+                <div style="position:relative; height:160px; width:100%;">
+                  <canvas id="combinedStressFactorChart"></canvas>
                 </div>
-                <p class="exact-action-desc">Verify root zone moisture level before next watering.</p>
               </div>
-              <div class="exact-action-tile">
-                <div class="exact-action-top">
-                  <span>🌱</span>
-                  <span>Canopy Inspection</span>
+            </div>
+
+            <!-- Deterministic Expert Rule Engine Safeguard (EVR-001..EVR-007) -->
+            <div class="exact-expert-card" id="exactExpertCard" style="margin-bottom:16px;">
+              <div class="exact-expert-header">
+                <div class="exact-expert-title">
+                  <span>🛡️</span>
+                  <span>Deterministic Expert Veto Safeguards (EVR-001..007)</span>
                 </div>
-                <p class="exact-action-desc">Check middle leaves across field rows for consistent vigor.</p>
+                <span class="exact-expert-badge" id="exactExpertRuleBadge">✅ Standard Growth Conditions (All Checks Passed)</span>
               </div>
-              <div class="exact-action-tile">
-                <div class="exact-action-top">
-                  <span>📈</span>
-                  <span>Routine Observation</span>
+              <div class="exact-expert-body" id="exactExpertRuleDesc">
+                Field weather, leaf symptoms, and soil moisture are within normal, safe ranges for cotton cultivation.
+              </div>
+              <div class="exact-expert-precaution" id="exactExpertPrecaution">
+                <strong>Field Guidance:</strong> Continue routine irrigation schedule and periodic pest scouting along field edges.
+              </div>
+            </div>
+
+            <!-- Key Insights Card -->
+            <div class="exact-section-card" style="margin-bottom:16px; background:#f8fafc;">
+              <div class="exact-section-title">Key Field Insights</div>
+              <div class="exact-insights-list" id="exactInsightsList">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Unified Farmer Action Plan & Field Validation Checklist -->
+            <div class="exact-section-card" id="unifiedActionCard" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:18px 20px; margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+                <div style="font-size:14px; font-weight:800; color:#065f46; display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:20px;">📋</span>
+                  <span>Action Plan &amp; What to Check Next in Your Field</span>
                 </div>
-                <p class="exact-action-desc">Track recovery over next 3–5 days.</p>
+                <span id="exactChecklistCount" style="font-size:11px; font-weight:700; color:#059669; background:#ffffff; padding:3px 12px; border-radius:999px; border:1px solid #a7f3d0;">
+                  0 / 3 Done
+                </span>
+              </div>
+
+              <!-- Part 1: Immediate Recommended Steps -->
+              <div style="font-size:11px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">
+                🌾 Recommended Actions:
+              </div>
+              <div class="exact-actions-grid" id="exactActionsGrid" style="margin-bottom:18px;">
+                <!-- Dynamically populated -->
+              </div>
+
+              <!-- Part 2: Field Checklist -->
+              <div style="font-size:11px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">
+                ✅ Field Verification Checklist (Tick items as you inspect):
+              </div>
+              <div class="exact-checklist-items" id="exactChecklistItems">
+                <!-- Dynamically populated checkboxes -->
               </div>
             </div>
 
-            <!-- Part 2: Field Checklist -->
-            <div style="font-size:11px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">
-              ✅ Field Verification Checklist (Tick items as you inspect):
+            <!-- Action Options Buttons Group (Accessible Farmer Action Tiles) -->
+            <div class="exact-action-buttons-group">
+              <a href="history.html" class="exact-btn-report" id="exactReportBtn">
+                <span>📄</span>
+                <span>View Full Report</span>
+              </a>
+              <a href="assistant.html" class="exact-btn-assistant" id="exactAssistantBtn">
+                <span>🤖</span>
+                <span>Consult AI Advisor</span>
+              </a>
+              <button type="button" class="exact-btn-save" id="exactSaveBtn" onclick="saveCurrentAnalysis()">
+                <span>💾</span>
+                <span>Save to Field</span>
+              </button>
+              <button type="button" class="exact-btn-new-analysis" id="exactNewScanBtn" onclick="resetAnalysisState()">
+                <span>🌱</span>
+                <span>Analyze Another Leaf</span>
+              </button>
             </div>
-            <div class="exact-checklist-items" id="exactChecklistItems">
-              <!-- Dynamically populated checkboxes -->
-            </div>
-          </div>
-
-          <!-- 8. Action Options Buttons Group (4 Accessible Farmer Action Tiles) -->
-          <div class="exact-action-buttons-group">
-            
-            <a href="history.html" class="exact-btn-report" id="exactReportBtn">
-              <span>📄</span>
-              <span>View Full Report</span>
-            </a>
-
-            <a href="assistant.html" class="exact-btn-assistant" id="exactAssistantBtn">
-              <span>🤖</span>
-              <span>Consult AI Advisor</span>
-            </a>
-
-            <button type="button" class="exact-btn-save" id="exactSaveBtn" onclick="saveCurrentAnalysis()">
-              <span>💾</span>
-              <span>Save to Field</span>
-            </button>
-
-            <button type="button" class="exact-btn-new-analysis" id="exactNewScanBtn" onclick="resetAnalysisState()">
-              <span>🌱</span>
-              <span>Analyze Another Leaf</span>
-            </button>
-
           </div>
 
           <!-- Compatibility hooks for technical values -->

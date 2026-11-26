@@ -60,19 +60,15 @@ async function loadActiveAnalysisContext(uuid) {
   try {
     const user = typeof requireLogin === "function" ? requireLogin() : null;
     const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
+    const urlParams = new URLSearchParams(window.location.search);
+    const isFromCombined = urlParams.get("from") === "combined";
 
     let record = null;
-    if (uuid) {
-      const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(uuid)}?${userEmailParam}`));
-      if (res.ok) {
-        record = await res.json();
-      }
-    }
 
-    // Check sessionStorage if no URL uuid
-    if (!record) {
+    // 1. If coming from combined assessment, prioritize sessionStorage active context
+    if (isFromCombined) {
       try {
-        const stored = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
+        const stored = sessionStorage.getItem("agrovision_active_assistant_context") || sessionStorage.getItem("agrovision_latest_analysis");
         if (stored) {
           const parsed = JSON.parse(stored);
           if (parsed && (parsed.record_uuid || parsed.cnn || parsed.visual_assessment)) {
@@ -83,7 +79,29 @@ async function loadActiveAnalysisContext(uuid) {
       } catch (_) {}
     }
 
-    // If still no record, attempt to load most recent analysis from history
+    // 2. Try DB fetch if UUID is specified and record not already loaded from session
+    if (!record && uuid) {
+      const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(uuid)}?${userEmailParam}`));
+      if (res.ok) {
+        record = await res.json();
+      }
+    }
+
+    // 3. Check sessionStorage if still no record
+    if (!record) {
+      try {
+        const stored = sessionStorage.getItem("agrovision_active_assistant_context") || sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && (parsed.record_uuid || parsed.cnn || parsed.visual_assessment)) {
+            record = parsed;
+            activeRecordUuid = record.record_uuid;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 4. If still no record, attempt to load most recent analysis from history
     if (!record) {
       const resRecent = await fetch(getApiUrl(`/api/v1/records?limit=1${userEmailParam}`));
       if (resRecent.ok) {
@@ -108,11 +126,23 @@ async function loadActiveAnalysisContext(uuid) {
       const field = record.field_name || "Wardha Research Station";
 
       if (titleEl) titleEl.textContent = `${diag} (${conf} Confidence)`;
-      if (subEl) subEl.textContent = `Attached Record: ${record.record_uuid || 'Live Scan'} · ${field} · ${dateStr}`;
-      if (sessionBadge) {
-        sessionBadge.textContent = "● Grounded Diagnosis Attached";
-        sessionBadge.className = "context-badge attached";
+
+      if (isFromCombined) {
+        if (subEl) subEl.textContent = `Strictly analyzing this scan: ${diag} (${conf}) · ${field}`;
+        if (sessionBadge) {
+          sessionBadge.textContent = "● Locked to Current Combined Scan";
+          sessionBadge.className = "context-badge attached";
+          sessionBadge.style.background = "#dcfce7";
+          sessionBadge.style.color = "#15803d";
+        }
+      } else {
+        if (subEl) subEl.textContent = `Attached Record: ${record.record_uuid || 'Live Scan'} · ${field} · ${dateStr}`;
+        if (sessionBadge) {
+          sessionBadge.textContent = "● Grounded Diagnosis Attached";
+          sessionBadge.className = "context-badge attached";
+        }
       }
+
       if (returnBtn) {
         returnBtn.style.display = "inline-flex";
         returnBtn.href = activeRecordUuid ? `dashboard.html?record_id=${encodeURIComponent(activeRecordUuid)}` : `dashboard.html?step=combined`;
@@ -142,13 +172,12 @@ function populateContextPrompts(record) {
   const container = document.getElementById("contextPromptsWrap");
   if (!container) return;
 
-  const diag = record.final_assessment?.diagnosis || "Water Stress";
   const prompts = [
-    `Why did I get this result?`,
-    `What should I check next?`,
-    `What is soil moisture?`,
-    `Explain CNN.`,
-    `Is high temperature important?`
+    `What should I do in my field today?`,
+    `Explain this scan in simple terms.`,
+    `How does my soil moisture affect this?`,
+    `When is the best time to irrigate or spray?`,
+    `How do temperature and weather impact this?`
   ];
 
   container.innerHTML = prompts.map(p => `
@@ -290,92 +319,133 @@ function generateAgronomicAIResponse(query, contextRecord) {
 
   const symptomDetail = symptomDescriptions[diag] || "foliar stress symptoms consistent with the diagnosed category.";
 
-  // --- QUERY ROUTING LOGIC ---
+  // --- QUERY ROUTING LOGIC (Farmer-Friendly & Grounded) ---
 
-  // 1. Why did I get this result / Diagnosis Explanation
-  if (q.includes("why") || q.includes("result") || q.includes("explain result") || q.includes("diagnosis") || q.includes("meaning") || q.includes("what happened")) {
-    return `### 🧩 Multimodal Diagnostic Breakdown for ${escapeHtml(fieldName)}
+  // 1. Why did I get this result / Diagnosis Explanation / Scan Summary
+  if (q.includes("why") || q.includes("result") || q.includes("explain") || q.includes("diagnosis") || q.includes("meaning") || q.includes("what does this mean") || q.includes("scan")) {
+    let plainSymptom = "";
+    let plainSteps = "";
+    if (diag.toLowerCase().includes("water")) {
+      plainSymptom = "The leaf scan shows signs of wilting and drooping, indicating the plant is losing moisture faster than roots can draw it from the soil.";
+      plainSteps = `1. **Soil Check**: Dig 6–12 inches deep near the roots to verify if the soil feels dry or powdery.
+2. **Irrigation**: Water your field during the cool morning hours (6:00 AM – 9:00 AM) to minimize evaporation.
+3. **Inspect Drip Lines**: Check drip emitters or furrow tail-ends to make sure water reaches all rows evenly.`;
+    } else if (diag.toLowerCase().includes("heat")) {
+      plainSymptom = "The leaf scan shows heat stress with curling or dry edges caused by intense sunlight and high ambient temperatures.";
+      plainSteps = `1. **Moisture Support**: Keep soil adequately moist to help plants naturally cool down through leaf evaporation.
+2. **Avoid Midday Sprays**: Never spray foliar fertilizers or pesticides during peak midday heat (>32°C) to prevent leaf burn.
+3. **Monitor Recovery**: Check if leaves perk back up by early evening as temperatures ease.`;
+    } else if (diag.toLowerCase().includes("nutrient")) {
+      plainSymptom = "The leaf scan shows yellowing between the veins (chlorosis), which typically points to a shortage of key nutrients such as Nitrogen, Zinc, or Magnesium.";
+      plainSteps = `1. **Inspect Yellowing**: Check if yellowing is mostly on older lower leaves (Nitrogen) or young upper leaves (Zinc/Iron).
+2. **Morning Foliar Spray**: Consider applying 19:19:19 (5g per liter of water) or chelated micronutrients in early morning.
+3. **Check Root Drainage**: Ensure soil is well-drained, as waterlogged roots cannot absorb fertilizers properly.`;
+    } else if (diag.toLowerCase().includes("pollution")) {
+      plainSymptom = "The leaf scan shows dust or particulate buildup on the leaf surface, which blocks sunlight and reduces photosynthesis.";
+      plainSteps = `1. **Canopy Wash**: A gentle overhead water rinse or natural rain will clean dust off the leaf surfaces.
+2. **Dust Barriers**: If near a dirt road, maintain border crops or windbreaks to catch dust.
+3. **Scout for Mites**: Check under leaves to ensure dust has not encouraged spider mites.`;
+    } else {
+      plainSymptom = "The leaf is in healthy condition with good green color, well-formed veins, and no significant stress marks.";
+      plainSteps = `1. **Maintain Care**: Continue your current watering and nutrient schedule.
+2. **Weekly Field Walk**: Scout 15–20 plants weekly to catch any early pest or water issues.
+3. **Watch Weather**: Keep an eye on upcoming heat spikes or heavy rain.`;
+    }
 
-Your cotton crop was evaluated through dual AI models and deterministic agronomic verification rules:
+    return `### 📋 Leaf Scan Summary for ${escapeHtml(fieldName)}
 
-1. **🍃 CNN Visual Screening (ResNet-18)**:
-   - **Diagnosis**: **${diag}** (${confStr} confidence).
-   - **Foliar Markers**: The convolutional vision model detected ${symptomDetail}
+**1. What Your Leaf Scan Shows:**
+Your leaf scan indicates **${diag}** (${confStr} confidence). ${plainSymptom}
 
-2. **⛅ SNN Climate Risk Analysis (Neuromorphic LIF)**:
-   - **Severity**: **${risk} Environmental Risk** (${totalSpikes > 0 ? totalSpikes + ' spikes fired across 10 timesteps' : 'steady temporal membrane potential'}).
-   - **Microclimate Telemetry**: Ambient temperature is **${Number(temp).toFixed(1)}°C**, relative humidity is **${humidity}%**, and root-zone soil moisture is **${soilMoisture}%**.
+**2. Current Field Conditions:**
+- Temperature: **${Number(temp).toFixed(1)}°C**
+- Air Humidity: **${humidity}%**
+- Soil Moisture: **${soilMoisture}%**
+- Weather Risk Level: **${risk} Risk**
 
-3. **⚖️ Multimodal Fusion & Deterministic Expert Veto**:
-   - **Concordance**: **${fusionRel}** (${alignScore} alignment score).
-   - **Expert Rules Engine**: **${vetoStatus}** (${triggeredRules.length === 0 ? 'No conflicting hazard thresholds violated' : triggeredRules.map(r => r.name || r.rule_id).join(', ')}).`;
+**3. Action Steps for Today:**
+${plainSteps}`;
   }
 
   // 2. What should I check next / Action plan
-  if (q.includes("next") || q.includes("check") || q.includes("inspect") || q.includes("action") || q.includes("what should i do") || q.includes("steps") || q.includes("plan")) {
-    let specificAction = "Maintain standard irrigation schedules and pest scouting rounds.";
+  if (q.includes("next") || q.includes("check") || q.includes("inspect") || q.includes("action") || q.includes("what should i do") || q.includes("steps") || q.includes("plan") || q.includes("today")) {
+    let specificAction = "";
     if (diag.toLowerCase().includes("water")) {
-      specificAction = "Apply a 25–30 mm irrigation cycle in early morning hours (6:00 AM – 9:00 AM) to replenish root zone Vertisol moisture.";
+      specificAction = `1. **Check Soil Moisture**: Dig 6 to 12 inches deep into the soil. If it crumbles dry, irrigate as soon as possible.
+2. **Water in Early Morning**: Irrigate between 6:00 AM and 9:00 AM to give roots maximum moisture before midday heat.
+3. **Check Nozzles & Furrows**: Walk along irrigation lines to ensure no nozzles or furrows are clogged.
+4. **Follow Up**: Re-check leaf appearance in 2–3 days after watering.`;
     } else if (diag.toLowerCase().includes("heat")) {
-      specificAction = "Schedule light misting or frequent shallow drip cycles; avoid foliar agrochemical spraying during peak mid-day heat (>34°C).";
+      specificAction = `1. **Maintain Moderate Soil Moisture**: Keep soil damp to help plants cool themselves naturally.
+2. **Hold Chemical Sprays**: Delay any chemical or foliar spraying until late afternoon when temperatures cool below 32°C.
+3. **Check Squares & Flowers**: Inspect whether squares or young bolls are shedding due to high temperatures.
+4. **Follow Up**: Monitor morning leaf recovery over the next 3 days.`;
     } else if (diag.toLowerCase().includes("nutrient")) {
-      specificAction = "Apply a foliar spray of 1% Potassium Nitrate (KNO₃, 10g/L) or 0.5% Zinc Sulphate + 0.5% MgSO₄ in early morning.";
+      specificAction = `1. **Examine Yellowing Pattern**: Check whether yellowing starts from leaf tips, between veins, or on lower leaves.
+2. **Morning Foliar Feed**: Apply 1% Potassium Nitrate (10g/L) or 19:19:19 (5g/L) during cool morning hours.
+3. **Verify Root Health**: Make sure the soil is aerated and not waterlogged.
+4. **Follow Up**: Look for greener new growth within 4–6 days.`;
     } else if (diag.toLowerCase().includes("pollution")) {
-      specificAction = "Conduct a fresh canopy water wash if dust accumulation exceeds threshold, and scout for secondary spider mite flare-ups.";
+      specificAction = `1. **Rinse Leaves**: Use a light water misting to wash heavy dust off leaf canopies.
+2. **Check for Pests**: Inspect leaf undersides for spider mites or whiteflies that thrive in dusty conditions.
+3. **Follow Up**: Re-scan after washing to check if clean green color is restored.`;
+    } else {
+      specificAction = `1. **Continue Routine Care**: Keep your existing watering and crop nutrition schedule.
+2. **Scout Weekly**: Turn over 10–15 leaves to check for early sucking pests (aphids, thrips).
+3. **Monitor Forecast**: Check for upcoming heat spikes or rain to plan your field operations.`;
     }
 
-    return `### 🔍 Recommended Field Verification Checklist
+    return `### 🚜 Action Steps for Your Field Today
 
-Ground all management decisions in direct field scouting for **${diag}** (${risk} Environmental Risk):
+Based on your leaf scan (**${diag}** with **${risk}** weather risk):
 
-1. **🌱 Root Zone Moisture Verification**: Dig a 15–30 cm soil probe to check moisture penetration (current sensor reading: **${soilMoisture}%**).
-2. **🍃 Canopy Transect Inspection**: Walk a diagonal field transect and inspect 20 representative plants for uniform symptoms.
-3. **⚡ Immediate Corrective Action**: ${specificAction}
-4. **🐛 Under-Canopy Pest Scouting**: Inspect the undersides of mid-tier leaves for early sucking pests (aphids, thrips, whiteflies).
-5. **📸 Re-Scan Follow-Up**: Take a follow-up leaf photo with AgroVision in **3–5 days** to track crop recovery.`;
+${specificAction}
+
+*Farmer Tip: Always check 10 to 15 plants across different spots in your field to ensure uniform crop health.*`;
   }
 
-  // 3. Soil Moisture
+  // 3. Soil Moisture Questions
   if (q.includes("soil moisture") || q.includes("moisture") || q.includes("soil water")) {
-    let statusText = "Optimal (Field Capacity 55%–75%)";
-    let adviceText = "Soil hydration is supportive of regular nutrient translocation.";
+    let statusText = "Good (55%–75% Range)";
+    let adviceText = "Soil moisture is in a healthy range for steady cotton root growth.";
     if (soilMoisture < 45) {
-      statusText = "Deficit (<45% - High Water Stress Risk)";
-      adviceText = "Root zone moisture is below threshold. Schedule irrigation immediately to prevent boll square shedding.";
+      statusText = "Low Moisture (<45%)";
+      adviceText = "The root zone is dry. Schedule irrigation soon to prevent squares and young bolls from dropping.";
     } else if (soilMoisture > 80) {
-      statusText = "Saturated / Waterlogged (>80%)";
-      adviceText = "Ensure field drainage ditches are clear to prevent root hypoxia and fungal rot.";
+      statusText = "Saturated / Very Wet (>80%)";
+      adviceText = "Soil is very wet. Ensure field drainage ditches are open so roots do not suffocate.";
     }
 
-    return `### 💧 Soil Moisture Telemetry & Dynamics
+    return `### 💧 Soil Moisture in Your Field
 
-**Soil moisture** represents the volumetric water content held in root-zone pore spaces (0.20–0.35 m³/m³ field capacity):
-
-- **Active Field Reading**: **${soilMoisture}%** (Status: **${statusText}**)
-- **Agronomic Impact on Cotton**: Deep black Vertisols retain high water volume. Inadequate moisture during flowering reduces boll retention, while over-saturation causes oxygen starvation at root tips.
-- **Field Recommendation**: ${adviceText}`;
+- **Current Reading**: **${soilMoisture}%** (Status: **${statusText}**)
+- **How to Test in Field**: Dig down 6 to 12 inches near the roots and squeeze a handful of soil. It should form a ball that holds together without dripping water.
+- **Farmer Tip**: ${adviceText}`;
   }
 
-  // 4. CNN Questions
-  if (q.includes("cnn") || q.includes("convolutional") || q.includes("visual model") || q.includes("image model") || q.includes("resnet")) {
-    return `### 🍃 Convolutional Neural Network (CNN) in AgroVision
+  // 4. Leaf Scanner / CNN Questions
+  if (q.includes("cnn") || q.includes("convolutional") || q.includes("visual model") || q.includes("image model") || q.includes("resnet") || q.includes("scanner")) {
+    return `### 🍃 How the Leaf Scanner Works
 
-AgroVision employs a calibrated **ResNet-18 Deep Residual Network** for leaf disease and stress identification:
+The leaf scanner acts like a digital agronomist. It analyzes your leaf photo by looking at:
 
-1. **Feature Extraction**: Convolutional filters scan 224×224 RGB tensors to identify micro-lesions, chlorotic margins, and venation discoloration.
-2. **Grad-CAM Explainability**: Highlights Layer4 spatial activation maps to show exactly which leaf regions triggered the classification.
-3. **Current Scan Result**: Classified your cotton leaf as **${diag}** with **${confStr}** confidence.`;
+1. **Surface Color**: Looks for healthy dark green color, yellowing, or bleached spots.
+2. **Vein Health**: Checks if yellowing is between veins (nutrition shortage) or across the whole leaf.
+3. **Leaf Edges & Shape**: Detects wilting, curling, or dry scorched margins.
+
+*In your latest scan, your leaf was identified as **${diag}** with **${confStr}** confidence.*`;
   }
 
-  // 5. SNN Questions / Spikes
-  if (q.includes("snn") || q.includes("spiking") || q.includes("neuromorphic") || q.includes("spike") || q.includes("raster")) {
-    return `### ⚡ Spiking Neural Network (SNN) in AgroVision
+  // 5. Climate Risk / SNN Questions
+  if (q.includes("snn") || q.includes("spiking") || q.includes("neuromorphic") || q.includes("spike") || q.includes("climate model")) {
+    return `### ⛅ How Field Climate Analysis Works
 
-AgroVision utilizes a 3rd-generation **Neuromorphic Spiking Neural Network (SNN)** for climate stress simulation:
+The climate analyzer checks the physical weather conditions around your crop:
 
-1. **Biological LIF Dynamics**: Leaky Integrate-and-Fire neurons transform 33 environmental parameters into discrete temporal spikes over 10 simulation timesteps.
-2. **Energy Efficiency & Fast Temporal Response**: Evaluates non-linear abiotic stress interactions (VPD, heat index, soil moisture deficit).
-3. **Current Evaluation**: Classified climate risk at **${risk} Risk** (${totalSpikes > 0 ? totalSpikes + ' spikes' : 'low firing frequency'}).`;
+1. **Field Weather**: Checks air temperature (**${Number(temp).toFixed(1)}°C**), humidity (**${humidity}%**), rainfall (**${rainfall} mm**), and soil moisture (**${soilMoisture}%**).
+2. **Stress Level**: Evaluates whether these weather readings combine to create stress for cotton plants.
+
+*Your current field climate risk is rated at **${risk} Risk**.*`;
   }
 
   // 6. Temperature / Thermal
@@ -552,7 +622,7 @@ async function handleSendMessage() {
     };
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
 
     const res = await fetch(getApiUrl("/api/chat"), {
       method: "POST",

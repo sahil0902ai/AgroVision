@@ -393,6 +393,18 @@ function switchView(viewName) {
   updateStepperProgress();
   window.scrollTo({ top: 0, behavior: "smooth" });
 
+  if (viewName === "combined") {
+    const combinedEmpty = document.getElementById("combinedEmptyState");
+    const combinedShell = document.getElementById("exactAssessmentShell");
+    if (latestCombinedData) {
+      if (combinedEmpty) combinedEmpty.style.display = "none";
+      if (combinedShell) combinedShell.style.display = "block";
+    } else {
+      if (combinedEmpty) combinedEmpty.style.display = "flex";
+      if (combinedShell) combinedShell.style.display = "none";
+    }
+  }
+
   // Reactive auto-inference on tab switch if data is pending
   if (viewName === "cnn" && selectedFile && !latestCNNResult) {
     runCNNInferenceOnly();
@@ -655,7 +667,7 @@ function validateAndProcessFile(file) {
       }
 
       const foliarRatio = foliarCount / totalSamplePixels;
-      if (foliarRatio < 0.12) {
+      if (foliarRatio < 0.08) {
         try { URL.revokeObjectURL(objectUrl); } catch (e) {}
         showUploadError(
           "Invalid Image",
@@ -676,6 +688,11 @@ function validateAndProcessFile(file) {
     latestSNNResult = null;
     latestSNNPayload = null;
     activeAnalysisId++;
+
+    const combinedEmpty = document.getElementById("combinedEmptyState");
+    const combinedShell = document.getElementById("exactAssessmentShell");
+    if (combinedEmpty) combinedEmpty.style.display = "flex";
+    if (combinedShell) combinedShell.style.display = "none";
 
     // Populate metadata labels
     const previewImg = document.getElementById("previewImg");
@@ -761,6 +778,10 @@ function resetAnalysisState() {
   latestSNNPayload = null;
   latestCombinedData = null;
   currentWhatToCheckItems = [];
+  const combinedEmpty = document.getElementById("combinedEmptyState");
+  const combinedShell = document.getElementById("exactAssessmentShell");
+  if (combinedEmpty) combinedEmpty.style.display = "flex";
+  if (combinedShell) combinedShell.style.display = "none";
   const countBadge = document.getElementById("whatToCheckCount");
   if (countBadge) countBadge.textContent = "0 / 0 Completed";
   const listContainer = document.getElementById("whatToCheckList");
@@ -1429,11 +1450,13 @@ function saveAnalysisLocally(record) {
     // Keep up to 200 sessions deduplicated
     historyList = [record, ...historyList.filter(h => h.record_uuid !== record.record_uuid)].slice(0, 200);
     localStorage.setItem("agrovision_analysis_history", JSON.stringify(historyList));
+    sessionStorage.setItem("agrovision_active_assistant_context", JSON.stringify(record));
+    sessionStorage.setItem("agrovision_latest_analysis", JSON.stringify(record));
 
     // Update AI Assistant links across page to anchor to this active leaf analysis
     const astLinks = document.querySelectorAll('a[href*="assistant.html"]');
     astLinks.forEach(a => {
-      a.href = `assistant.html?record_id=${encodeURIComponent(record.record_uuid)}`;
+      a.href = `assistant.html?from=combined&record_id=${encodeURIComponent(record.record_uuid)}`;
     });
   } catch (err) {
     console.warn("Could not persist analysis locally:", err);
@@ -1592,9 +1615,11 @@ async function loadSavedAnalysisRecord(uuid) {
     }
 
     // Update Assistant Links
+    sessionStorage.setItem("agrovision_active_assistant_context", JSON.stringify(record));
+    sessionStorage.setItem("agrovision_latest_analysis", JSON.stringify(record));
     const astLinks = document.querySelectorAll('a[href*="assistant.html"]');
     astLinks.forEach(a => {
-      a.href = `assistant.html?record_id=${encodeURIComponent(record.record_uuid)}`;
+      a.href = `assistant.html?from=combined&record_id=${encodeURIComponent(record.record_uuid)}`;
     });
 
     updateStepperProgress();
@@ -1857,6 +1882,17 @@ async function runAnalysis() {
       return;
     }
 
+    // Strict validation of actual multimodal model outputs: Never generate combined assessment if required outputs are missing
+    if (!data.cnn || !data.snn || !data.fusion || !data.final_assessment) {
+      throw new Error("Missing required multimodal model outputs. Analysis pipeline could not complete.");
+    }
+    if (!data.cnn.predicted_class || data.cnn.confidence === undefined) {
+      throw new Error("CNN visual inference failed to produce a valid class prediction.");
+    }
+    if (!data.snn.predicted_severity) {
+      throw new Error("SNN environmental inference failed to produce a valid severity rating.");
+    }
+
     if (scanFill) scanFill.style.width = "100%";
     if (scanPct) scanPct.textContent = "100%";
     if (scanStatus) scanStatus.textContent = "Analysis Complete";
@@ -1870,25 +1906,25 @@ async function runAnalysis() {
     latestCombinedData = data;
     latestCNNResult = {
       prediction: {
-        class: data.cnn?.predicted_class || "Healthy",
-        confidence: data.cnn?.confidence || 0.95
+        class: data.cnn.predicted_class,
+        confidence: data.cnn.confidence
       },
-      probabilities: data.cnn?.probabilities || {},
-      inference_time_ms: data.cnn?.inference_time_ms || 24.5,
-      image_url: data.cnn?.image_url,
-      heatmap_url: data.cnn?.heatmap_url,
-      architecture: data.cnn?.architecture || "ResNet-18 Custom",
-      input_resolution: data.cnn?.input_resolution || "224x224 RGB"
+      probabilities: data.cnn.probabilities || {},
+      inference_time_ms: data.cnn.inference_time_ms || 24.5,
+      image_url: data.cnn.image_url,
+      heatmap_url: data.cnn.heatmap_url,
+      architecture: data.cnn.architecture || "ResNet-18 Custom",
+      input_resolution: data.cnn.input_resolution || "224x224 RGB"
     };
     latestSNNResult = {
       prediction: {
-        class: data.snn?.predicted_severity || "Low",
-        confidence: data.snn?.confidence || 0.95
+        class: data.snn.predicted_severity,
+        confidence: data.snn.confidence || 0.95
       },
-      predicted_severity: data.snn?.predicted_severity || "Low",
-      spike_counts: data.snn?.spike_counts || {},
-      timesteps: data.snn?.timesteps || 10,
-      inference_time_ms: data.snn?.inference_time_ms || 1.8
+      predicted_severity: data.snn.predicted_severity,
+      spike_counts: data.snn.spike_counts || {},
+      timesteps: data.snn.timesteps || 10,
+      inference_time_ms: data.snn.inference_time_ms || 1.8
     };
     latestSNNPayload = data.environment || {
       temperature: temp,
@@ -1900,22 +1936,22 @@ async function runAnalysis() {
     };
 
     // Latency metrics
-    measuredLatencies.cnn_ms = data.cnn?.inference_time_ms || 24.5;
-    measuredLatencies.snn_ms = data.snn?.inference_time_ms || 1.8;
+    measuredLatencies.cnn_ms = data.cnn.inference_time_ms || 24.5;
+    measuredLatencies.snn_ms = data.snn.inference_time_ms || 1.8;
     measuredLatencies.fusion_ms = data.metadata?.latencies?.fusion_ms || 0.4;
     measuredLatencies.total_ms = data.metadata?.total_pipeline_time_ms || Math.max(1, duration);
 
     // Update Decision Trace: all 6 stages with real values
-    const cnnClass = data.cnn?.predicted_class || "Healthy";
-    const cnnConfPct = (data.cnn?.confidence_percentage !== undefined ? data.cnn.confidence_percentage : (data.cnn?.confidence || 0.95) * 100).toFixed(1);
+    const cnnClass = data.cnn.predicted_class;
+    const cnnConfPct = (data.cnn.confidence_percentage !== undefined ? data.cnn.confidence_percentage : (data.cnn.confidence) * 100).toFixed(1);
     updateDecisionTrace(2, "completed", "2. CNN Visual", `${cnnClass} (${cnnConfPct}%)`);
 
-    const snnSev = data.snn?.predicted_severity || "Low";
-    const totalSpk = data.snn?.spike_counts ? Object.values(data.snn.spike_counts).reduce((a, b) => a + b, 0) : 8;
+    const snnSev = data.snn.predicted_severity;
+    const totalSpk = data.snn.spike_counts ? Object.values(data.snn.spike_counts).reduce((a, b) => a + b, 0) : 0;
     updateDecisionTrace(3, "completed", "3. SNN Climate", `${snnSev} Risk (${totalSpk} Spikes)`);
 
-    const fusedRel = data.fusion?.relationship || "ALIGNED";
-    const alignScorePct = Math.round((data.fusion?.alignment_score || 0.95) * 100);
+    const fusedRel = data.fusion.relationship || "ALIGNED";
+    const alignScorePct = Math.round((data.fusion.alignment_score !== undefined ? data.fusion.alignment_score : 0.95) * 100);
     updateDecisionTrace(4, "completed", "4. Fusion Layer", `${fusedRel} (${alignScorePct}%)`);
 
     const vetoStatus = data.expert_veto?.overall_status || "Passed";
@@ -1954,6 +1990,10 @@ async function runAnalysis() {
 
   } catch (err) {
     console.error("Analysis pipeline error:", err);
+    latestCombinedData = null;
+    latestCNNResult = null;
+    latestSNNResult = null;
+    latestSNNPayload = null;
     if (scanWrap) scanWrap.style.display = "none";
     if (scanFill) scanFill.style.width = "0%";
     if (scanPct) scanPct.textContent = "0%";
@@ -2710,6 +2750,12 @@ function renderExactDonutChart(data, fusion, cnnWeight, snnWeight, ruleWeight) {
 
 function renderFigure7(data) {
   if (!data) return;
+
+  const combinedEmpty = document.getElementById("combinedEmptyState");
+  const combinedShell = document.getElementById("exactAssessmentShell");
+  if (combinedEmpty) combinedEmpty.style.display = "none";
+  if (combinedShell) combinedShell.style.display = "block";
+
   const fusion = data.fusion || {};
   const recUuid = data.record_uuid || "";
   const weatherCtx = data.environment?.weather_context || data.weather_context || currentWeatherContext;
@@ -2766,6 +2812,215 @@ function renderFigure7(data) {
   // Triggered Expert Rules
   const triggeredRules = data.expert_veto?.triggered_rules || [];
   const vetoPassed = triggeredRules.length === 0 || (triggeredRules.length === 1 && triggeredRules[0].rule_id === "EVR-007");
+
+  // ---------------------------------------------------------
+  // SECTION 1: CNN VISUAL FOLIAR ANALYSIS
+  // ---------------------------------------------------------
+  const combCnnLeafImg = document.getElementById("combCnnLeafImg");
+  const combCnnPlaceholder = document.getElementById("combCnnPlaceholder");
+  const combCnnFileName = document.getElementById("combCnnFileName");
+  const combCnnClassTitle = document.getElementById("combCnnClassTitle");
+  const combCnnConfPill = document.getElementById("combCnnConfPill");
+  const combCnnLatencyBadge = document.getElementById("combCnnLatencyBadge");
+  const combCnnProbRows = document.getElementById("combCnnProbRows");
+
+  const cnnImgSrc = data.cnn?.image_url || (currentObjectUrl || "");
+  if (combCnnLeafImg) {
+    if (cnnImgSrc) {
+      combCnnLeafImg.src = cnnImgSrc;
+      combCnnLeafImg.style.display = "block";
+      if (combCnnPlaceholder) combCnnPlaceholder.style.display = "none";
+    } else {
+      combCnnLeafImg.style.display = "none";
+      if (combCnnPlaceholder) combCnnPlaceholder.style.display = "flex";
+    }
+  }
+  if (combCnnFileName) {
+    combCnnFileName.textContent = selectedFile ? selectedFile.name : (data.cnn?.file_name || "Leaf Scan");
+  }
+  if (combCnnClassTitle) {
+    combCnnClassTitle.textContent = visualClass;
+    if (visualClass.toLowerCase() === "healthy") {
+      combCnnClassTitle.style.color = "#059669";
+    } else if (visualClass.toLowerCase().includes("water")) {
+      combCnnClassTitle.style.color = "#dc2626";
+    } else if (visualClass.toLowerCase().includes("heat")) {
+      combCnnClassTitle.style.color = "#ea580c";
+    } else if (visualClass.toLowerCase().includes("nutrient")) {
+      combCnnClassTitle.style.color = "#d97706";
+    } else {
+      combCnnClassTitle.style.color = "#7c3aed";
+    }
+  }
+  if (combCnnConfPill) {
+    combCnnConfPill.textContent = visualConfStr;
+    if (visualClass.toLowerCase() === "healthy") {
+      combCnnConfPill.style.background = "#ecfdf5";
+      combCnnConfPill.style.color = "#059669";
+      combCnnConfPill.style.borderColor = "#a7f3d0";
+    } else {
+      combCnnConfPill.style.background = "#fef2f2";
+      combCnnConfPill.style.color = "#dc2626";
+      combCnnConfPill.style.borderColor = "#fecaca";
+    }
+  }
+  if (combCnnLatencyBadge) {
+    combCnnLatencyBadge.textContent = `⚡ ${(data.cnn?.inference_time_ms || 24.5).toFixed(1)}ms`;
+  }
+
+  // 5 Class Probabilities in Section 1
+  if (combCnnProbRows) {
+    const rawProbs = data.cnn?.probabilities || {};
+    const classLabels = ["Healthy", "Water Stress", "Heat Stress", "Nutrient Deficiency", "Pollution"];
+    const classColors = {
+      "Healthy": "#059669",
+      "Water Stress": "#dc2626",
+      "Heat Stress": "#ea580c",
+      "Nutrient Deficiency": "#d97706",
+      "Pollution": "#7c3aed"
+    };
+    combCnnProbRows.innerHTML = classLabels.map(cls => {
+      let p = rawProbs[cls];
+      if (p === undefined) p = rawProbs[cls.toLowerCase()] || 0;
+      let pNum = Number(p);
+      if (pNum > 1.0) pNum = pNum / 100.0;
+      const pct = (pNum * 100).toFixed(1);
+      const isTop = cls.toLowerCase() === visualClass.toLowerCase();
+      const color = classColors[cls] || "#059669";
+      return `
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:2px; font-weight:${isTop ? '700' : '500'}; color:${isTop ? color : '#475569'};">
+            <span>${cls}</span>
+            <span>${pct}%</span>
+          </div>
+          <div style="height:6px; background:#f1f5f9; border-radius:999px; overflow:hidden;">
+            <div style="height:100%; width:${pct}%; background:${color}; border-radius:999px;"></div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // ---------------------------------------------------------
+  // SECTION 2: SNN ENVIRONMENTAL MICROCLIMATE ANALYSIS
+  // ---------------------------------------------------------
+  const combSnnClassTitle = document.getElementById("combSnnClassTitle");
+  const combSnnSevPill = document.getElementById("combSnnSevPill");
+  const combSnnLatencyBadge = document.getElementById("combSnnLatencyBadge");
+  const combSnnInputsGrid = document.getElementById("combSnnInputsGrid");
+  const combSnnSpikeDistribution = document.getElementById("combSnnSpikeDistribution");
+
+  if (combSnnClassTitle) {
+    combSnnClassTitle.textContent = `${envClass} Stress`;
+    if (envClass.toLowerCase().includes("low")) {
+      combSnnClassTitle.style.color = "#059669";
+    } else if (envClass.toLowerCase().includes("mod")) {
+      combSnnClassTitle.style.color = "#d97706";
+    } else {
+      combSnnClassTitle.style.color = "#dc2626";
+    }
+  }
+  if (combSnnSevPill) {
+    combSnnSevPill.textContent = `${envClass} Risk Microclimate`;
+    if (envClass.toLowerCase().includes("low")) {
+      combSnnSevPill.style.background = "#eff6ff";
+      combSnnSevPill.style.color = "#2563eb";
+      combSnnSevPill.style.borderColor = "#bfdbfe";
+    } else if (envClass.toLowerCase().includes("mod")) {
+      combSnnSevPill.style.background = "#fffbeb";
+      combSnnSevPill.style.color = "#d97706";
+      combSnnSevPill.style.borderColor = "#fde68a";
+    } else {
+      combSnnSevPill.style.background = "#fef2f2";
+      combSnnSevPill.style.color = "#dc2626";
+      combSnnSevPill.style.borderColor = "#fecaca";
+    }
+  }
+  if (combSnnLatencyBadge) {
+    combSnnLatencyBadge.textContent = `⚡ ${(data.snn?.inference_time_ms || 1.8).toFixed(1)}ms`;
+  }
+
+  // Actual Input Sensor Readings (6 sensors)
+  if (combSnnInputsGrid) {
+    const sensorItems = [
+      { label: "Temperature", val: `${tempVal.toFixed(1)} °C`, icon: "🌡️" },
+      { label: "Humidity", val: `${Math.round(humVal)} %`, icon: "💧" },
+      { label: "Soil Moisture", val: `${Math.round(soilVal)} %`, icon: "🌱" },
+      { label: "Rainfall", val: `${rainVal.toFixed(1)} mm`, icon: "🌧️" },
+      { label: "Air Quality (AQI)", val: `${Math.round(aqiVal)}`, icon: "🌫️" },
+      { label: "Ozone", val: `${(ozoneVal * 1000).toFixed(0)} ppb`, icon: "☀️" }
+    ];
+    combSnnInputsGrid.innerHTML = sensorItems.map(item => `
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;">
+        <div style="font-size:10px; color:#64748b; font-weight:600; display:flex; align-items:center; gap:4px;">
+          <span>${item.icon}</span>
+          <span>${item.label}</span>
+        </div>
+        <div style="font-size:12.5px; font-weight:700; color:#0f172a; margin-top:2px;">${item.val}</div>
+      </div>
+    `).join("");
+  }
+
+  // Model evidence: SNN spike counts (T=10)
+  if (combSnnSpikeDistribution) {
+    const spkLow = rawSpkCounts.low !== undefined ? rawSpkCounts.low : (rawSpkCounts["Low"] || 0);
+    const spkMod = rawSpkCounts.medium !== undefined ? rawSpkCounts.medium : (rawSpkCounts["Moderate"] || 0);
+    const spkHigh = rawSpkCounts.high !== undefined ? rawSpkCounts.high : (rawSpkCounts["High"] || 0);
+    const totalSpkCount = spkLow + spkMod + spkHigh;
+
+    combSnnSpikeDistribution.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
+        <span style="color:#059669; font-weight:600;">● Low Stress Spikes:</span>
+        <strong style="color:#059669;">${spkLow}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
+        <span style="color:#d97706; font-weight:600;">● Moderate Stress Spikes:</span>
+        <strong style="color:#d97706;">${spkMod}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
+        <span style="color:#dc2626; font-weight:600;">● High Stress Spikes:</span>
+        <strong style="color:#dc2626;">${spkHigh}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; border-top:1px dashed #cbd5e1; padding-top:4px; margin-top:2px;">
+        <span style="color:#475569; font-weight:700;">Total Neural Spikes:</span>
+        <strong style="color:#0f172a;">${totalSpkCount} (T=10)</strong>
+      </div>
+    `;
+  }
+
+  // ---------------------------------------------------------
+  // SECTION 3: COMBINED MULTI-MODAL ASSESSMENT
+  // ---------------------------------------------------------
+  const combRelBadge = document.getElementById("combRelationshipBadge");
+  const combAlignScore = document.getElementById("combAlignmentScore");
+  const combFusionSummary = document.getElementById("combFusionSummary");
+
+  if (combRelBadge) {
+    const relUpper = (relationship || "ALIGNED").toUpperCase();
+    combRelBadge.textContent = relUpper.replace(/_/g, " ");
+    if (relUpper === "BASELINE_HEALTHY" || relUpper === "ALIGNED") {
+      combRelBadge.style.background = "#ecfdf5";
+      combRelBadge.style.color = "#059669";
+      combRelBadge.style.borderColor = "#a7f3d0";
+    } else if (relUpper === "CONFLICTING") {
+      combRelBadge.style.background = "#fef2f2";
+      combRelBadge.style.color = "#dc2626";
+      combRelBadge.style.borderColor = "#fecaca";
+    } else {
+      combRelBadge.style.background = "#fffbeb";
+      combRelBadge.style.color = "#d97706";
+      combRelBadge.style.borderColor = "#fde68a";
+    }
+  }
+  if (combAlignScore) {
+    combAlignScore.textContent = `Concordance Score: ${scorePct}%`;
+  }
+  if (combFusionSummary) {
+    combFusionSummary.textContent = data.final_assessment?.summary || fusion.summary || 
+      (isHealthy 
+        ? "Both visual foliar symptoms and microclimate telemetry indicate healthy crop vigor without distress."
+        : `Multimodal analysis synthesizes visual symptoms of ${visualClass.toLowerCase()} with ${envClass.toLowerCase()} environmental microclimate conditions.`);
+  }
 
   // =========================================================
   // EXACT REFERENCE MATCH BINDINGS
@@ -3070,8 +3325,12 @@ function renderFigure7(data) {
 
   const exactAssistantBtn = document.getElementById("exactAssistantBtn");
   if (exactAssistantBtn) {
-    const aiPrompt = `Explain the diagnosis of ${visualClass} with ${envClass} environmental risk and provide tailored crop recovery recommendations.`;
-    exactAssistantBtn.href = `assistant.html?record_id=${encodeURIComponent(recUuid || "")}&q=${encodeURIComponent(aiPrompt)}`;
+    try {
+      sessionStorage.setItem("agrovision_active_assistant_context", JSON.stringify(data));
+      sessionStorage.setItem("agrovision_latest_analysis", JSON.stringify(data));
+    } catch (_) {}
+    const aiPrompt = `What does this scan mean for my cotton crop, and what simple steps should I take in my field today?`;
+    exactAssistantBtn.href = `assistant.html?from=combined&record_id=${encodeURIComponent(recUuid || "")}&q=${encodeURIComponent(aiPrompt)}`;
   }
 
   // 9. Collapsible Technical Details Drawer

@@ -122,7 +122,7 @@ def chat_with_assistant(
                     pass
 
     # 2. Check if in-memory session context was passed directly from the active dashboard
-    elif payload.session_context:
+    if not analysis_data and payload.session_context:
         analysis_data = payload.session_context
         if "weather_context" in payload.session_context:
             weather_data = payload.session_context["weather_context"]
