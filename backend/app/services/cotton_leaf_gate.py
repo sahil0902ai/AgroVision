@@ -301,9 +301,10 @@ class CottonLeafGate:
             )
 
         # C. Document / UI pure white check:
-        # High white is only a document if foliar presence is absent (< 15%)
+        # High white is only a document if foliar presence is absent (< 10%)
         # (Farmers and researchers frequently photograph cotton leaves on white paper or clean trays)
-        if diag["doc_white_ratio"] >= 0.65 and diag["foliar_ratio"] < 0.15:
+        color_foliar = float(diag["green_ratio"] + diag["chlorosis_ratio"] + diag["necrosis_ratio"])
+        if diag["doc_white_ratio"] >= 0.65 and diag["foliar_ratio"] < 0.10 and color_foliar < 0.08:
             return (
                 False,
                 "UNRELATED_IMAGE",
@@ -312,7 +313,7 @@ class CottonLeafGate:
             )
 
         # D. Non-plant images (cars, buildings, animals, random objects without foliage):
-        if diag["foliar_ratio"] < 0.15:
+        if diag["foliar_ratio"] < 0.10 and color_foliar < 0.08:
             return (
                 False,
                 "UNRELATED_IMAGE",
@@ -336,35 +337,48 @@ class CottonLeafGate:
                 prob_cotton = float(self.model.predict_proba(feat_vec)[0, 1])
                 diag["cotton_probability"] = round(prob_cotton, 4)
 
-                # A. High or Moderate ML Cotton Leaf Confidence
-                if prob_cotton >= 0.35:
+                # A. High ML Cotton Leaf Confidence (prob_cotton >= 0.30)
+                if prob_cotton >= 0.30:
                     return True, "VALID_COTTON_LEAF", "Valid cotton leaf detected.", diag
 
-                # B. Borderline Zone (0.18 <= prob_cotton < 0.35):
-                # Verify broad foliar geometry typical of Gossypium (cotton) canopy or macro close-ups:
-                # Cotton leaves are broad (aspect ratio <= 2.3), have a single dominant blade,
-                # and are not fragmented compound leaflets or long monocot grass blades.
-                is_broad_foliar = (diag["aspect_ratio"] <= 2.3) and (diag["contour_count"] <= 5)
-                is_canopy_close_up = (diag["foliar_ratio"] >= 0.60) and (diag["aspect_ratio"] <= 2.2)
-                if (prob_cotton >= 0.18) and (is_broad_foliar or is_canopy_close_up) and (diag["foliar_dominance"] >= 0.45):
+                # B. Broad Foliar Geometry with Supporting Cotton Probability (0.14 <= prob_cotton < 0.30)
+                # Cotton (Gossypium) leaves possess palmate/cordate structure (aspect ratio <= 2.2),
+                # single dominant blade, and are robust to field lighting, shadows, and stress spots.
+                is_broad_foliar = (diag["aspect_ratio"] <= 2.2) and (diag["contour_count"] <= 8)
+                is_canopy_close_up = (diag["foliar_ratio"] >= 0.40) and (diag["aspect_ratio"] <= 2.2)
+                if (prob_cotton >= 0.14) and (is_broad_foliar or is_canopy_close_up) and (diag["foliar_dominance"] >= 0.40):
                     return True, "VALID_COTTON_LEAF", "Valid cotton leaf detected.", diag
 
-                # C. Non-Cotton Plant Leaf vs Unrelated Object
-                is_botanical_leaf = (diag["green_ratio"] >= 0.12 or diag["foliar_ratio"] >= 0.25) and diag["foliar_dominance"] >= 0.45
-                
-                # Definite non-cotton botanical signatures:
-                # 1. Monocot grass blade / corn / maize: aspect ratio >= 2.5
-                is_monocot_blade = (diag["aspect_ratio"] >= 2.5) and (diag["green_ratio"] >= 0.15)
-                # 2. Fern or compound leaf: multiple fragmented separated leaflets
-                is_compound_leaf = (diag["contour_count"] >= 7) and (diag["foliar_dominance"] < 0.50)
-                # 3. Very low cotton probability on a plant leaf (< 0.18)
-                is_unsupported_species = (prob_cotton < 0.18) and is_botanical_leaf
+                # C. Confirmed Non-Cotton Botanical Species (REJECT as UNSUPPORTED_PLANT)
+                # Botanical criteria for confirmed non-cotton plants:
+                # 1. Monocot grass blade / corn / maize / sugarcane: elongated linear blade (aspect ratio >= 2.4)
+                is_confirmed_monocot = (diag["aspect_ratio"] >= 2.4) and (diag["green_ratio"] >= 0.10 or diag["foliar_ratio"] >= 0.15)
+                # 2. Fern or highly segmented compound leaf: >= 8 disconnected leaflets with high convexity deficit
+                is_confirmed_compound = (diag["contour_count"] >= 8) and (diag["convexity_deficit"] >= 0.50)
+                # 3. Decisive non-cotton species by ML model (< 0.05 probability) with clear non-cotton traits
+                is_confirmed_other_species = (prob_cotton < 0.05) and (diag["green_ratio"] >= 0.15 or diag["foliar_ratio"] >= 0.25) and (diag["skin_ratio"] >= 0.20 or diag["aspect_ratio"] >= 2.2)
 
-                if is_monocot_blade or is_compound_leaf or is_unsupported_species:
+                if is_confirmed_monocot or is_confirmed_compound or is_confirmed_other_species:
                     return (
                         False,
                         "UNSUPPORTED_PLANT",
                         "Unsupported Plant — AgroVision currently analyses cotton leaves only. Please upload an image of a cotton plant leaf.",
+                        diag
+                    )
+
+                # D. Uncertain Botanical Foliar Tissue Zone (Separate Classification)
+                # Real cotton leaves subjected to severe chlorosis/necrosis, extreme sunlight/shadow,
+                # white paper background, or acute angles may score in the uncertain zone.
+                # Per engineering requirements: reject confirmed non-cotton, but classify uncertain
+                # images separately as eligible for CNN foliar diagnostic analysis rather than falsely rejecting.
+                has_foliar_tissue = (diag["foliar_ratio"] >= 0.10 or color_foliar >= 0.10) and (diag["foliar_dominance"] >= 0.40)
+                if has_foliar_tissue:
+                    diag["is_uncertain"] = True
+                    diag["uncertainty_advisory"] = "Cotton leaf detected with moderate confidence under challenging field conditions. Proceeding with diagnostic analysis."
+                    return (
+                        True,
+                        "UNCERTAIN_COTTON_LEAF",
+                        "Cotton leaf detected with moderate confidence. Proceeding with diagnostic analysis.",
                         diag
                     )
                 else:
@@ -378,17 +392,30 @@ class CottonLeafGate:
                 logger.error(f"Error during Cotton Leaf Gate model inference: {e}", exc_info=True)
 
         # 6. Deterministic Fallback if model unavailable
-        # Cotton leaves have palmate/cordate structure: aspect ratio <= 2.3, foliar dominance >= 0.45
-        is_cotton_geometry = (diag["aspect_ratio"] <= 2.3) and (diag["contour_count"] <= 5) and (diag["foliar_dominance"] >= 0.45)
-        is_monocot_or_compound = (diag["aspect_ratio"] >= 2.5) or (diag["contour_count"] >= 7 and diag["foliar_dominance"] < 0.50)
-        
-        if is_cotton_geometry and (diag["foliar_ratio"] >= 0.20):
-            return True, "VALID_COTTON_LEAF", "Valid cotton leaf detected.", diag
-        elif is_monocot_or_compound and (diag["green_ratio"] >= 0.12):
+        # A. Confirmed non-cotton plants:
+        is_monocot = (diag["aspect_ratio"] >= 2.4) and (diag["green_ratio"] >= 0.10 or diag["foliar_ratio"] >= 0.15)
+        is_compound = (diag["contour_count"] >= 8) and (diag["foliar_dominance"] < 0.35)
+        if is_monocot or is_compound:
             return (
                 False,
                 "UNSUPPORTED_PLANT",
                 "Unsupported Plant — AgroVision currently analyses cotton leaves only. Please upload an image of a cotton plant leaf.",
+                diag
+            )
+
+        # B. Standard cotton geometry
+        is_cotton_geometry = (diag["aspect_ratio"] <= 2.2) and (diag["contour_count"] <= 8) and (diag["foliar_dominance"] >= 0.40)
+        has_foliar = (diag["foliar_ratio"] >= 0.10) or (color_foliar >= 0.10)
+        
+        if is_cotton_geometry and (diag["foliar_ratio"] >= 0.15):
+            return True, "VALID_COTTON_LEAF", "Valid cotton leaf detected.", diag
+        elif has_foliar and (diag["foliar_dominance"] >= 0.40):
+            diag["is_uncertain"] = True
+            diag["uncertainty_advisory"] = "Cotton leaf detected with moderate confidence under challenging field conditions. Proceeding with diagnostic analysis."
+            return (
+                True,
+                "UNCERTAIN_COTTON_LEAF",
+                "Cotton leaf detected with moderate confidence. Proceeding with diagnostic analysis.",
                 diag
             )
         else:

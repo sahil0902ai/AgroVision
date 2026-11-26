@@ -282,6 +282,88 @@ class TestCottonValidationAndCNNPipeline(unittest.TestCase):
         self.assertEqual(res.status_code, 400)
         self.assertIn("not appear to contain a cotton leaf", res.json()["detail"])
 
+    # =========================================================
+    # TEST GROUP E — Robustness Across Lighting, Backgrounds & Uncertain Zone
+    # =========================================================
+
+    def test_group_e_01_cotton_leaf_white_background_accepted(self):
+        """Group E: Cotton leaf photographed on white paper/tray passes validation and receives CNN diagnosis."""
+        p = os.path.join(TEST_ASSETS_DIR, "group_a_healthy.jpg")
+        with open(p, "rb") as f:
+            base_im = Image.open(BytesIO(f.read())).convert("RGB")
+        w, h = base_im.size
+        cw, ch = int(w * 1.3), int(h * 1.3)
+        white_bg = Image.new("RGB", (cw, ch), (248, 248, 248))
+        white_bg.paste(base_im, ((cw - w) // 2, (ch - h) // 2))
+        buf = BytesIO()
+        white_bg.save(buf, format="JPEG", quality=90)
+        img_bytes = buf.getvalue()
+
+        is_valid, cat, msg, diag = self.gate.validate(img_bytes)
+        self.assertTrue(is_valid, f"Cotton leaf on white background should pass: {msg} ({cat})")
+        self.assertIn(cat, ["VALID_COTTON_LEAF", "UNCERTAIN_COTTON_LEAF"])
+
+        files = {"file": ("white_bg.jpg", img_bytes, "image/jpeg")}
+        data = {"temperature": "30.0", "humidity": "60.0", "soil_moisture": "0.50"}
+        res = self.client.post("/api/analysis", files=files, data=data)
+        self.assertEqual(res.status_code, 200, f"Endpoint should return 200 for leaf on white background: {res.text}")
+
+    def test_group_e_02_cotton_leaf_challenging_illumination_accepted(self):
+        """Group E: Cotton leaf under low-saturation / overcast lighting is accepted without false rejection."""
+        p = os.path.join(TEST_ASSETS_DIR, "group_a_water_stress.png")
+        with open(p, "rb") as f:
+            base_im = Image.open(BytesIO(f.read())).convert("RGB")
+        import numpy as np
+        import cv2
+        hsv = cv2.cvtColor(np.array(base_im), cv2.COLOR_RGB2HSV).astype(np.float32)
+        hsv[:, :, 1] = np.clip(hsv[:, :, 1] * 0.70, 0, 255) # overcast / shadow simulation
+        low_sat = Image.fromarray(cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2RGB))
+        buf = BytesIO()
+        low_sat.save(buf, format="PNG")
+        img_bytes = buf.getvalue()
+
+        is_valid, cat, msg, diag = self.gate.validate(img_bytes)
+        self.assertTrue(is_valid, f"Low-saturation cotton leaf should pass gate: {msg} ({cat})")
+        self.assertIn(cat, ["VALID_COTTON_LEAF", "UNCERTAIN_COTTON_LEAF"])
+
+        files = {"file": ("low_sat.png", img_bytes, "image/png")}
+        data = {"temperature": "32.0", "humidity": "45.0", "soil_moisture": "0.30"}
+        res = self.client.post("/api/analysis", files=files, data=data)
+        self.assertEqual(res.status_code, 200)
+
+    def test_group_e_03_confirmed_non_cotton_strictly_rejected(self):
+        """Group E: Confirmed non-cotton plant leaf is strictly rejected as Unsupported Plant."""
+        p = os.path.join(TEST_ASSETS_DIR, "group_b_non_cotton_leaf.jpg")
+        with open(p, "rb") as f:
+            img_bytes = f.read()
+
+        is_valid, cat, msg, diag = self.gate.validate(img_bytes)
+        self.assertFalse(is_valid, "Non-cotton plant should be rejected")
+        self.assertEqual(cat, "UNSUPPORTED_PLANT")
+        self.assertIn("analyses cotton leaves only", msg.lower())
+
+    def test_group_e_04_uncertain_cotton_leaf_proceeds_to_cnn(self):
+        """Group E: Borderline uncertain cotton leaf undergoes authentic CNN prediction instead of false rejection."""
+        p = os.path.join(TEST_ASSETS_DIR, "group_a_pollution.jpg")
+        with open(p, "rb") as f:
+            base_im = Image.open(BytesIO(f.read())).convert("RGB")
+        # Apply slight angle rotation and mild lighting reduction
+        rot_im = base_im.rotate(25, resample=Image.Resampling.BILINEAR, expand=False)
+        buf = BytesIO()
+        rot_im.save(buf, format="JPEG", quality=85)
+        img_bytes = buf.getvalue()
+
+        is_valid, cat, msg, diag = self.gate.validate(img_bytes)
+        self.assertTrue(is_valid, "Rotated cotton leaf should be accepted for analysis")
+
+        files = {"file": ("rotated.jpg", img_bytes, "image/jpeg")}
+        data = {"temperature": "29.0", "humidity": "60.0", "soil_moisture": "0.50"}
+        res = self.client.post("/api/analysis", files=files, data=data)
+        self.assertEqual(res.status_code, 200)
+        res_json = res.json()
+        self.assertEqual(len(res_json["cnn"]["probabilities"]), 5)
+        self.assertIn(res_json["cnn"]["predicted_class"], ["Healthy", "Water Stress", "Heat Stress", "Nutrient Deficiency", "Pollution"])
+
 
 if __name__ == "__main__":
     unittest.main()
