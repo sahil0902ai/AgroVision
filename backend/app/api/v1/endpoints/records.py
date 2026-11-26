@@ -440,6 +440,8 @@ def get_record_report_html(record_identifier: str, db: Session = Depends(get_db)
 """
 
     # Image Preview Block
+    # Prepare heatmap HTML safely without backslashes in f-string expressions
+    heatmap_html = f"<img src='{record.heatmap_url}' alt='Grad-CAM Heatmap' style='max-height:160px; max-width:100%; border-radius:6px; border:1px solid #cbd5e1;' onerror=\"this.style.display='none'\" />" if record.heatmap_url else "<div style='padding:40px 10px; font-size:11.5px; color:#94a3b8;'>Grad-CAM overlay not generated for this scan.</div>"
     img_html = f"""
   <!-- 1. Leaf Image & Heatmap -->
   <div class="section">
@@ -451,7 +453,7 @@ def get_record_report_html(record_identifier: str, db: Session = Depends(get_db)
       </div>
       <div class="meta-box" style="text-align:center;">
         <div style="font-size:10.5px; color:#64748b; text-transform:uppercase; font-weight:700; margin-bottom:8px;">Grad-CAM Saliency Map</div>
-        {"<img src='" + record.heatmap_url + "' alt='Grad-CAM Heatmap' style='max-height:160px; max-width:100%; border-radius:6px; border:1px solid #cbd5e1;' onerror=\"this.style.display='none'\" />" if record.heatmap_url else "<div style='padding:40px 10px; font-size:11.5px; color:#94a3b8;'>Grad-CAM overlay not generated for this scan.</div>"}
+        {heatmap_html}
       </div>
     </div>
   </div>
