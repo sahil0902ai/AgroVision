@@ -25,6 +25,14 @@ function getApiUrl(endpoint) {
   return endpoint;
 }
 
+// Proactively warm up backend so report generation and APIs never stall on cold-start
+function warmupBackend() {
+  try {
+    fetch(getApiUrl("/api/health"), { mode: "cors", cache: "no-cache" }).catch(() => {});
+  } catch (_) {}
+}
+warmupBackend();
+
 function escapeHtml(text) {
   if (!text) return "";
   const div = document.createElement("div");
@@ -73,19 +81,7 @@ function showDetailError(msg) {
 }
 
 async function fetchRecordDetail(identifier) {
-  try {
-    const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(identifier)}`));
-    if (res.ok) {
-      const record = await res.json();
-      currentRecordData = record;
-      renderRecordDetail(record);
-      return;
-    }
-  } catch (err) {
-    console.warn("Backend fetch failed, attempting local fallback:", err);
-  }
-
-  // Fallback to client localStorage history or sessionStorage
+  // 1. Instant Cache Hydration: Check client storage FIRST (0ms)
   try {
     let found = null;
     const storedHist = localStorage.getItem("agrovision_analysis_history");
@@ -107,13 +103,27 @@ async function fetchRecordDetail(identifier) {
     if (found) {
       currentRecordData = found;
       renderRecordDetail(found);
-      return;
     }
   } catch (lsErr) {
-    console.warn("Local storage lookup failed:", lsErr);
+    console.warn("Local storage lookup note:", lsErr);
   }
 
-  showDetailError(`Record ${identifier} could not be retrieved from server or local session.`);
+  // 2. Fetch from backend database
+  try {
+    const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(identifier)}`));
+    if (res.ok) {
+      const record = await res.json();
+      currentRecordData = record;
+      renderRecordDetail(record);
+      return;
+    }
+  } catch (err) {
+    console.warn("Backend fetch failed, relying on local record:", err);
+  }
+
+  if (!currentRecordData) {
+    showDetailError(`Record ${identifier} could not be retrieved from server or local session.`);
+  }
 }
 
 function renderRecordDetail(r) {

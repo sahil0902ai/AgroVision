@@ -29,6 +29,14 @@ function getApiUrl(endpoint) {
   return endpoint;
 }
 
+// Proactively warm up backend so API requests never stall on cold-start
+function warmupBackend() {
+  try {
+    fetch(getApiUrl("/api/health"), { mode: "cors", cache: "no-cache" }).catch(() => {});
+  } catch (_) {}
+}
+warmupBackend();
+
 // ---------------------------------------------------------
 // Initialization
 // ---------------------------------------------------------
@@ -79,109 +87,93 @@ async function loadHistoryData() {
   const user = typeof getCurrentUser === "function" ? getCurrentUser() : (typeof requireLogin === "function" ? requireLogin() : null);
   const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
 
-  const tbody = document.getElementById("historyTbody");
-  if (tbody) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="8" style="padding:16px 20px;">
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            <div class="agro-skeleton" style="height:28px; width:100%;"></div>
-            <div class="agro-skeleton" style="height:28px; width:95%;"></div>
-            <div class="agro-skeleton" style="height:28px; width:98%;"></div>
-            <div class="agro-skeleton" style="height:28px; width:92%;"></div>
-          </div>
-        </td>
-      </tr>
-    `;
-  }
+  // 1. Instant Cache Hydration: Read client persistence records immediately (0ms)
+  let localRecords = [];
+  try {
+    const storedHist = localStorage.getItem("agrovision_analysis_history");
+    if (storedHist) {
+      localRecords = JSON.parse(storedHist);
+    }
+  } catch (_) {}
+  if (!Array.isArray(localRecords)) localRecords = [];
 
   try {
-    let serverRecords = [];
-    try {
-      const res = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
-      if (res.ok) {
-        const data = await res.json();
-        serverRecords = Array.isArray(data) ? data : (data.records || []);
+    const storedLatest = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
+    if (storedLatest) {
+      const parsed = JSON.parse(storedLatest);
+      if (parsed && parsed.record_uuid && !localRecords.some(r => r.record_uuid === parsed.record_uuid)) {
+        localRecords.unshift(parsed);
       }
-    } catch (netErr) {
-      console.warn("Backend history records query failed, checking client persistence:", netErr);
     }
+  } catch (_) {}
 
-    // Read client persistence records
-    let localRecords = [];
-    try {
-      const storedHist = localStorage.getItem("agrovision_analysis_history");
-      if (storedHist) {
-        localRecords = JSON.parse(storedHist);
-      }
-    } catch (_) {}
-    if (!Array.isArray(localRecords)) localRecords = [];
-
-    // Also check single latest session
-    try {
-      const storedLatest = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
-      if (storedLatest) {
-        const parsed = JSON.parse(storedLatest);
-        if (parsed && parsed.record_uuid) {
-          localRecords.push(parsed);
-        }
-      }
-    } catch (_) {}
-
-    // Merge without duplicates (favoring server record if present)
-    const seenUuids = new Set();
-    const combined = [];
-
-    // Add server records first
-    serverRecords.forEach(r => {
-      if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
-        seenUuids.add(r.record_uuid);
-        combined.push(r);
-      }
-    });
-
-    // Add local records
-    localRecords.forEach(r => {
-      if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
-        seenUuids.add(r.record_uuid);
-        combined.push(r);
-      }
-    });
-
-    rawHistoryRecords = combined;
-
-    // 1. Populate Field Filter Dropdown dynamically
+  // If local records exist, render immediately so user experiences ZERO load delay!
+  if (localRecords.length > 0) {
+    rawHistoryRecords = localRecords;
     populateFieldFilterDropdown(rawHistoryRecords);
-
-    // 2. Update KPI Cards
     updateHistoryKpiCards(rawHistoryRecords);
-
-    // 3. Update Latest Report Hero Section
     updateLatestReportHero(rawHistoryRecords);
-
-    // 4. Apply Filters, Sort, and Render Table
     applyHistoryFiltersAndRender();
-
-  } catch (err) {
-    console.error("Error loading history data:", err);
+  } else {
+    const tbody = document.getElementById("historyTbody");
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="8" style="padding:28px 20px;">
-            <div class="agro-error-banner" style="margin:0;">
-              <div class="agro-error-icon">⚠️</div>
-              <div class="agro-error-body">
-                <h4 class="agro-error-title">Unable to load analysis history</h4>
-                <p class="agro-error-desc">${escapeHtml(err.message || "Failed to connect to backend database service.")}</p>
-                <button type="button" class="agro-retry-btn agro-retry-btn-primary" onclick="loadHistoryData()">
-                  🔄 Retry Connection
-                </button>
-              </div>
+          <td colspan="8" style="padding:16px 20px;">
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div class="agro-skeleton" style="height:28px; width:100%;"></div>
+              <div class="agro-skeleton" style="height:28px; width:95%;"></div>
+              <div class="agro-skeleton" style="height:28px; width:98%;"></div>
+              <div class="agro-skeleton" style="height:28px; width:92%;"></div>
             </div>
           </td>
         </tr>
       `;
     }
+  }
+
+  // 2. Fetch server records with 4s timeout so slow backend never freezes the page
+  try {
+    let serverRecords = [];
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`), { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        serverRecords = Array.isArray(data) ? data : (data.records || []);
+      }
+    } catch (netErr) {
+      console.warn("Backend history records query note:", netErr.message);
+    }
+
+    if (serverRecords.length > 0) {
+      const seenUuids = new Set();
+      const combined = [];
+
+      serverRecords.forEach(r => {
+        if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
+          seenUuids.add(r.record_uuid);
+          combined.push(r);
+        }
+      });
+
+      localRecords.forEach(r => {
+        if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
+          seenUuids.add(r.record_uuid);
+          combined.push(r);
+        }
+      });
+
+      rawHistoryRecords = combined;
+      populateFieldFilterDropdown(rawHistoryRecords);
+      updateHistoryKpiCards(rawHistoryRecords);
+      updateLatestReportHero(rawHistoryRecords);
+      applyHistoryFiltersAndRender();
+    }
+  } catch (err) {
+    console.error("Error refreshing history data:", err);
   }
 }
 

@@ -5,9 +5,15 @@
    ========================================================= */
 
 // Auth check
-if (typeof requireLogin === "function") {
-  requireLogin();
+const currentUser = typeof getCurrentUser === "function" ? getCurrentUser() : null;
+
+// Proactively warm up backend so Gemini / chat APIs never stall on cold-start
+function warmupBackend() {
+  try {
+    fetch(getApiUrl("/api/health"), { mode: "cors", cache: "no-cache" }).catch(() => {});
+  } catch (_) {}
 }
+warmupBackend();
 
 function getApiUrl(endpoint) {
   if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
@@ -58,45 +64,57 @@ async function loadActiveAnalysisContext(uuid) {
   const returnBtn = document.getElementById("btnReturnToLeaf");
 
   try {
-    const user = typeof requireLogin === "function" ? requireLogin() : null;
+    const user = typeof getCurrentUser === "function" ? getCurrentUser() : null;
     const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
     const urlParams = new URLSearchParams(window.location.search);
     const isFromCombined = urlParams.get("from") === "combined";
 
     let record = null;
 
-    // 1. If coming from combined assessment, prioritize sessionStorage active context
-    if (isFromCombined) {
-      try {
-        const stored = sessionStorage.getItem("agrovision_active_assistant_context") || sessionStorage.getItem("agrovision_latest_analysis");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && (parsed.record_uuid || parsed.cnn || parsed.visual_assessment)) {
+    // 1. Instant Cache Hydration: Check active sessionStorage & localStorage first (0ms)
+    try {
+      const storedActive = sessionStorage.getItem("agrovision_active_assistant_context");
+      if (storedActive) {
+        const parsed = JSON.parse(storedActive);
+        if (parsed && (uuid ? (parsed.record_uuid === uuid || parsed.id === uuid) : true)) {
+          record = parsed;
+        }
+      }
+      if (!record) {
+        const storedLatest = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
+        if (storedLatest) {
+          const parsed = JSON.parse(storedLatest);
+          if (parsed && (uuid ? (parsed.record_uuid === uuid || parsed.id === uuid) : true)) {
             record = parsed;
-            activeRecordUuid = record.record_uuid;
           }
         }
-      } catch (_) {}
-    }
-
-    // 2. Try DB fetch if UUID is specified and record not already loaded from session
-    if (!record && uuid) {
-      const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(uuid)}?${userEmailParam}`));
-      if (res.ok) {
-        record = await res.json();
       }
-    }
-
-    // 3. Check sessionStorage if still no record
-    if (!record) {
-      try {
-        const stored = sessionStorage.getItem("agrovision_active_assistant_context") || sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && (parsed.record_uuid || parsed.cnn || parsed.visual_assessment)) {
-            record = parsed;
-            activeRecordUuid = record.record_uuid;
+      if (!record && uuid) {
+        const storedHist = localStorage.getItem("agrovision_analysis_history");
+        if (storedHist) {
+          const list = JSON.parse(storedHist);
+          if (Array.isArray(list)) {
+            record = list.find(r => r.record_uuid === uuid || r.id === uuid);
           }
+        }
+      }
+      if (!record && !uuid) {
+        const storedHist = localStorage.getItem("agrovision_analysis_history");
+        if (storedHist) {
+          const list = JSON.parse(storedHist);
+          if (Array.isArray(list) && list.length > 0) {
+            record = list[0];
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 2. If not found in local cache and UUID is specified, fetch from server
+    if (!record && uuid) {
+      try {
+        const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(uuid)}?${userEmailParam}`));
+        if (res.ok) {
+          record = await res.json();
         }
       } catch (_) {}
     }

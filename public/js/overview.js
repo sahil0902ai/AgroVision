@@ -40,6 +40,14 @@ function getApiUrl(endpoint) {
   return endpoint;
 }
 
+// Proactively warm up backend so API requests never stall on cold-start
+function warmupBackend() {
+  try {
+    fetch(getApiUrl("/api/health"), { mode: "cors", cache: "no-cache" }).catch(() => {});
+  } catch (_) {}
+}
+warmupBackend();
+
 function escapeHtml(text) {
   if (!text) return "";
   const div = document.createElement("div");
@@ -430,20 +438,10 @@ async function loadOverviewData() {
   }
 
   try {
-    const user = typeof requireLogin === "function" ? requireLogin() : null;
+    const user = typeof getCurrentUser === "function" ? getCurrentUser() : (typeof requireLogin === "function" ? requireLogin() : null);
     const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
-    let serverRecords = [];
-    try {
-      const response = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`));
-      if (response.ok) {
-        const data = await response.json();
-        serverRecords = Array.isArray(data) ? data : (data.records || []);
-      }
-    } catch (netErr) {
-      console.warn("Server records query failed in overview, falling back to client persistence:", netErr);
-    }
 
-    // Read client persistence records
+    // 1. Instant Cache Hydration: Read client persistence records immediately (0ms)
     let localRecords = [];
     try {
       const storedHist = localStorage.getItem("agrovision_analysis_history");
@@ -453,54 +451,82 @@ async function loadOverviewData() {
     } catch (_) {}
     if (!Array.isArray(localRecords)) localRecords = [];
 
-    // Also check single latest session
     try {
       const storedLatest = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
       if (storedLatest) {
         const parsed = JSON.parse(storedLatest);
-        if (parsed && parsed.record_uuid) {
-          localRecords.push(parsed);
+        if (parsed && parsed.record_uuid && !localRecords.some(r => r.record_uuid === parsed.record_uuid)) {
+          localRecords.unshift(parsed);
         }
       }
     } catch (_) {}
 
-    // Merge without duplicates
-    const seenUuids = new Set();
-    const combined = [];
+    // If local records exist, render core dashboard immediately with zero wait!
+    if (localRecords.length > 0) {
+      rawAllRecords = localRecords;
+      renderOverviewDashboard();
+      const vDist = computeVisualDistributionFromRecords(rawAllRecords);
+      latestVisualDistData = vDist;
+      const centerCountEl = document.getElementById("donutTotalCount");
+      if (centerCountEl) centerCountEl.textContent = String(vDist.total_analyses || 0);
+      renderVisualDistDonut(vDist);
+      renderVisualDistLegend(vDist.categories);
+      const eDist = computeEnvironmentalDistributionFromRecords(rawAllRecords);
+      latestEnvDistData = eDist;
+      const envCenterCountEl = document.getElementById("envDonutTotalCount");
+      if (envCenterCountEl) envCenterCountEl.textContent = String(eDist.total_analyses || 0);
+      renderEnvDistDonut(eDist);
+      renderEnvDistLegend(eDist.categories);
+    }
 
-    serverRecords.forEach(r => {
-      if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
-        seenUuids.add(r.record_uuid);
-        combined.push(r);
+    // 2. Query server records with 4s timeout so slow backend never blocks the page
+    let serverRecords = [];
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const response = await fetch(getApiUrl(`/api/v1/records?limit=200${userEmailParam}`), { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (response.ok) {
+        const data = await response.json();
+        serverRecords = Array.isArray(data) ? data : (data.records || []);
       }
-    });
+    } catch (netErr) {
+      console.warn("Server records query note:", netErr.message);
+    }
 
-    localRecords.forEach(r => {
-      if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
-        seenUuids.add(r.record_uuid);
-        combined.push(r);
-      }
-    });
+    if (serverRecords.length > 0) {
+      const seenUuids = new Set();
+      const combined = [];
 
-    rawAllRecords = combined;
+      serverRecords.forEach(r => {
+        if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
+          seenUuids.add(r.record_uuid);
+          combined.push(r);
+        }
+      });
 
-    // 1. Paint core dashboard (KPIs, hero, table)
-    renderOverviewDashboard();
+      localRecords.forEach(r => {
+        if (r && r.record_uuid && !seenUuids.has(r.record_uuid)) {
+          seenUuids.add(r.record_uuid);
+          combined.push(r);
+        }
+      });
 
-    // 2. Immediately compute and paint both Visual and Climate distribution charts without redundant network calls
-    const vDist = computeVisualDistributionFromRecords(rawAllRecords);
-    latestVisualDistData = vDist;
-    const centerCountEl = document.getElementById("donutTotalCount");
-    if (centerCountEl) centerCountEl.textContent = String(vDist.total_analyses || 0);
-    renderVisualDistDonut(vDist);
-    renderVisualDistLegend(vDist.categories);
-
-    const eDist = computeEnvironmentalDistributionFromRecords(rawAllRecords);
-    latestEnvDistData = eDist;
-    const envCenterCountEl = document.getElementById("envDonutTotalCount");
-    if (envCenterCountEl) envCenterCountEl.textContent = String(eDist.total_analyses || 0);
-    renderEnvDistDonut(eDist);
-    renderEnvDistLegend(eDist.categories);
+      rawAllRecords = combined;
+      renderOverviewDashboard();
+      const vDist = computeVisualDistributionFromRecords(rawAllRecords);
+      latestVisualDistData = vDist;
+      const centerCountEl = document.getElementById("donutTotalCount");
+      if (centerCountEl) centerCountEl.textContent = String(vDist.total_analyses || 0);
+      renderVisualDistDonut(vDist);
+      renderVisualDistLegend(vDist.categories);
+      const eDist = computeEnvironmentalDistributionFromRecords(rawAllRecords);
+      latestEnvDistData = eDist;
+      const envCenterCountEl = document.getElementById("envDonutTotalCount");
+      if (envCenterCountEl) envCenterCountEl.textContent = String(eDist.total_analyses || 0);
+      renderEnvDistDonut(eDist);
+      renderEnvDistLegend(eDist.categories);
+    }
   } catch (err) {
     console.error("Error loading farm overview data:", err);
     if (tbody) {

@@ -17,6 +17,15 @@ let envSourceMode = "auto"; // "auto" or "manual"
 let currentFieldName = "Field A — North Parcel (Wardha)";
 let currentFieldLat = 20.975;
 let currentFieldLon = 78.72;
+let currentActionRecommendations = null;
+
+// Proactively warm up backend so leaf analysis and API queries never wait on cold start
+function warmupBackend() {
+  try {
+    fetch(getApiUrl("/api/health"), { mode: "cors", cache: "no-cache" }).catch(() => {});
+  } catch (_) {}
+}
+warmupBackend();
 
 function getApiUrl(endpoint) {
   if (window.AGROVISION_CONFIG && typeof window.AGROVISION_CONFIG.getApiUrl === "function") {
@@ -1431,11 +1440,90 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+function formatRecordForStorage(record) {
+  if (!record) return null;
+  const now = new Date();
+  const recUuid = record.record_uuid || record.session_uuid || `AV-${Date.now()}`;
+  const user = typeof getCurrentUser === "function" ? getCurrentUser() : null;
+  const cleanEmail = user?.email || "farmer@agrovision.org";
+  const fieldName = currentFieldName || "Field A — Wardha South Station";
+
+  // Normalize CNN diagnostics
+  const topClass = record.cnn?.predicted_class || record.visual_assessment?.class || latestCNNResult?.prediction?.class || latestCNNResult?.predicted_class || "Healthy Leaf";
+  const confScore = record.cnn?.confidence_percentage !== undefined ?
+    record.cnn.confidence_percentage :
+    (record.cnn?.confidence !== undefined ? (record.cnn.confidence <= 1.0 ? record.cnn.confidence * 100 : record.cnn.confidence) : (latestCNNResult?.prediction?.confidence ? (latestCNNResult.prediction.confidence <= 1.0 ? latestCNNResult.prediction.confidence * 100 : latestCNNResult.prediction.confidence) : 95.0));
+
+  // Normalize SNN diagnostics
+  const snnSev = record.snn?.predicted_severity || record.environmental_assessment?.severity || latestSNNResult?.predicted_severity || "Low";
+
+  // Read actual environmental slider inputs
+  const temp = parseFloat(document.getElementById("sliderTemp")?.value) || record.environment?.temperature || record.environmental_inputs?.temperature || latestSNNPayload?.temperature || 28.5;
+  const humidity = parseFloat(document.getElementById("sliderHumidity")?.value) || record.environment?.humidity || record.environmental_inputs?.humidity || latestSNNPayload?.humidity || 65.0;
+  const rainfall = parseFloat(document.getElementById("sliderRainfall")?.value) || record.environment?.rainfall || record.environmental_inputs?.rainfall_mm || latestSNNPayload?.rainfall || 0.0;
+  const soilRaw = parseFloat(document.getElementById("sliderSoil")?.value) || (record.environment?.soil_moisture ? record.environment.soil_moisture * 100 : 45.0);
+  const soilMoisture = soilRaw <= 1.0 ? soilRaw : soilRaw / 100.0;
+  const aqi = parseFloat(document.getElementById("sliderAqi")?.value) || record.environment?.aqi || record.environmental_inputs?.aqi || latestSNNPayload?.aqi || 55.0;
+  const ozoneRaw = parseFloat(document.getElementById("sliderOzone")?.value) || 40.0;
+  const ozone = ozoneRaw > 1.0 ? ozoneRaw / 1000.0 : ozoneRaw;
+
+  // Resolve Image URL
+  let leafImgUrl = record.cnn?.image_url || record.image_url || latestCNNResult?.image_url || "";
+  if (!leafImgUrl) {
+    const preview = document.getElementById("previewImg");
+    if (preview && preview.src && !preview.src.startsWith("data:image/svg")) {
+      leafImgUrl = preview.src;
+    }
+  }
+
+  const cnnProbs = record.cnn?.probabilities || record.visual_assessment?.probabilities || latestCNNResult?.probabilities || {};
+  const spikeCounts = record.snn?.spike_counts || record.environmental_assessment?.spike_counts || latestSNNResult?.spike_counts || {};
+  const fusionData = record.fusion || {
+    relationship: "ALIGNED",
+    alignment_score: 0.95,
+    summary: `Foliar diagnosis: ${topClass}. Weather risk: ${snnSev}.`
+  };
+  const expertVetoData = record.expert_veto || {};
+  const recsData = (typeof currentActionRecommendations !== "undefined" && currentActionRecommendations) || record.final_assessment?.precautions || record.precautions || record.final_assessment?.recommendations || [
+    { title: "Routine Irrigation", description: "Maintain standard watering cycle." },
+    { title: "Canopy Scouting", description: "Perform regular leaf checks." }
+  ];
+
+  return {
+    record_uuid: recUuid,
+    user_email: cleanEmail,
+    field_name: fieldName,
+    image_url: leafImgUrl,
+    temperature: temp,
+    humidity: humidity,
+    soil_moisture: soilMoisture,
+    rainfall_mm: rainfall,
+    forecast_rainfall_mm: 0.0,
+    aqi: aqi,
+    ozone: ozone,
+    growth_stage: "Flowering",
+    stress_severity: snnSev,
+    confidence_score: confScore,
+    cnn_predictions_json: typeof cnnProbs === "string" ? cnnProbs : JSON.stringify(cnnProbs),
+    spike_counts_json: typeof spikeCounts === "string" ? spikeCounts : JSON.stringify(spikeCounts),
+    fusion_json: typeof fusionData === "string" ? fusionData : JSON.stringify(fusionData),
+    expert_veto_json: typeof expertVetoData === "string" ? expertVetoData : JSON.stringify(expertVetoData),
+    recommendations_json: typeof recsData === "string" ? recsData : JSON.stringify(recsData),
+    weather_source: envSourceMode === "auto" ? "AUTO · Weather API" : "MANUAL INPUT",
+    weather_context_json: currentWeatherContext ? JSON.stringify(currentWeatherContext) : null,
+    created_at: record.created_at || now.toISOString()
+  };
+}
+
 function saveAnalysisLocally(record) {
-  if (!record || !record.record_uuid) return;
+  if (!record) return;
   try {
-    sessionStorage.setItem("agrovision_latest_analysis", JSON.stringify(record));
-    localStorage.setItem("agrovision_latest_analysis", JSON.stringify(record));
+    const payload = formatRecordForStorage(record);
+    if (!payload || !payload.record_uuid) return;
+
+    sessionStorage.setItem("agrovision_latest_analysis", JSON.stringify(payload));
+    localStorage.setItem("agrovision_latest_analysis", JSON.stringify(payload));
+    sessionStorage.setItem("agrovision_active_assistant_context", JSON.stringify(payload));
 
     // Persist into history array in localStorage
     let historyList = [];
@@ -1448,16 +1536,28 @@ function saveAnalysisLocally(record) {
     if (!Array.isArray(historyList)) historyList = [];
 
     // Keep up to 200 sessions deduplicated
-    historyList = [record, ...historyList.filter(h => h.record_uuid !== record.record_uuid)].slice(0, 200);
+    historyList = [payload, ...historyList.filter(h => h.record_uuid !== payload.record_uuid)].slice(0, 200);
     localStorage.setItem("agrovision_analysis_history", JSON.stringify(historyList));
-    sessionStorage.setItem("agrovision_active_assistant_context", JSON.stringify(record));
-    sessionStorage.setItem("agrovision_latest_analysis", JSON.stringify(record));
 
     // Update AI Assistant links across page to anchor to this active leaf analysis
     const astLinks = document.querySelectorAll('a[href*="assistant.html"]');
     astLinks.forEach(a => {
-      a.href = `assistant.html?from=combined&record_id=${encodeURIComponent(record.record_uuid)}`;
+      a.href = `assistant.html?from=combined&record_id=${encodeURIComponent(payload.record_uuid)}`;
     });
+
+    // Update report button on dashboard
+    const exactReportBtn = document.getElementById("exactReportBtn");
+    if (exactReportBtn) {
+      exactReportBtn.href = getApiUrl(`/api/v1/records/${encodeURIComponent(payload.record_uuid)}/report`);
+      exactReportBtn.target = "_blank";
+    }
+
+    // Try background sync to backend
+    fetch(getApiUrl("/api/v1/records"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
   } catch (err) {
     console.warn("Could not persist analysis locally:", err);
   }
@@ -1467,37 +1567,35 @@ async function loadSavedAnalysisRecord(uuid) {
   if (!uuid) return;
   try {
     let record = null;
-    const user = typeof requireLogin === "function" ? requireLogin() : null;
+    const user = typeof getCurrentUser === "function" ? getCurrentUser() : null;
     const userEmailParam = user && user.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
 
-    // 1. Try backend database endpoint
-    if (uuid !== "latest") {
+    // 1. Check client storage FIRST for instant (0ms) render
+    try {
+      const storedLatest = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
+      if (storedLatest) {
+        const parsed = JSON.parse(storedLatest);
+        if (parsed && (uuid === "latest" || parsed.record_uuid === uuid)) {
+          record = parsed;
+        }
+      }
+      if (!record) {
+        const storedHist = localStorage.getItem("agrovision_analysis_history");
+        if (storedHist) {
+          const list = JSON.parse(storedHist);
+          if (Array.isArray(list)) {
+            record = list.find(r => r.record_uuid === uuid) || (uuid === "latest" ? list[0] : null);
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback to backend database endpoint if not found locally or if remote sync is requested
+    if (!record && uuid !== "latest") {
       try {
         const res = await fetch(getApiUrl(`/api/v1/records/${encodeURIComponent(uuid)}?${userEmailParam}`));
         if (res.ok) {
           record = await res.json();
-        }
-      } catch (_) {}
-    }
-
-    // 2. Fallback to client storage
-    if (!record) {
-      try {
-        const storedLatest = sessionStorage.getItem("agrovision_latest_analysis") || localStorage.getItem("agrovision_latest_analysis");
-        if (storedLatest) {
-          const parsed = JSON.parse(storedLatest);
-          if (parsed && (uuid === "latest" || parsed.record_uuid === uuid)) {
-            record = parsed;
-          }
-        }
-        if (!record) {
-          const storedHist = localStorage.getItem("agrovision_analysis_history");
-          if (storedHist) {
-            const list = JSON.parse(storedHist);
-            if (Array.isArray(list)) {
-              record = list.find(r => r.record_uuid === uuid) || (uuid === "latest" ? list[0] : null);
-            }
-          }
         }
       } catch (_) {}
     }
@@ -1801,10 +1899,25 @@ async function runAnalysis() {
     scanWrap.style.display = "block";
     scanWrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
-  if (scanFill) scanFill.style.width = "40%";
-  if (scanPct) scanPct.textContent = "40%";
+  if (scanFill) scanFill.style.width = "35%";
+  if (scanPct) scanPct.textContent = "35%";
   if (scanStatus) scanStatus.textContent = "Analyzing Cotton Leaf Foliage & Microclimate Risk...";
   if (scanTitle) scanTitle.textContent = "Executing Deep Learning Inference...";
+
+  let progressVal = 35;
+  const progressTimer = setInterval(() => {
+    if (progressVal < 88) {
+      progressVal += Math.floor(Math.random() * 6) + 3;
+      if (progressVal > 88) progressVal = 88;
+      if (scanFill) scanFill.style.width = `${progressVal}%`;
+      if (scanPct) scanPct.textContent = `${progressVal}%`;
+      if (progressVal > 72 && scanStatus) {
+        scanStatus.textContent = "Synthesizing multimodal evidence & Expert Veto checks…";
+      } else if (progressVal > 50 && scanStatus) {
+        scanStatus.textContent = "Simulating SNN spike trains across 10 timesteps…";
+      }
+    }
+  }, 300);
 
   // Stepper badge visual elements
   const b1 = document.getElementById("stepBadge1");
@@ -2056,6 +2169,7 @@ async function runAnalysis() {
     updateDecisionTrace(6, "pending", "6. Final Advisory", "Pending");
     showUploadError("Analysis Notice", err.message || "Could not complete analysis pipeline. Please check backend services and retry.");
   } finally {
+    clearInterval(progressTimer);
     if (scanWrap) scanWrap.style.display = "none";
     if (analyzeBtn) {
       analyzeBtn.disabled = false;
@@ -3763,76 +3877,10 @@ async function saveCurrentAnalysis() {
   }
 
   try {
-    const user = typeof getCurrentUser === "function" ? getCurrentUser() : null;
-    const cleanEmail = user?.email || "farmer@agrovision.org";
-    const now = new Date();
-
-    const recUuid = latestCombinedData?.record_uuid || latestCombinedData?.session_uuid || `AV-${Date.now()}`;
-    const fieldName = currentFieldName || "Field A — Wardha South Station";
-
-    // Extract diagnosis & metrics
-    const topClass = latestCNNResult?.prediction?.class || latestCNNResult?.predicted_class || latestCombinedData?.cnn?.predicted_class || latestCombinedData?.visual_assessment?.class || "Healthy Leaf";
-    const confScore = latestCNNResult?.prediction?.confidence !== undefined ?
-      (latestCNNResult.prediction.confidence <= 1.0 ? latestCNNResult.prediction.confidence * 100 : latestCNNResult.prediction.confidence) :
-      (latestCombinedData?.cnn?.confidence_percentage || (latestCombinedData?.visual_assessment?.confidence ? latestCombinedData.visual_assessment.confidence * 100 : 95.0));
-    const snnSev = latestSNNResult?.predicted_severity || latestSNNResult?.prediction?.class || latestCombinedData?.snn?.predicted_severity || latestCombinedData?.environmental_assessment?.severity || "Low";
-
-    // Read actual environmental slider inputs
-    const temp = parseFloat(document.getElementById("sliderTemp")?.value) || latestSNNPayload?.temperature || latestCombinedData?.environment?.temperature || latestCombinedData?.environmental_inputs?.temperature || 28.5;
-    const humidity = parseFloat(document.getElementById("sliderHumidity")?.value) || latestSNNPayload?.humidity || latestCombinedData?.environment?.humidity || latestCombinedData?.environmental_inputs?.humidity || 65.0;
-    const rainfall = parseFloat(document.getElementById("sliderRainfall")?.value) || latestSNNPayload?.rainfall || latestCombinedData?.environment?.rainfall || latestCombinedData?.environmental_inputs?.rainfall_mm || 0.0;
-    const soilRaw = parseFloat(document.getElementById("sliderSoil")?.value) || (latestSNNPayload?.soil_moisture ? latestSNNPayload.soil_moisture * 100 : 45.0);
-    const soilMoisture = soilRaw <= 1.0 ? soilRaw : soilRaw / 100.0;
-    const aqi = parseFloat(document.getElementById("sliderAqi")?.value) || latestSNNPayload?.aqi || latestCombinedData?.environment?.aqi || latestCombinedData?.environmental_inputs?.aqi || 55.0;
-    const ozoneRaw = parseFloat(document.getElementById("sliderOzone")?.value) || 40.0;
-    const ozone = ozoneRaw > 1.0 ? ozoneRaw / 1000.0 : ozoneRaw;
-
-    // Resolve Image URL
-    let leafImgUrl = latestCNNResult?.image_url || latestCombinedData?.cnn?.image_url || latestCombinedData?.image_url || "";
-    if (!leafImgUrl) {
-      const preview = document.getElementById("previewImg");
-      if (preview && preview.src && !preview.src.startsWith("data:image/svg")) {
-        leafImgUrl = preview.src;
-      }
+    const payload = formatRecordForStorage(latestCombinedData || latestCNNResult);
+    if (!payload || !payload.record_uuid) {
+      throw new Error("Unable to build record from active analysis.");
     }
-
-    const cnnProbs = latestCNNResult?.probabilities || latestCombinedData?.cnn?.probabilities || latestCombinedData?.visual_assessment?.probabilities || {};
-    const spikeCounts = latestSNNResult?.spike_counts || latestCombinedData?.snn?.spike_counts || latestCombinedData?.environmental_assessment?.spike_counts || {};
-    const fusionData = latestCombinedData?.fusion || {
-      relationship: "ALIGNED",
-      alignment_score: 0.95,
-      summary: `Foliar diagnosis: ${topClass}. Weather risk: ${snnSev}.`
-    };
-    const expertVetoData = latestCombinedData?.expert_veto || {};
-    const recsData = currentActionRecommendations || latestCombinedData?.final_assessment?.precautions || latestCombinedData?.precautions || [
-      { title: "Routine Irrigation", description: "Maintain standard watering cycle." },
-      { title: "Canopy Scouting", description: "Perform regular leaf checks." }
-    ];
-
-    const payload = {
-      record_uuid: recUuid,
-      user_email: cleanEmail,
-      field_name: fieldName,
-      image_url: leafImgUrl,
-      temperature: temp,
-      humidity: humidity,
-      soil_moisture: soilMoisture,
-      rainfall_mm: rainfall,
-      forecast_rainfall_mm: 0.0,
-      aqi: aqi,
-      ozone: ozone,
-      growth_stage: "Flowering",
-      stress_severity: snnSev,
-      confidence_score: confScore,
-      cnn_predictions_json: JSON.stringify(cnnProbs),
-      spike_counts_json: JSON.stringify(spikeCounts),
-      fusion_json: JSON.stringify(fusionData),
-      expert_veto_json: JSON.stringify(expertVetoData),
-      recommendations_json: JSON.stringify(recsData),
-      weather_source: envSourceMode === "auto" ? "AUTO · Weather API" : "MANUAL INPUT",
-      weather_context_json: currentWeatherContext ? JSON.stringify(currentWeatherContext) : null,
-      created_at: now.toISOString()
-    };
 
     // 1. Save to backend database
     try {
@@ -3863,6 +3911,7 @@ async function saveCurrentAnalysis() {
       localStorage.setItem("agrovision_analysis_history", JSON.stringify(hist.slice(0, 200)));
       localStorage.setItem("agrovision_latest_analysis", JSON.stringify(payload));
       sessionStorage.setItem("agrovision_latest_analysis", JSON.stringify(payload));
+      sessionStorage.setItem("agrovision_active_assistant_context", JSON.stringify(payload));
     } catch (lsErr) {
       console.warn("Local storage save notice:", lsErr);
     }
