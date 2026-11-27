@@ -19,6 +19,7 @@ class VisualEvidenceInput(BaseModel):
 class EnvironmentalEvidenceInput(BaseModel):
     severity: str = Field(..., alias="class", description="SNN environmental stress severity: High, Low, or Moderate")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Spike activity confidence score from SNN")
+    class_scores: dict[str, float] | None = Field(None, description="3-class SNN softmax distribution over High, Low, Moderate")
     spike_counts: dict[str, int] | list[int] = Field(default_factory=dict, description="Raw accumulated spike counts across timesteps")
     timesteps: int = Field(default=10, description="Number of simulation timesteps (T=10)")
 
@@ -40,7 +41,7 @@ class CombineAnalysisRequest(BaseModel):
 
 class FusionDetails(BaseModel):
     relationship: str = Field(..., description="ALIGNED, PARTIALLY_ALIGNED, CONFLICTING, BASELINE_HEALTHY, or INCONCLUSIVE")
-    alignment_score: float = Field(..., ge=0.0, le=1.0, description="Qualitative alignment metric")
+    alignment_score: float | None = Field(None, ge=0.0, le=1.0, description="Probabilistic concordance in [0, 1] over the mapped common stress space, or None if unavailable")
     summary: str
     interpretation: str
     visual_lead_evidence: str
@@ -127,6 +128,7 @@ class SNNAnalysisOutput(BaseModel):
     predicted_severity: str
     confidence: float
     confidence_percentage: float
+    class_scores: dict[str, float] | None = None
     spike_counts: dict[str, int]
     timesteps: int = 10
     membrane_decay_beta: float = 0.95
@@ -151,7 +153,7 @@ class EnvironmentAnalysisOutput(BaseModel):
 
 class FusionAnalysisOutput(BaseModel):
     relationship: str
-    alignment_score: float
+    alignment_score: float | None = Field(None, ge=0.0, le=1.0)
     summary: str
     interpretation: str
     visual_lead_evidence: str

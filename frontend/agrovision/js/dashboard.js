@@ -1528,8 +1528,8 @@ function formatRecordForStorage(record) {
   const cnnProbs = record.cnn?.probabilities || record.visual_assessment?.probabilities || latestCNNResult?.probabilities || {};
   const spikeCounts = record.snn?.spike_counts || record.environmental_assessment?.spike_counts || latestSNNResult?.spike_counts || {};
   const fusionData = record.fusion || {
-    relationship: "ALIGNED",
-    alignment_score: 0.95,
+    relationship: "INCONCLUSIVE",
+    alignment_score: null,
     summary: `Foliar diagnosis: ${topClass}. Weather risk: ${snnSev}.`
   };
   const expertVetoData = record.expert_veto || {};
@@ -2076,6 +2076,7 @@ async function runAnalysis() {
       data.snn = {
         predicted_severity: data.environmental_assessment.severity,
         confidence: data.environmental_assessment.confidence,
+        class_scores: data.environmental_assessment.class_scores || null,
         spike_counts: data.environmental_assessment.spike_counts || {},
         timesteps: data.environmental_assessment.timesteps || 10,
         inference_time_ms: 1.8
@@ -2130,9 +2131,10 @@ async function runAnalysis() {
     latestSNNResult = {
       prediction: {
         class: data.snn.predicted_severity,
-        confidence: data.snn.confidence || 0.95
+        confidence: data.snn.confidence
       },
       predicted_severity: data.snn.predicted_severity,
+      class_scores: data.snn.class_scores || null,
       spike_counts: data.snn.spike_counts || {},
       timesteps: data.snn.timesteps || 10,
       inference_time_ms: data.snn.inference_time_ms || 1.8
@@ -2161,9 +2163,12 @@ async function runAnalysis() {
     const totalSpk = data.snn.spike_counts ? Object.values(data.snn.spike_counts).reduce((a, b) => a + b, 0) : 0;
     updateDecisionTrace(3, "completed", "3. SNN Climate", `${snnSev} Risk (${totalSpk} Spikes)`);
 
-    const fusedRel = data.fusion.relationship || "ALIGNED";
-    const alignScorePct = Math.round((data.fusion.alignment_score !== undefined ? data.fusion.alignment_score : 0.95) * 100);
-    updateDecisionTrace(4, "completed", "4. Fusion Layer", `${fusedRel} (${alignScorePct}%)`);
+    const fusedRel = data.fusion.relationship || "INCONCLUSIVE";
+    const rawAlign = data.fusion.alignment_score;
+    const alignLabel = (rawAlign !== null && rawAlign !== undefined && rawAlign !== "" && Number.isFinite(Number(rawAlign)))
+      ? `${Math.round(Number(rawAlign) * 100)}%`
+      : "Not Available";
+    updateDecisionTrace(4, "completed", "4. Fusion Layer", `${fusedRel} (${alignLabel})`);
 
     const vetoStatus = data.expert_veto?.overall_status || "Passed";
     const ruleCount = data.expert_veto?.rule_count || 7;
@@ -2700,6 +2705,7 @@ async function runCombinedSynthesis(autoSwitch = false) {
       environmental_evidence: {
         severity: snnSev,
         confidence: snnConf,
+        class_scores: latestSNNResult.class_scores || undefined,
         spike_counts: latestSNNResult.spike_counts || {},
         timesteps: latestSNNResult.timesteps || 10
       },
@@ -2724,12 +2730,15 @@ async function runCombinedSynthesis(autoSwitch = false) {
     latestCombinedData = data;
 
     // Update Decision Trace: Stages 4, 5, 6 Completed
-    const fusedRel = data.fusion?.relationship || "ALIGNED";
-    const alignScorePct = Math.round((data.fusion?.alignment_score || 0.95) * 100);
+    const fusedRel = data.fusion?.relationship || "INCONCLUSIVE";
+    const rawAlign = data.fusion?.alignment_score;
+    const alignLabel = (rawAlign !== null && rawAlign !== undefined && rawAlign !== "" && Number.isFinite(Number(rawAlign)))
+      ? `${Math.round(Number(rawAlign) * 100)}%`
+      : "Not Available";
     const vetoStatus = data.expert_veto?.overall_status || "Passed";
     const ruleCount = data.expert_veto?.rule_count || 7;
 
-    updateDecisionTrace(4, "completed", "4. Fusion Layer", `${fusedRel} (${alignScorePct}%)`);
+    updateDecisionTrace(4, "completed", "4. Fusion Layer", `${fusedRel} (${alignLabel})`);
     updateDecisionTrace(5, "completed", "5. Expert Veto", `${vetoStatus} (${ruleCount} Rules)`);
     updateDecisionTrace(6, "completed", "6. Final Advisory", "Advisory Ready");
 
@@ -2758,13 +2767,14 @@ function renderCombinedConcordanceChart(data, fusion) {
   const canvas = document.getElementById("combinedConcordanceChart");
   if (!canvas || typeof Chart === "undefined") return;
 
-  const visualClass = data.cnn?.predicted_class || data.final_assessment?.diagnosis || (latestCNNResult?.prediction?.class || "Healthy");
-  const envClass = data.snn?.predicted_severity || data.final_assessment?.environmental_risk || (latestSNNResult?.prediction?.class || "Low");
-  const isHealthy = visualClass.toLowerCase() === "healthy" && envClass.toLowerCase() === "low";
-  
-  const alignmentScore = fusion.alignment_score !== undefined ? fusion.alignment_score : (isHealthy ? 0.95 : 0.88);
-  const cnnWeight = Math.round((data.cnn?.confidence !== undefined ? (data.cnn.confidence <= 1 ? data.cnn.confidence * 100 : data.cnn.confidence) : 95));
-  const snnWeight = Math.round(alignmentScore * 100);
+  const cnnConfRaw = data.cnn?.confidence !== undefined ? data.cnn.confidence : latestCNNResult?.prediction?.confidence;
+  const snnConfRaw = data.snn?.confidence !== undefined ? data.snn.confidence : latestSNNResult?.prediction?.confidence;
+  const cnnWeight = (cnnConfRaw !== undefined && cnnConfRaw !== null && Number.isFinite(Number(cnnConfRaw)))
+    ? Math.round(Number(cnnConfRaw) <= 1 ? Number(cnnConfRaw) * 100 : Number(cnnConfRaw))
+    : 0;
+  const snnWeight = (snnConfRaw !== undefined && snnConfRaw !== null && Number.isFinite(Number(snnConfRaw)))
+    ? Math.round(Number(snnConfRaw) <= 1 ? Number(snnConfRaw) * 100 : Number(snnConfRaw))
+    : 0;
   const triggeredRules = data.expert_veto?.triggered_rules || [];
   const safetyWeight = triggeredRules.length && !(triggeredRules.length === 1 && triggeredRules[0].rule_id === "EVR-007") ? 75 : 100;
 
@@ -3016,10 +3026,11 @@ function renderFigure7(data) {
   const aqiVal = parseFloat(document.getElementById("sliderAqi")?.value) || weatherCtx?.air_quality?.aqi || 64;
   const ozoneVal = parseFloat(document.getElementById("sliderOzone")?.value) || (weatherCtx?.air_quality?.ozone_ppb ? weatherCtx.air_quality.ozone_ppb / 1000 : 0.041);
 
-  // Multimodal Concordance & Alignment
-  const relationship = fusion.relationship || (isHealthy ? "BASELINE_HEALTHY" : "ALIGNED");
-  const alignmentScore = fusion.alignment_score !== undefined ? fusion.alignment_score : (isHealthy ? 0.95 : 0.88);
-  const scorePct = Math.round(alignmentScore * 100);
+  // Multimodal Concordance & Alignment (strictly from fusion engine output; no fabricated fallbacks)
+  const relationship = fusion.relationship || "INCONCLUSIVE";
+  const rawAlignment = fusion.alignment_score;
+  const hasValidConcordance = rawAlignment !== null && rawAlignment !== undefined && rawAlignment !== "" && Number.isFinite(Number(rawAlignment));
+  const scorePct = hasValidConcordance ? Math.round(Number(rawAlignment) * 100) : null;
 
   // Triggered Expert Rules
   const triggeredRules = data.expert_veto?.triggered_rules || [];
@@ -3225,7 +3236,7 @@ function renderFigure7(data) {
     }
   }
   if (combAlignScore) {
-    combAlignScore.textContent = `Concordance Score: ${scorePct}%`;
+    combAlignScore.textContent = scorePct !== null ? `Concordance: ${scorePct}%` : "Concordance: Not Available";
   }
   if (combFusionSummary) {
     combFusionSummary.textContent = data.final_assessment?.summary || fusion.summary || 
@@ -3352,15 +3363,27 @@ function renderFigure7(data) {
     }
   }
 
-  // 3. Assessment Breakdown & Donut Chart
+  // 3. Assessment Evidence Weighting Breakdown & Donut Chart (kept separate from concordance)
   const exactDonutScore = document.getElementById("exactDonutScore");
   if (exactDonutScore) {
-    exactDonutScore.textContent = `${scorePct}%`;
+    exactDonutScore.textContent = "100%";
   }
 
-  // Compute breakdown weights summing to 100%
+  let snnConfRaw = data.snn?.confidence_percentage !== undefined
+    ? data.snn.confidence_percentage
+    : (data.snn?.confidence !== undefined
+      ? data.snn.confidence
+      : (data.environmental_assessment?.confidence !== undefined
+        ? data.environmental_assessment.confidence
+        : latestSNNResult?.prediction?.confidence));
+  let snnConfNum = (snnConfRaw !== undefined && snnConfRaw !== null && Number.isFinite(Number(snnConfRaw)))
+    ? Number(snnConfRaw)
+    : 50.0;
+  if (snnConfNum <= 1.0) snnConfNum = snnConfNum * 100.0;
+
+  // Compute breakdown weights summing to 100% using model confidences (independent of concordance)
   let cnnWeight = Math.min(60, Math.max(30, Math.round((visualConfNum / 100) * 45 + 5)));
-  let snnWeight = Math.min(45, Math.max(25, Math.round(alignmentScore * 35)));
+  let snnWeight = Math.min(45, Math.max(25, Math.round((snnConfNum / 100) * 35)));
   let ruleWeight = 100 - (cnnWeight + snnWeight);
   if (ruleWeight < 10) {
     ruleWeight = 15;
@@ -3431,7 +3454,11 @@ function renderFigure7(data) {
     if (isHealthy) {
       insights.push("Leaf foliar tissue shows intact chlorophyll pigmentation and healthy cellular structure.");
       insights.push(`Environmental parameters (${tempVal.toFixed(1)}°C, ${Math.round(humVal)}% RH) are well within optimal growth thresholds.`);
-      insights.push(`Multimodal alignment score of ${scorePct}% confirms high diagnostic certainty.`);
+      if (scorePct !== null) {
+        insights.push(`Multimodal concordance of ${scorePct}% confirms strong agreement between foliar and microclimate models.`);
+      } else {
+        insights.push("Multimodal concordance: Not Available.");
+      }
       insights.push("No immediate corrective intervention required; continue standard field maintenance.");
     } else if (visualClass.toLowerCase().includes("water")) {
       insights.push("Leaf shows signs of dehydration and edge wilting consistent with water stress.");
@@ -3556,7 +3583,10 @@ function renderFigure7(data) {
     techLatency.textContent = `⚡ Total: ${measuredLatencies.total_ms.toFixed(1)}ms (CNN ${measuredLatencies.cnn_ms.toFixed(1)}ms · SNN ${measuredLatencies.snn_ms.toFixed(1)}ms · Fusion ${measuredLatencies.fusion_ms.toFixed(1)}ms)`;
   }
   if (techConcordance) {
-    techConcordance.textContent = `Concordance: ${scorePct}% · Relationship: ${(relationship || "ALIGNED").replace(/_/g, " ")}`;
+    const relLabel = (relationship || "INCONCLUSIVE").replace(/_/g, " ");
+    techConcordance.textContent = scorePct !== null
+      ? `Concordance: ${scorePct}% · Relationship: ${relLabel}`
+      : `Concordance: Not Available · Relationship: ${relLabel}`;
   }
   if (techSnn) {
     techSnn.textContent = `${totalSpk} spikes across T=10 timesteps (Low: ${rawSpkCounts.low || 0}, Mod: ${rawSpkCounts.medium || 0}, High: ${rawSpkCounts.high || 0})`;

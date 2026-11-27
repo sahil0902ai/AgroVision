@@ -196,6 +196,7 @@ async def run_unified_analysis(
     snn_evidence_dict = {
         "severity": snn_predicted_severity,
         "confidence": snn_conf,
+        "class_scores": snn_raw_result.get("class_scores"),
         "spike_counts": snn_spike_counts,
         "timesteps": snn_raw_result["timesteps"],
     }
@@ -356,6 +357,7 @@ async def run_unified_analysis(
             predicted_severity=snn_predicted_severity,
             confidence=snn_conf,
             confidence_percentage=round(snn_conf * 100.0, 2),
+            class_scores=snn_raw_result.get("class_scores"),
             spike_counts=snn_spike_counts,
             timesteps=snn_raw_result["timesteps"],
             membrane_decay_beta=0.95,
@@ -452,6 +454,7 @@ def combine_multimodal_analysis(
         snn_data = {
             "severity": payload.environmental_evidence.severity,
             "confidence": payload.environmental_evidence.confidence,
+            "class_scores": payload.environmental_evidence.class_scores,
             "spike_counts": payload.environmental_evidence.spike_counts,
             "timesteps": payload.environmental_evidence.timesteps,
         }

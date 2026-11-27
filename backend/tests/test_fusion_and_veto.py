@@ -169,6 +169,81 @@ class TestMultimodalFusionAndVetoEngine(unittest.TestCase):
         self.assertGreater(len(recs), 0)
         self.assertTrue(any("Over-Irrigation" in r or "Water Stress" in r for r in recs))
 
+    def test_10_concordance_aligned_predictions(self):
+        """TEST 10: Aligned CNN & SNN distributions compute exact probabilistic concordance (no static values)."""
+        # Case A: Baseline Healthy (Healthy=0.95 vs Low=0.92, Mod=0.08, High=0.00)
+        v_healthy = {
+            "class": "Healthy",
+            "confidence": 0.95,
+            "probabilities": {"Healthy": 0.95, "Water Stress": 0.02, "Heat Stress": 0.01, "Nutrient Deficiency": 0.01, "Pollution": 0.01},
+        }
+        s_low = {"severity": "Low", "confidence": 0.92, "class_scores": {"Low": 0.92, "Moderate": 0.08, "High": 0.00}}
+        fused_a = MultimodalFusionEngine.fuse(v_healthy, s_low)
+        self.assertEqual(fused_a.relationship, EvidenceRelationship.BASELINE_HEALTHY)
+        # p_no=0.95, p_str=0.05; q_no=0.96, q_str=0.04 -> 0.95*0.96 + 0.05*0.04 = 0.914
+        self.assertAlmostEqual(fused_a.alignment_score, 0.914, places=4)
+
+        # Case B: Aligned Stress (Water Stress=0.91, Healthy=0.02 vs High=0.96, Mod=0.04, Low=0.00)
+        v_water = {
+            "class": "Water Stress",
+            "confidence": 0.91,
+            "probabilities": {"Healthy": 0.02, "Water Stress": 0.91, "Heat Stress": 0.04, "Nutrient Deficiency": 0.02, "Pollution": 0.01},
+        }
+        s_high = {"severity": "High", "confidence": 0.96, "class_scores": {"High": 0.96, "Moderate": 0.04, "Low": 0.00}}
+        fused_b = MultimodalFusionEngine.fuse(v_water, s_high)
+        self.assertEqual(fused_b.relationship, EvidenceRelationship.ALIGNED)
+        # p_no=0.02, p_str=0.98; q_no=0.02, q_str=0.98 -> 0.02*0.02 + 0.98*0.98 = 0.9608
+        self.assertAlmostEqual(fused_b.alignment_score, 0.9608, places=4)
+
+    def test_11_concordance_partially_aligned_not_hardcoded_60(self):
+        """TEST 11: Partially aligned predictions vary with actual CNN/SNN distributions (never static 0.60/0.75)."""
+        v_water = {
+            "class": "Water Stress",
+            "confidence": 0.94,
+            "probabilities": {"Healthy": 0.01, "Water Stress": 0.94, "Heat Stress": 0.03, "Nutrient Deficiency": 0.01, "Pollution": 0.01},
+        }
+        # Split Low/Moderate spikes (Low=0.50, Moderate=0.50, High=0.00 -> q_str=0.25, q_no=0.75)
+        s_split = {"severity": "Low", "confidence": 0.50, "class_scores": {"Low": 0.50, "Moderate": 0.50, "High": 0.00}}
+        fused_split = MultimodalFusionEngine.fuse(v_water, s_split)
+        self.assertEqual(fused_split.relationship, EvidenceRelationship.PARTIALLY_ALIGNED)
+        # 0.01*0.75 + 0.99*0.25 = 0.255
+        self.assertAlmostEqual(fused_split.alignment_score, 0.255, places=4)
+        self.assertNotAlmostEqual(fused_split.alignment_score, 0.60, places=2)
+
+        # Moderate SNN (Low=0.10, Moderate=0.80, High=0.10 -> q_str=0.50, q_no=0.50)
+        s_mod = {"severity": "Moderate", "confidence": 0.80, "class_scores": {"Low": 0.10, "Moderate": 0.80, "High": 0.10}}
+        fused_mod = MultimodalFusionEngine.fuse(v_water, s_mod)
+        self.assertEqual(fused_mod.relationship, EvidenceRelationship.PARTIALLY_ALIGNED)
+        self.assertAlmostEqual(fused_mod.alignment_score, 0.50, places=4)
+
+        # Changing spike counts (via softmax fallback) changes concordance dynamically
+        s_strong_low = {"severity": "Low", "confidence": 0.99, "spike_counts": {"Low": 10, "Moderate": 0, "High": 0}}
+        fused_strong_low = MultimodalFusionEngine.fuse(v_water, s_strong_low)
+        self.assertLess(fused_strong_low.alignment_score, fused_split.alignment_score)
+
+    def test_12_concordance_conflicting_predictions(self):
+        """TEST 12: Conflicting Healthy CNN vs High SNN computes low concordance from distributions."""
+        v_healthy = {
+            "class": "Healthy",
+            "confidence": 0.88,
+            "probabilities": {"Healthy": 0.88, "Water Stress": 0.05, "Heat Stress": 0.03, "Nutrient Deficiency": 0.02, "Pollution": 0.02},
+        }
+        s_high = {"severity": "High", "confidence": 0.94, "class_scores": {"High": 0.94, "Moderate": 0.06, "Low": 0.00}}
+        fused = MultimodalFusionEngine.fuse(v_healthy, s_high)
+        self.assertEqual(fused.relationship, EvidenceRelationship.CONFLICTING)
+        # p_no=0.88, p_str=0.12; q_no=0.03, q_str=0.97 -> 0.88*0.03 + 0.12*0.97 = 0.1428
+        self.assertAlmostEqual(fused.alignment_score, 0.1428, places=4)
+
+    def test_13_concordance_unavailable_when_outputs_missing(self):
+        """TEST 13: Missing CNN probabilities or missing SNN scores/spikes returns None (Not Available)."""
+        v_missing = {"class": "Healthy", "confidence": 0.90, "probabilities": {}}
+        s_valid = {"severity": "Low", "confidence": 0.90, "class_scores": {"Low": 0.90, "Moderate": 0.10, "High": 0.00}}
+        self.assertIsNone(MultimodalFusionEngine.fuse(v_missing, s_valid).alignment_score)
+
+        v_valid = {"class": "Healthy", "confidence": 0.90, "probabilities": {"Healthy": 0.90, "Water Stress": 0.10}}
+        s_missing = {"severity": "Low", "confidence": 0.90, "spike_counts": {}}
+        self.assertIsNone(MultimodalFusionEngine.fuse(v_valid, s_missing).alignment_score)
+
 
 if __name__ == "__main__":
     unittest.main()

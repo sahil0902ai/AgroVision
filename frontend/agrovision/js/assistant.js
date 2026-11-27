@@ -321,8 +321,11 @@ function generateAgronomicAIResponse(query, contextRecord) {
   const fieldName = contextRecord?.field_name || "Wardha Field";
 
   // 4. Multimodal Fusion & Expert Veto Extraction
-  const fusionRel = contextRecord?.fusion?.relationship || "ALIGNED";
-  const alignScore = contextRecord?.fusion?.alignment_score ? `${Math.round(contextRecord.fusion.alignment_score * 100)}%` : "95%";
+  const fusionRel = contextRecord?.fusion?.relationship || "INCONCLUSIVE";
+  const rawAlign = contextRecord?.fusion?.alignment_score;
+  const alignScore = (rawAlign !== null && rawAlign !== undefined && rawAlign !== "" && Number.isFinite(Number(rawAlign)))
+    ? `${Math.round(Number(rawAlign) * 100)}%`
+    : "Not Available";
   const vetoStatus = contextRecord?.expert_veto?.overall_status || "PASSED";
   const triggeredRules = contextRecord?.expert_veto?.triggered_rules || [];
 
