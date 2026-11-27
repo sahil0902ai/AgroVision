@@ -594,7 +594,10 @@ async def full_multimodal_analysis(
     aqi: float = Form(50.0),
     ozone: float = Form(0.035),
     growth_stage: str = Form("Flowering"),
+    days_since_sowing: int = Form(60),
     field_name: str = Form("Field A — North Parcel"),
+    weather_source: str = Form("AUTO · Weather API"),
+    weather_context_json: Optional[str] = Form(None),
     user_email: Optional[str] = Form(None),
     db: Session = Depends(get_db),
 ):
@@ -610,16 +613,26 @@ async def full_multimodal_analysis(
         aqi=aqi,
         ozone=ozone,
         growth_stage=growth_stage,
+        days_since_sowing=days_since_sowing,
         field_name=field_name,
+        weather_source=weather_source,
+        weather_context_json=weather_context_json,
         user_email=user_email,
         db=db,
     )
     return CombinedAnalysisResponse(
         record_uuid=res.record_uuid,
+        field_name=res.metadata.field_name,
+        image_url=res.cnn.image_url,
+        heatmap_url=res.cnn.heatmap_url,
+        inference_time_ms=res.cnn.inference_time_ms,
+        weather_context=res.environment.weather_context,
         visual_assessment={
             "class": res.cnn.predicted_class,
             "confidence": res.cnn.confidence,
             "probabilities": res.cnn.probabilities,
+            "image_url": res.cnn.image_url,
+            "heatmap_url": res.cnn.heatmap_url,
         },
         environmental_assessment={
             "severity": res.snn.predicted_severity,

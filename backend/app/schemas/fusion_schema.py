@@ -93,6 +93,9 @@ class CombinedAnalysisResponse(BaseModel):
     success: bool = True
     record_uuid: str | None = None
     field_name: str | None = "Field A — North Parcel"
+    image_url: str | None = None
+    heatmap_url: str | None = None
+    inference_time_ms: float | None = None
     visual_assessment: dict[str, Any]
     environmental_assessment: dict[str, Any]
     environmental_inputs: dict[str, Any]
